@@ -9,14 +9,31 @@ import scipy.io as sio
 # load weather data from .mat file
 weather_data = sio.loadmat('basel_dry_ver2.mat')
 
+'''
+Read weather file from .mat file. 
+The data starts from "00:00 18.12.2018" and ends at "23:00 31.12.2019".
+
+The file contains a table with the following columns:
+    First column - Time of the year, [hours]
+    Second column - air temperature, [C]
+    Third column - relative humidity, [%] (currently not used)
+    Fourth column - wind speed in X-direction, [m/s] (currently not used)
+    Fifth column - wind speed in Y-direction, [m/s] (currently not used)
+    Sixth column - direct sun radiation, [W/m^2]
+    Seventh column - diffuse sun radiation, [W/m^2]
+    Eighth column - sky cover, [] (currently not used)
+    Ninth column - sun elevation, [°]
+    Tenth column - sun azimuth, [°]
+'''
+
 # Extract the main table from the loaded data
-table = weather_data['basel_dry']  
+table = weather_data['basel_dry']
 
 # access the weather data with validation
 try: 
     ambient_temp = table[:, 1]      # Ambient temperature  [°C]
     beam_radiation = table[:, 5]    # Beam radiation       [W/m²]
-    difd_radiation = table[:, 6]    # Diffuse radiation    [W/m²]
+    diff_radiation = table[:, 6]    # Diffuse radiation    [W/m²]
     sun_elevation = table[:, 8]     # Sun elevation        [°]
     sun_azimuth = table[:, 9]       # Sun azimuth          [°]
 
@@ -25,7 +42,7 @@ try:
     print(f"First few values:")
     print(f"- Temperature: {ambient_temp[:5]}")
     print(f"- Beam radiation: {beam_radiation[:5]}")
-    print(f"- Diffuse radiation: {difd_radiation[:5]}")
+    print(f"- Diffuse radiation: {diff_radiation[:5]}")
 
 except IndexError as e:
     print(f"Error accessing data: {e}")
