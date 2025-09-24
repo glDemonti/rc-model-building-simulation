@@ -1,9 +1,27 @@
 import numpy as np
 import scipy.io as sio
 
+# =======================================================
 # Parameters and constants for the RC model
 # =======================================================
 
+# ------------------------------------------------------
+# Definition of areas of building components [m²] in north, east, south, west order
+# ------------------------------------------------------
+
+# unshaded glazing area (without permanent obstacles like balconies)
+unshaded_glazing_area_n = 0.825 * (2.3 * 12 + 1.2 * 6 + 3 * 2.07)  # North facade  [m²]
+unshaded_glazing_area_e = 0.825 * (3.45 * 3 + 2.3 * 3 + 1.98 * 1)   # East facade   [m²]
+unshaded_glazing_area_s = 0.825 * (1.73 * 2 + 5.18 * 2 + 1.98 * 4 + 1.2 * 6 + 2.07 * 1)  # South facade  [m²]
+unshaded_glazing_area_w = 0.825 * (3.45 * 3 + 2.3 * 3 + 2.07 * 1)  # West facade   [m²]
+
+# shaded glazing area (under permanent obstacles like balconies)
+shaded_glazing_area_n = 0.0 # North facade  [m²]
+shaded_glazing_area_e = 0.825 * (1.98 + 2) # East facade   [m²]
+shaded_glazing_area_s = 0.825 * (1.73 * 4 + 5.18 * 4 + 1.98 * 1) # South facade  [m²]
+shaded_glazing_area_w = 0.825 * (2.07 * 2) # West facade   [m²]
+
+# ======================================================
 # Load weather data from file
 # ======================================================
 # load weather data from .mat file
