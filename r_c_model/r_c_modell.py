@@ -2,11 +2,11 @@ import numpy as np
 import scipy.io as sio
 
 # =======================================================
-# Parameters and constants for the RC model
+#  Parameters and constants for the RC model
 # =======================================================
 
 # ------------------------------------------------------
-# Definition of areas of building components [m²] in north, east, south, west order
+# region: Definition of areas of building components [m²] in north, east, south, west order
 # ------------------------------------------------------
 
 # unshaded glazing area (without permanent obstacles like balconies)
@@ -20,6 +20,70 @@ shaded_glazing_area_n = 0.0 # North facade  [m²]
 shaded_glazing_area_e = 0.825 * (1.98 + 2) # East facade   [m²]
 shaded_glazing_area_s = 0.825 * (1.73 * 4 + 5.18 * 4 + 1.98 * 1) # South facade  [m²]
 shaded_glazing_area_w = 0.825 * (2.07 * 2) # West facade   [m²]
+
+# unshaded window frame area (without permanent obstacles like balcony)
+unshaded_frame_area_n = 0.175 * (2.3 * 12 + 1.2 * 6 + 3 * 2.07)   # North facade  [m²]
+unshaded_frame_area_e = 0.175 * (3.45 * 3 + 2.3 * 3 + 1.98 * 1)   # East facade   [m²]
+unshaded_frame_area_s = 0.175 * (1.73 * 2 + 5.18 * 2 + 1.98 * 4 + 1.2 * 6 + 2.07 * 1)  # South facade  [m²]
+unshaded_frame_area_w = 0.175 * (3.45 * 3 + 2.3 * 3 + 2.07 * 1)  # West facade   [m²]
+
+# shaded window frame area (under permanent obstacles like balconies)
+shaded_frame_area_n = 0.0  # North facade  [m²]
+shaded_frame_area_e = 0.175 * (1.98 * 2)  # East facade   [m²]
+shaded_frame_area_s = 0.175 * (1.73 * 4 + 5.18 * 4 + 1.98 * 8 + 2.07 * 2)   # South facade  [m²]
+shaded_frame_area_w = 0.175 * (2.07 * 2)  # West facade   [m²]
+
+# total glazing area
+glazing_area_n = unshaded_glazing_area_n + shaded_glazing_area_n  # North facade  [m²]
+glazing_area_e = unshaded_glazing_area_e + shaded_glazing_area_e  # East facade   [m²]
+glazing_area_s = unshaded_glazing_area_s + shaded_glazing_area_s  # South facade  [m²]
+glazing_area_w = unshaded_glazing_area_w + shaded_glazing_area_w  # West facade   [m²]
+
+# total window frame area
+frame_area_n = unshaded_frame_area_n + shaded_frame_area_n  # North facade  [m²]
+frame_area_e = unshaded_frame_area_e + shaded_frame_area_e  # East facade   [m²]
+frame_area_s = unshaded_frame_area_s + shaded_frame_area_s  # South facade  [m²]
+frame_area_w = unshaded_frame_area_w + shaded_frame_area_w  # West facade   [m²]
+
+% - areas of external walls
+# areas of external walls (excluding glazings and frames)
+wall_area_n = 2.5 * 3 * (32.6 + 1.6 - 6.0) - glazing_area_n - frame_area_n # North facade [m^2], excluding glazings
+wall_area_e = 2.5 * 3 * 14.0 - glazing_area_e - frame_area_e # East facade [m^2], excluding glazings
+wall_area_s = 2.5 * 3 * (32.6 + 1.6) - glazing_area_s - frame_area_s # South facade [m^2], excluding glazings
+wall_area_w = 2.5 * 3 * 14.0 - glazing_area_w - frame_area_w # West facade [m^2], excluding glazings
+
+# areas of roof against unheated or ambiency     todo: check if correct
+roof_area = 313.8       # Roof area [m²] excluding roof windows
+
+# area of a floor against unheated or ground
+floor_area = 313.8      # Floor area [m²]
+
+# area of internal walls
+int_wall_area =  (72.975 + 91.9 + 2.0 *19.75) * 3.0     # Internal wall area [m²] (both sides should be present)
+
+# area of internal ceilings / floors
+int_ceiling_area = 313.8 * 2.0 * 2.0     # Internal ceiling area [m²] (both sides should be present)
+
+# area of walls against unheated zones like staircases
+wall_against_unheated_area = (21.5 + 12.5 + 5.3) * 3.0  # Wall area against unheated zones [m²]
+
+# orientation vectors of walls
+surface_vector_north = np.array([0, 1, 0])   # North facade
+surface_vector_east = np.array([1, 0, 0])    # East facade
+surface_vector_south = np.array([0, -1, 0])  # South facade
+surface_vector_west = np.array([-1, 0, 0])   # West facade
+surface_vector_roof = np.array([0, 0, 1])   # Roof
+# todo: make it with Pandas DataFrame? or a multipl vactor array?
+
+# height of the building (needed for air temperature calculations)
+building_height = 2.5 * 3  # Height of the building [m]
+
+# summ of all areas of all constructions, excluding walls against unheated zones
+total_area_constructions = (glazing_area_n + glazing_area_e + glazing_area_s + glazing_area_w +
+                            frame_area_n + frame_area_e + frame_area_s + frame_area_w +
+                            wall_area_n + wall_area_e + wall_area_s + wall_area_w +
+                            roof_area + floor_area + int_wall_area + int_ceiling_area) # Total area of all constructions [m²] 
+# endregion 
 
 # ======================================================
 # Load weather data from file
