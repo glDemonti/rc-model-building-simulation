@@ -95,7 +95,7 @@ shading_g_value_reduction_factor = 0.14  # Reduction factor of g-value due to sh
 frame_u_value = 2.0         # U-value of window frame [W/m²K]
 
 # Thermal properties of opaque building components
-wall_against_inheated_u_value = 1 / (2 / 8.0 + 0.17 / 0.79) # u-value of Wall against unheated zones [W/m²K]
+wall_against_unheated_u_value = 1 / (2 / 8.0 + 0.17 / 0.79) # u-value of Wall against unheated zones [W/m²K]
 
 # Thermal properties of inside layers of building components
 wall_inside_lambda = 1.8 
@@ -388,6 +388,603 @@ surf_rad_htc_int_ceiling_wall_w = surf_rad_htc * int_ceiling_area * wall_area_w 
 surf_rad_htc_int_ceiling_roof = surf_rad_htc * int_ceiling_area * roof_area / (total_area_constructions - int_ceiling_area)
 surf_rad_htc_int_ceiling_floor = surf_rad_htc * int_ceiling_area * floor_area / (total_area_constructions - int_ceiling_area)
 surf_rad_htc_int_ceiling_int_wall = surf_rad_htc_int_wall_int_ceiling
+
+# endregion
+
+# initialization of left matrix for a system of linear equations
+left_matrix = np.zeros((49, 49))
+
+# definition of the lines of the system of linear equations
+line_air =     # line for air temperature node
+
+line_in_glazing_n = 1  # line for inside glazing temperature in north direction
+line_in_glazing_e = 2  # line for inside glazing temperature in east direction
+line_in_glazing_s = 3  # line for inside glazing temperature in south direction
+line_in_glazing_w = 4  # line for inside glazing temperature in west direction
+
+line_out_glazing_n = 5  # line for outside glazing temperature in north direction
+line_out_glazing_e = 6  # line for outside glazing temperature in east direction
+line_out_glazing_s = 7  # line for outside glazing temperature in south direction
+line_out_glazing_w = 8  # line for outside glazing temperature in west direction
+
+line_in_frame_n = 9   # line for inside frame temperature in north direction
+line_in_frame_e = 10  # line for inside frame temperature in east direction
+line_in_frame_s = 11  # line for inside frame temperature in south direction
+line_in_frame_w = 12  # line for inside frame temperature in west direction
+
+line_out_frame_n = 13  # line for outside frame temperature in north direction
+line_out_frame_e = 14  # line for outside frame temperature in east direction
+line_out_frame_s = 15  # line for outside frame temperature in south direction
+line_out_frame_w = 16  # line for outside frame temperature in west direction
+
+line_wall_n_1 = 17  # line for the 1. node of the external wall in noth direction
+line_wall_e_1 = 18  # line for the 1. node of the external wall in east direction
+line_wall_s_1 = 19  # line for the 1. node of the external wall in south direction
+line_wall_w_1 = 20  # line for the 1. node of the external wall in west direction
+line_roof_1 = 21    # line for the 1. node of the roof
+line_floor_1 = 22   # line for the 1. node of the floor
+line_int_wall_1 = 23  # line for the 1. node of the internal walls
+line_int_ceiling_1 = 24  # line for the 1. node of the internal ceilings
+
+line_wall_n_2 = 25  # line for the 2. node of the external wall in noth direction
+line_wall_e_2 = 26  # line for the 2. node of the external wall in east direction
+line_wall_s_2 = 27  # line for the 2. node of the
+line_wall_w_2 = 28  # line for the 2. node of the external wall in west direction
+line_roof_2 = 29    # line for the 2. node of the roof
+line_floor_2 = 30   # line for the 2. node of the floor
+line_int_wall_2 = 31  # line for the 2. node of the internal walls
+line_int_ceiling_2 = 32  # line for the 2. node of the internal ceilings
+
+line_wall_n_3 = 33  # line for the 3. node of the external wall in noth direction
+line_wall_e_3 = 34  # line for the 3. node of the external wall in east direction
+line_wall_s_3 = 35  # line for the 3. node of the external wall in south direction
+line_wall_w_3 = 36  # line for the 3. node of the external wall in west direction
+line_roof_3 = 37    # line for the 3. node of the roof
+line_floor_3 = 38   # line for the 3. node of the floor
+line_int_wall_3 = 39  # line for the 3. node of the internal walls
+line_int_ceiling_3 = 40  # line for the 3. node of the internal ceilings
+
+line_wall_n_4 = 41  # line for the 4. node of the external wall in noth direction
+line_wall_e_4 = 42  # line for the 4. node of the external wall in east direction
+line_wall_s_4 = 43  # line for the 4. node of the external wall in south direction
+line_wall_w_4 = 44  # line for the 4. node of the external wall in west direction
+line_roof_4 = 45    # line for the 4. node of the roof
+line_floor_4 = 46   # line for the 4. node of the floor
+line_int_wall_4 = 47  # line for the 4. node of the internal walls
+line_int_ceiling_4 = 48  # line for the 4. node of the internal ceilings
+
+# ------------------------------------------------------
+# region: Definition of the values in the left matrix
+# ------------------------------------------------------
+
+# air temperature equation
+left_matrix[line_air, line_air] = (building_height * floor_area * 1006 * 1.185 +
+    surf_htc_in * total_area_constructions *time_step + 
+    (thermal_bridges + wall_against_unheated_u_value * wall_against_unheated_area) * time_step +
+    (infiltration_rate + air_ventilation_rate * (1.0 - heat_exchanger_efficiency)) * 1006 * 1.185 * time_step)
+left_matrix[line_air, line_in_glazing_n] = -surf_htc_in * time_step * glazing_area_n
+left_matrix[line_air, line_in_glazing_e] = -surf_htc_in * time_step * glazing_area_e
+left_matrix[line_air, line_in_glazing_s] = -surf_htc_in * time_step * glazing_area_s
+left_matrix[line_air, line_in_glazing_w] = -surf_htc_in * time_step * glazing_area_w
+left_matrix[line_air, line_in_frame_n] = -surf_htc_in * time_step * frame_area_n
+left_matrix[line_air, line_in_frame_e] = -surf_htc_in * time_step * frame_area_e
+left_matrix[line_air, line_in_frame_s] = -surf_htc_in * time_step * frame_area_s
+left_matrix[line_air, line_in_frame_w] = -surf_htc_in * time_step * frame_area_w
+left_matrix[line_air, line_wall_n_1] = -surf_htc_in * time_step * wall_area_n
+left_matrix[line_air, line_wall_e_1] = -surf_htc_in * time_step * wall_area_e
+left_matrix[line_air, line_wall_s_1] = -surf_htc_in * time_step * wall_area_s
+left_matrix[line_air, line_wall_w_1] = -surf_htc_in * time_step * wall_area_w
+left_matrix[line_air, line_roof_1] = -surf_htc_in * time_step * roof_area
+left_matrix[line_air, line_floor_1] = -surf_htc_in * time_step * floor_area
+left_matrix[line_air, line_int_wall_1] = -surf_htc_in * time_step * int_wall_area
+left_matrix[line_air, line_int_ceiling_1] = -surf_htc_in * time_step * int_ceiling_area
+
+# temperature of the inside node of glazing in north direction
+left_matrix[line_in_glazing_n, line_air] = left_matrix[line_air, line_in_glazing_n]
+left_matrix[line_in_glazing_n, line_out_glazing_n] = -glazing_area_n * time_step * 1.0 / (1.0 / glazing_u_value - 1.0 / surf_htc_in - 1.0 / surf_htc_out)
+left_matrix[line_in_glazing_n, line_int_wall_1] = -surf_rad_htc_int_wall_glazing_n * time_step
+left_matrix[line_in_glazing_n, line_int_ceiling_1] = -surf_rad_htc_int_ceiling_glazing_n * time_step
+
+left_matrix[line_in_glazing_n, line_in_glazing_n] = (
+    - left_matrix[line_in_glazing_n, line_air]
+    - left_matrix[line_in_glazing_n, line_out_glazing_n]
+    - left_matrix[line_in_glazing_n, line_int_wall_1]
+    - left_matrix[line_in_glazing_n, line_int_ceiling_1]
+)
+
+# temperature of the inside node of glazing in east direction
+left_matrix[line_in_glazing_e, line_air] = left_matrix[line_air, line_in_glazing_e]
+left_matrix[line_in_glazing_e, line_out_glazing_e] = -glazing_area_e * time_step * 1.0 / (1.0 / glazing_u_value - 1.0 / surf_htc_in - 1.0 / surf_htc_out)
+left_matrix[line_in_glazing_e, line_int_wall_1] = -surf_rad_htc_int_wall_glazing_e * time_step
+left_matrix[line_in_glazing_e, line_int_ceiling_1] = -surf_rad_htc_int_ceiling_glazing_e * time_step
+
+left_matrix[line_in_glazing_e, line_in_glazing_e] = (
+    - left_matrix[line_in_glazing_e, line_air]
+    - left_matrix[line_in_glazing_e, line_out_glazing_e]
+    - left_matrix[line_in_glazing_e, line_int_wall_1]
+    - left_matrix[line_in_glazing_e, line_int_ceiling_1]
+)
+
+# temperature of the inside node of glazing in south direction
+left_matrix[line_in_glazing_s, line_air] = left_matrix[line_air, line_in_glazing_s]
+left_matrix[line_in_glazing_s, line_out_glazing_s] = -glazing_area_s * time_step * 1.0 / (1.0 / glazing_u_value - 1.0 / surf_htc_in - 1.0 / surf_htc_out)
+left_matrix[line_in_glazing_s, line_int_wall_1] = -surf_rad_htc_int_wall_glazing_s * time_step
+left_matrix[line_in_glazing_s, line_int_ceiling_1] = -surf_rad_htc_int_ceiling_glazing_s * time_step
+
+left_matrix[line_in_glazing_s, line_in_glazing_s] = (
+    - left_matrix[line_in_glazing_s, line_air]
+    - left_matrix[line_in_glazing_s, line_out_glazing_s]
+    - left_matrix[line_in_glazing_s, line_int_wall_1]
+    - left_matrix[line_in_glazing_s, line_int_ceiling_1]
+)
+
+# temperature of the inside node of glazing in west direction
+left_matrix[line_in_glazing_w, line_air] = left_matrix[line_air, line_in_glazing_w]
+left_matrix[line_in_glazing_w, line_out_glazing_w] = -glazing_area_w * time_step * 1.0 / (1.0 / glazing_u_value - 1.0 / surf_htc_in - 1.0 / surf_htc_out)
+left_matrix[line_in_glazing_w, line_int_wall_1] = -surf_rad_htc_int_wall_glazing_w * time_step
+left_matrix[line_in_glazing_w, line_int_ceiling_1] = -surf_rad_htc_int_ceiling_glazing_w * time_step
+
+# temperature of the inside node of glazing in west direction
+left_matrix[line_in_glazing_w, line_in_glazing_w] = (
+    - left_matrix[line_in_glazing_w, line_air]
+    - left_matrix[line_in_glazing_w, line_out_glazing_w]
+    - left_matrix[line_in_glazing_w, line_int_wall_1]
+    - left_matrix[line_in_glazing_w, line_int_ceiling_1]
+)
+
+# temperature of the outside node of glazing in north direction
+left_matrix[line_out_glazing_n, line_in_glazing_n] = left_matrix[line_in_glazing_n, line_out_glazing_n]
+left_matrix[line_out_glazing_n, line_out_glazing_n] = -left_matrix[line_out_glazing_n, line_in_glazing_n] + glazing_area_n * surf_htc_out * time_step
+
+# temperature of the outside node of glazing in east direction
+left_matrix[line_out_glazing_e, line_in_glazing_e] = left_matrix[line_in_glazing_e, line_out_glazing_e]
+left_matrix[line_out_glazing_e, line_out_glazing_e] = -left_matrix[line_out_glazing_e, line_in_glazing_e] + glazing_area_e * surf_htc_out * time_step
+
+# temperature of the outside node of glazing in south direction
+left_matrix[line_out_glazing_s, line_in_glazing_s] = left_matrix[line_in_glazing_s, line_out_glazing_s]
+left_matrix[line_out_glazing_s, line_out_glazing_s] = -left_matrix[line_out_glazing_s, line_in_glazing_s] + glazing_area_s * surf_htc_out * time_step
+
+# temperature of the outside node of glazing in west direction
+left_matrix[line_out_glazing_w, line_in_glazing_w] = left_matrix[line_in_glazing_w, line_out_glazing_w]
+left_matrix[line_out_glazing_w, line_out_glazing_w] = -left_matrix[line_out_glazing_w, line_in_glazing_w] + glazing_area_w * surf_htc_out * time_step
+
+# temperature of the inside node of noth window frame
+left_matrix[line_in_frame_n, line_air] = left_matrix[line_air, line_in_frame_n]
+left_matrix[line_in_frame_n, line_out_frame_n] = -frame_area_n * time_step * 1.0 / (1.0 / frame_u_value - 1.0 / surf_htc_in - 1.0 / surf_htc_out)
+left_matrix[line_in_frame_n, line_int_wall_1] = -surf_rad_htc_int_wall_frame_n * time_step
+left_matrix[line_in_frame_n, line_int_ceiling_1] = -surf_rad_htc_int_ceiling_frame_n * time_step
+
+left_matrix[line_in_frame_n, line_in_frame_n] = (
+    - left_matrix[line_in_frame_n, line_air]
+    - left_matrix[line_in_frame_n, line_out_frame_n]
+    - left_matrix[line_in_frame_n, line_int_wall_1]
+    - left_matrix[line_in_frame_n, line_int_ceiling_1]
+)
+
+# temperature of the inside node of east window frame
+left_matrix[line_in_frame_e, line_air] = left_matrix[line_air, line_in_frame_e]
+left_matrix[line_in_frame_e, line_out_frame_e] = -frame_area_e * time_step * 1.0 / (1.0 / frame_u_value - 1.0 / surf_htc_in - 1.0 / surf_htc_out)
+left_matrix[line_in_frame_e, line_int_wall_1] = -surf_rad_htc_int_wall_frame_e * time_step
+left_matrix[line_in_frame_e, line_int_ceiling_1] = -surf_rad_htc_int_ceiling_frame_e * time_step
+
+left_matrix[line_in_frame_e, line_in_frame_e] = (
+    - left_matrix[line_in_frame_e, line_air]
+    - left_matrix[line_in_frame_e, line_out_frame_e]
+    - left_matrix[line_in_frame_e, line_int_wall_1]
+    - left_matrix[line_in_frame_e, line_int_ceiling_1]
+)
+
+# temperature of the inside node of south window frame
+left_matrix[line_in_frame_s, line_air] = left_matrix[line_air, line_in_frame_s]
+left_matrix[line_in_frame_s, line_out_frame_s] = -frame_area_s * time_step * 1.0 / (1.0 / frame_u_value - 1.0 / surf_htc_in - 1.0 / surf_htc_out)
+left_matrix[line_in_frame_s, line_int_wall_1] = -surf_rad_htc_int_wall_frame_s * time_step
+left_matrix[line_in_frame_s, line_int_ceiling_1] = -surf_rad_htc_int_ceiling_frame_s * time_step
+
+left_matrix[line_in_frame_s, line_in_frame_s] = (
+    - left_matrix[line_in_frame_s, line_air]
+    - left_matrix[line_in_frame_s, line_out_frame_s]
+    - left_matrix[line_in_frame_s, line_int_wall_1]
+    - left_matrix[line_in_frame_s, line_int_ceiling_1]
+)
+
+# temperature of the inside node of west window frame
+left_matrix[line_in_frame_w, line_air] = left_matrix[line_air, line_in_frame_w]
+left_matrix[line_in_frame_w, line_out_frame_w] = -frame_area_w * time_step * 1.0 / (1.0 / frame_u_value - 1.0 / surf_htc_in - 1.0 / surf_htc_out)
+left_matrix[line_in_frame_w, line_int_wall_1] = -surf_rad_htc_int_wall_frame_w * time_step
+left_matrix[line_in_frame_w, line_int_ceiling_1] = -surf_rad_htc_int_ceiling_frame_w * time_step
+
+left_matrix[line_in_frame_w, line_in_frame_w] = (
+    - left_matrix[line_in_frame_w, line_air]
+    - left_matrix[line_in_frame_w, line_out_frame_w]
+    - left_matrix[line_in_frame_w, line_int_wall_1]
+    - left_matrix[line_in_frame_w, line_int_ceiling_1]
+)
+
+# temperature of the outside node of north window frame
+left_matrix[line_out_frame_n, line_in_frame_n] = left_matrix[line_in_frame_n, line_out_frame_n]
+left_matrix[line_out_frame_n, line_out_frame_n] = -left_matrix[line_out_frame_n, line_in_frame_n] + frame_area_n * surf_htc_out * time_step
+
+# temperature of the outside node of east window frame
+left_matrix[line_out_frame_e, line_in_frame_e] = left_matrix[line_in_frame_e, line_out_frame_e]
+left_matrix[line_out_frame_e, line_out_frame_e] = -left_matrix[line_out_frame_e, line_in_frame_e] + frame_area_e * surf_htc_out * time_step
+
+# temperature of the outside node of south window frame
+left_matrix[line_out_frame_s, line_in_frame_s] = left_matrix[line_in_frame_s, line_out_frame_s]
+left_matrix[line_out_frame_s, line_out_frame_s] = -left_matrix[line_out_frame_s, line_in_frame_s] + frame_area_s * surf_htc_out * time_step
+
+# temperature of the outside node of west window frame
+left_matrix[line_out_frame_w, line_in_frame_w] = left_matrix[line_in_frame_w, line_out_frame_w]
+left_matrix[line_out_frame_w, line_out_frame_w] = -left_matrix[line_out_frame_w, line_in_frame_w] + frame_area_w * surf_htc_out * time_step
+
+# temperature of the 1. node of the external wall in north direction
+left_matrix[line_wall_n_1, line_air] = left_matrix[line_air, line_wall_n_1]
+left_matrix[line_wall_n_1, line_wall_n_2] = -wall_area_n * time_step * wall_inside_lambda / wall_inside_thickness / 0.75
+left_matrix[line_wall_n_1, line_int_wall_1] = -surf_rad_htc_int_wall_wall_n * time_step
+left_matrix[line_wall_n_1, line_int_ceiling_1] = -surf_rad_htc_int_ceiling_wall_n * time_step
+
+left_matrix[line_wall_n_1, line_wall_n_1] = (
+    wall_area_n * wall_inside_capacity_density * wall_inside_thickness * 0.5
+    - left_matrix[line_wall_n_1, line_air]
+    - left_matrix[line_wall_n_1, line_wall_n_2]
+    - left_matrix[line_wall_n_1, line_int_wall_1]
+    - left_matrix[line_wall_n_1, line_int_ceiling_1]
+)
+
+# temperature of the 1. node of the external wall in east direction
+left_matrix[line_wall_e_1, line_air] = left_matrix[line_air, line_wall_e_1]
+left_matrix[line_wall_e_1, line_wall_e_2] = -wall_area_e * time_step * wall_inside_lambda / wall_inside_thickness / 0.75
+left_matrix[line_wall_e_1, line_int_wall_1] = -surf_rad_htc_int_wall_wall_e * time_step
+left_matrix[line_wall_e_1, line_int_ceiling_1] = -surf_rad_htc_int_ceiling_wall_e * time_step
+
+left_matrix[line_wall_e_1, line_wall_e_1] = (
+    wall_area_e * wall_inside_capacity_density * wall_inside_thickness * 0.5
+    - left_matrix[line_wall_e_1, line_air]
+    - left_matrix[line_wall_e_1, line_wall_e_2]
+    - left_matrix[line_wall_e_1, line_int_wall_1]
+    - left_matrix[line_wall_e_1, line_int_ceiling_1]
+)
+
+# temperature of the 1. node of the external wall in south direction
+left_matrix[line_wall_s_1, line_air] = left_matrix[line_air, line_wall_s_1]
+left_matrix[line_wall_s_1, line_wall_s_2] = -wall_area_s * time_step * wall_inside_lambda / wall_inside_thickness / 0.75
+left_matrix[line_wall_s_1, line_int_wall_1] = -surf_rad_htc_int_wall_wall_s * time_step
+left_matrix[line_wall_s_1, line_int_ceiling_1] = -surf_rad_htc_int_ceiling_wall_s * time_step
+
+left_matrix[line_wall_s_1, line_wall_s_1] = (
+    wall_area_s * wall_inside_capacity_density * wall_inside_thickness * 0.5
+    - left_matrix[line_wall_s_1, line_air]
+    - left_matrix[line_wall_s_1, line_wall_s_2]
+    - left_matrix[line_wall_s_1, line_int_wall_1]
+    - left_matrix[line_wall_s_1, line_int_ceiling_1]
+)
+
+# temperature of the 1. node of the external wall in west direction
+left_matrix[line_wall_w_1, line_air] = left_matrix[line_air, line_wall_w_1]
+left_matrix[line_wall_w_1, line_wall_w_2] = -wall_area_w * time_step * wall_inside_lambda / wall_inside_thickness / 0.75
+left_matrix[line_wall_w_1, line_int_wall_1] = -surf_rad_htc_int_wall_wall_w * time_step
+left_matrix[line_wall_w_1, line_int_ceiling_1] = -surf_rad_htc_int_ceiling_wall_w * time_step
+
+left_matrix[line_wall_w_1, line_wall_w_1] = (
+    wall_area_w * wall_inside_capacity_density * wall_inside_thickness * 0.5
+    - left_matrix[line_wall_w_1, line_air]
+    - left_matrix[line_wall_w_1, line_wall_w_2]
+    - left_matrix[line_wall_w_1, line_int_wall_1]
+    - left_matrix[line_wall_w_1, line_int_ceiling_1]
+)
+
+# temperature of the 1. node of the roof
+left_matrix[line_roof_1, line_air] = left_matrix[line_air, line_roof_1]
+left_matrix[line_roof_1, line_roof_2] = -roof_area * time_step * roof_inside_lambda / roof_inside_thickness / 0.75
+left_matrix[line_roof_1, line_int_wall_1] = -surf_rad_htc_int_wall_roof * time_step
+left_matrix[line_roof_1, line_int_ceiling_1] = -surf_rad_htc_int_ceiling_roof * time_step
+
+left_matrix[line_roof_1, line_roof_1] = (
+    roof_area * roof_inside_capacity_density * roof_inside_thickness * 0.5
+    - left_matrix[line_roof_1, line_air]
+    - left_matrix[line_roof_1, line_roof_2]
+    - left_matrix[line_roof_1, line_int_wall_1]
+    - left_matrix[line_roof_1, line_int_ceiling_1]
+)
+
+# temperature of the 1. node of the floor
+left_matrix[line_floor_1, line_air] = left_matrix[line_air, line_floor_1]
+left_matrix[line_floor_1, line_floor_2] = -floor_area * time_step * floor_inside_lambda / floor_inside_thickness / 0.75
+left_matrix[line_floor_1, line_int_wall_1] = -surf_rad_htc_int_wall_floor * time_step
+left_matrix[line_floor_1, line_int_ceiling_1] = -surf_rad_htc_int_ceiling_floor * time_step
+
+left_matrix[line_floor_1, line_floor_1] = (
+    floor_area * floor_inside_capacity_density * floor_inside_thickness * 0.5
+    - left_matrix[line_floor_1, line_air]
+    - left_matrix[line_floor_1, line_floor_2]
+    - left_matrix[line_floor_1, line_int_wall_1]
+    - left_matrix[line_floor_1, line_int_ceiling_1]
+)
+
+# temperature of the 1. node of the internal walls
+left_matrix[line_int_wall_1, line_air] = left_matrix[line_air, line_int_wall_1]
+left_matrix[line_int_wall_1, line_int_wall_2] = -int_wall_area * time_step * int_wall_lambda / int_wall_thickness / (0.125 + 0.0625)
+left_matrix[line_int_wall_1, line_in_glazing_n] = left_matrix[line_in_glazing_n, line_int_wall_1]
+left_matrix[line_int_wall_1, line_in_glazing_e] = left_matrix[line_in_glazing_e, line_int_wall_1]
+left_matrix[line_int_wall_1, line_in_glazing_s] = left_matrix[line_in_glazing_s, line_int_wall_1]
+left_matrix[line_int_wall_1, line_in_glazing_w] = left_matrix[line_in_glazing_w, line_int_wall_1]
+left_matrix[line_int_wall_1, line_in_frame_n] = left_matrix[line_in_frame_n, line_int_wall_1]
+left_matrix[line_int_wall_1, line_in_frame_e] = left_matrix[line_in_frame_e, line_int_wall_1]
+left_matrix[line_int_wall_1, line_in_frame_s] = left_matrix[line_in_frame_s, line_int_wall_1]
+left_matrix[line_int_wall_1, line_in_frame_w] = left_matrix[line_in_frame_w, line_int_wall_1]
+left_matrix[line_int_wall_1, line_wall_n_1] = left_matrix[line_wall_n_1, line_int_wall_1]
+left_matrix[line_int_wall_1, line_wall_e_1] = left_matrix[line_wall_e_1, line_int_wall_1]
+left_matrix[line_int_wall_1, line_wall_s_1] = left_matrix[line_wall_s_1, line_int_wall_1]
+left_matrix[line_int_wall_1, line_wall_w_1] = left_matrix[line_wall_w_1, line_int_wall_1]
+left_matrix[line_int_wall_1, line_roof_1] = left_matrix[line_roof_1, line_int_wall_1]
+left_matrix[line_int_wall_1, line_floor_1] = left_matrix[line_floor_1, line_int_wall_1]
+left_matrix[line_int_wall_1, line_int_ceiling_1] = -surf_rad_htc_int_wall_int_ceiling * time_step
+
+left_matrix[line_int_wall_1, line_int_wall_1] = (
+    int_wall_area * int_wall_capacity_density * int_wall_thickness * 0.125
+    - left_matrix[line_int_wall_1, line_air]
+    - left_matrix[line_int_wall_1, line_int_wall_2]
+    - left_matrix[line_int_wall_1, line_in_glazing_n]
+    - left_matrix[line_int_wall_1, line_in_glazing_e]
+    - left_matrix[line_int_wall_1, line_in_glazing_s]
+    - left_matrix[line_int_wall_1, line_in_glazing_w]
+    - left_matrix[line_int_wall_1, line_in_frame_n]
+    - left_matrix[line_int_wall_1, line_in_frame_e]
+    - left_matrix[line_int_wall_1, line_in_frame_s]
+    - left_matrix[line_int_wall_1, line_in_frame_w]
+    - left_matrix[line_int_wall_1, line_wall_n_1]
+    - left_matrix[line_int_wall_1, line_wall_e_1]
+    - left_matrix[line_int_wall_1, line_wall_s_1]
+    - left_matrix[line_int_wall_1, line_wall_w_1]
+    - left_matrix[line_int_wall_1, line_roof_1]
+    - left_matrix[line_int_wall_1, line_floor_1]
+    - left_matrix[line_int_wall_1, line_int_ceiling_1]
+)
+
+# temperature of the 1. node of the internal ceilings
+left_matrix[line_int_ceiling_1, line_air] = left_matrix[line_air, line_int_ceiling_1]
+left_matrix[line_int_ceiling_1, line_int_ceiling_2] = -int_ceiling_area * time_step * int_ceiling_lambda / int_ceiling_thickness / (0.125 + 0.0625)
+left_matrix[line_int_ceiling_1, line_in_glazing_n] = left_matrix[line_in_glazing_n, line_int_ceiling_1]
+left_matrix[line_int_ceiling_1, line_in_glazing_e] = left_matrix[line_in_glazing_e, line_int_ceiling_1]
+left_matrix[line_int_ceiling_1, line_in_glazing_s] = left_matrix[line_in_glazing_s, line_int_ceiling_1]
+left_matrix[line_int_ceiling_1, line_in_glazing_w] = left_matrix[line_in_glazing_w, line_int_ceiling_1]
+left_matrix[line_int_ceiling_1, line_in_frame_n] = left_matrix[line_in_frame_n, line_int_ceiling_1]
+left_matrix[line_int_ceiling_1, line_in_frame_e] = left_matrix[line_in_frame_e, line_int_ceiling_1]
+left_matrix[line_int_ceiling_1, line_in_frame_s] = left_matrix[line_in_frame_s, line_int_ceiling_1]
+left_matrix[line_int_ceiling_1, line_in_frame_w] = left_matrix[line_in_frame_w, line_int_ceiling_1]
+left_matrix[line_int_ceiling_1, line_wall_n_1] = left_matrix[line_wall_n_1, line_int_ceiling_1]
+left_matrix[line_int_ceiling_1, line_wall_e_1] = left_matrix[line_wall_e_1, line_int_ceiling_1]
+left_matrix[line_int_ceiling_1, line_wall_s_1] = left_matrix[line_wall_s_1, line_int_ceiling_1]
+left_matrix[line_int_ceiling_1, line_wall_w_1] = left_matrix[line_wall_w_1, line_int_ceiling_1]
+left_matrix[line_int_ceiling_1, line_roof_1] = left_matrix[line_roof_1, line_int_ceiling_1]
+left_matrix[line_int_ceiling_1, line_floor_1] = left_matrix[line_floor_1, line_int_ceiling_1]
+left_matrix[line_int_ceiling_1, line_int_wall_1] = left_matrix[line_int_wall_1, line_int_ceiling_1]
+
+left_matrix[line_int_ceiling_1, line_int_ceiling_1] = (
+    int_ceiling_area * int_ceiling_capacity_density * int_ceiling_thickness * 0.125
+    - left_matrix[line_int_ceiling_1, line_air]
+    - left_matrix[line_int_ceiling_1, line_int_ceiling_2]
+    - left_matrix[line_int_ceiling_1, line_in_glazing_n]
+    - left_matrix[line_int_ceiling_1, line_in_glazing_e]
+    - left_matrix[line_int_ceiling_1, line_in_glazing_s]
+    - left_matrix[line_int_ceiling_1, line_in_glazing_w]
+    - left_matrix[line_int_ceiling_1, line_in_frame_n]
+    - left_matrix[line_int_ceiling_1, line_in_frame_e]
+    - left_matrix[line_int_ceiling_1, line_in_frame_s]
+    - left_matrix[line_int_ceiling_1, line_in_frame_w]
+    - left_matrix[line_int_ceiling_1, line_wall_n_1]
+    - left_matrix[line_int_ceiling_1, line_wall_e_1]
+    - left_matrix[line_int_ceiling_1, line_wall_s_1]
+    - left_matrix[line_int_ceiling_1, line_wall_w_1]
+    - left_matrix[line_int_ceiling_1, line_roof_1]
+    - left_matrix[line_int_ceiling_1, line_floor_1]
+    - left_matrix[line_int_ceiling_1, line_int_wall_1]
+)
+
+# temperature of the 2. node of the external wall in north direction
+left_matrix[line_wall_n_2, line_wall_n_1] = left_matrix[line_wall_n_1, line_wall_n_2]
+left_matrix[line_wall_n_2, line_wall_n_3] = -wall_area_n * time_step * 1 / (1 / wall_inside_lambda * wall_inside_thickness *  0.25 + 1 / wall_outside_lambda * wall_outside_thickness * 0.25)
+left_matrix[line_wall_n_2, line_wall_n_2] = (
+    wall_area_n * wall_inside_capacity_density * wall_inside_thickness * 0.5
+    - left_matrix[line_wall_n_2, line_wall_n_1]
+    - left_matrix[line_wall_n_2, line_wall_n_3]
+)
+
+# temperature of the 2. node of the external wall in east direction
+left_matrix[line_wall_e_2, line_wall_e_1] = left_matrix[line_wall_e_1, line_wall_e_2]
+left_matrix[line_wall_e_2, line_wall_e_3] = -wall_area_e * time_step * 1 / (1 / wall_inside_lambda * wall_inside_thickness *  0.25 + 1 / wall_outside_lambda * wall_outside_thickness * 0.25)
+left_matrix[line_wall_e_2, line_wall_e_2] = (
+    wall_area_e * wall_inside_capacity_density * wall_inside_thickness * 0.5
+    - left_matrix[line_wall_e_2, line_wall_e_1]
+    - left_matrix[line_wall_e_2, line_wall_e_3]
+)
+
+# temperature of the 2. node of the external wall in south direction
+left_matrix[line_wall_s_2, line_wall_s_1] = left_matrix[line_wall_s_1, line_wall_s_2]
+left_matrix[line_wall_s_2, line_wall_s_3] = -wall_area_s * time_step * 1 / (1 / wall_inside_lambda * wall_inside_thickness *  0.25 + 1 / wall_outside_lambda * wall_outside_thickness * 0.25)
+left_matrix[line_wall_s_2, line_wall_s_2] = (
+    wall_area_s * wall_inside_capacity_density * wall_inside_thickness * 0.5
+    - left_matrix[line_wall_s_2, line_wall_s_1]
+    - left_matrix[line_wall_s_2, line_wall_s_3]
+)
+
+# temperature of the 2. node of the external wall in west direction
+left_matrix[line_wall_w_2, line_wall_w_1] = left_matrix[line_wall_w_1, line_wall_w_2]
+left_matrix[line_wall_w_2, line_wall_w_3] = -wall_area_w * time_step * 1 / (1 / wall_inside_lambda * wall_inside_thickness *  0.25 + 1 / wall_outside_lambda * wall_outside_thickness * 0.25)
+left_matrix[line_wall_w_2, line_wall_w_2] = (
+    wall_area_w * wall_inside_capacity_density * wall_inside_thickness * 0.5
+    - left_matrix[line_wall_w_2, line_wall_w_1]
+    - left_matrix[line_wall_w_2, line_wall_w_3]
+)
+
+# temperature of the 2. node of the roof
+left_matrix[line_roof_2, line_roof_1] = left_matrix[line_roof_1, line_roof_2]
+left_matrix[line_roof_2, line_roof_3] = -roof_area * time_step * 1 / (1 / roof_inside_lambda * roof_inside_thickness *  0.25 + 1 / roof_outside_lambda * roof_outside_thickness * 0.25)
+left_matrix[line_roof_2, line_roof_2] = (
+    roof_area * roof_inside_capacity_density * roof_inside_thickness * 0.5
+    - left_matrix[line_roof_2, line_roof_1]
+    - left_matrix[line_roof_2, line_roof_3]
+)
+
+# temperature of the 2. node of the floor
+left_matrix[line_floor_2, line_floor_1] = left_matrix[line_floor_1, line_floor_2]
+left_matrix[line_floor_2, line_floor_3] = -floor_area * time_step * 1 / (1 / floor_inside_lambda * floor_inside_thickness *  0.25 + 1 / floor_outside_lambda * floor_outside_thickness * 0.25)
+left_matrix[line_floor_2, line_floor_2] = (
+    floor_area * floor_inside_capacity_density * floor_inside_thickness * 0.5
+    - left_matrix[line_floor_2, line_floor_1]
+    - left_matrix[line_floor_2, line_floor_3]
+)
+
+# temperature of the 2. node of the internal walls
+left_matrix[line_int_wall_2, line_int_wall_1] = left_matrix[line_int_wall_1, line_int_wall_2]
+left_matrix[line_int_wall_2, line_int_wall_3] = -int_wall_area * time_step * 1 / (1 / int_wall_lambda * int_wall_thickness *   0.125)
+left_matrix[line_int_wall_2, line_int_wall_2] = (
+    int_wall_area * int_wall_capacity_density * int_wall_thickness * 0.125
+    - left_matrix[line_int_wall_2, line_int_wall_1]
+    - left_matrix[line_int_wall_2, line_int_wall_3]
+)
+
+# temperature of the 2. node of the internal ceilings
+left_matrix[line_int_ceiling_2, line_int_ceiling_1] = left_matrix[line_int_ceiling_1, line_int_ceiling_2]
+left_matrix[line_int_ceiling_2, line_int_ceiling_3] = -int_ceiling_area * time_step * 1 / (1 / int_ceiling_lambda * int_ceiling_thickness *   0.125)
+left_matrix[line_int_ceiling_2, line_int_ceiling_2] = (
+    int_ceiling_area * int_ceiling_capacity_density * int_ceiling_thickness * 0.125
+    - left_matrix[line_int_ceiling_2, line_int_ceiling_1]
+    - left_matrix[line_int_ceiling_2, line_int_ceiling_3]
+)
+
+# temperature of the 3. node of the external wall in north direction
+left_matrix[line_wall_n_3, line_wall_n_2] = left_matrix[line_wall_n_2, line_wall_n_3]
+left_matrix[line_wall_n_3, line_wall_n_4] = -wall_area_n * time_step * wall_outside_lambda / wall_outside_thickness / 0.75
+left_matrix[line_wall_n_3, line_wall_n_3] = (
+    wall_area_n * wall_outside_capacity_density * wall_outside_thickness * 0.5
+    - left_matrix[line_wall_n_3, line_wall_n_2]
+    - left_matrix[line_wall_n_3, line_wall_n_4]
+)
+
+# temperature of the 3. node of the external wall in east direction
+left_matrix[line_wall_e_3, line_wall_e_2] = left_matrix[line_wall_e_2, line_wall_e_3]
+left_matrix[line_wall_e_3, line_wall_e_4] = -wall_area_e * time_step * wall_outside_lambda / wall_outside_thickness / 0.75
+left_matrix[line_wall_e_3, line_wall_e_3] = (
+    wall_area_e * wall_outside_capacity_density * wall_outside_thickness * 0.5
+    - left_matrix[line_wall_e_3, line_wall_e_2]
+    - left_matrix[line_wall_e_3, line_wall_e_4]
+)
+
+# temperature of the 3. node of the external wall in south direction
+left_matrix[line_wall_s_3, line_wall_s_2] = left_matrix[line_wall_s_2, line_wall_s_3]
+left_matrix[line_wall_s_3, line_wall_s_4] = -wall_area_s * time_step * wall_outside_lambda / wall_outside_thickness / 0.75
+left_matrix[line_wall_s_3, line_wall_s_3] = (
+    wall_area_s * wall_outside_capacity_density * wall_outside_thickness * 0.5
+    - left_matrix[line_wall_s_3, line_wall_s_2]
+    - left_matrix[line_wall_s_3, line_wall_s_4]
+)
+
+# temperature of the 3. node of the external wall in west direction
+left_matrix[line_wall_w_3, line_wall_w_2] = left_matrix[line_wall_w_2, line_wall_w_3]
+left_matrix[line_wall_w_3, line_wall_w_4] = -wall_area_w * time_step * wall_outside_lambda / wall_outside_thickness / 0.75
+left_matrix[line_wall_w_3, line_wall_w_3] = (
+    wall_area_w * wall_outside_capacity_density * wall_outside_thickness * 0.5
+    - left_matrix[line_wall_w_3, line_wall_w_2]
+    - left_matrix[line_wall_w_3, line_wall_w_4]
+)
+
+# temperature of the 3. node of the roof
+left_matrix[line_roof_3, line_roof_2] = left_matrix[line_roof_2, line_roof_3]
+left_matrix[line_roof_3, line_roof_4] = -roof_area * time_step * roof_outside_lambda / roof_outside_thickness / 0.75
+left_matrix[line_roof_3, line_roof_3] = (
+    roof_area * roof_outside_capacity_density * roof_outside_thickness * 0.5
+    - left_matrix[line_roof_3, line_roof_2]
+    - left_matrix[line_roof_3, line_roof_4]
+)
+
+# temperature of the 3. node of the floor
+left_matrix[line_floor_3, line_floor_2] = left_matrix[line_floor_2, line_floor_3]
+left_matrix[line_floor_3, line_floor_4] = -floor_area * time_step * floor_outside_lambda / floor_outside_thickness / 0.75
+left_matrix[line_floor_3, line_floor_3] = (
+    floor_area * floor_outside_capacity_density * floor_outside_thickness * 0.5
+    - left_matrix[line_floor_3, line_floor_2]
+    - left_matrix[line_floor_3, line_floor_4]
+)
+
+# temperature of the 3. node of the internal walls
+left_matrix[line_int_wall_3, line_int_wall_2] = left_matrix[line_int_wall_2, line_int_wall_3]
+left_matrix[line_int_wall_3, line_int_wall_4] = -int_wall_area * time_step * 1 / (1 / int_wall_lambda * int_wall_thickness *   0.125)
+left_matrix[line_int_wall_3, line_int_wall_3] = (
+    int_wall_area * int_wall_capacity_density * int_wall_thickness * 0.125
+    - left_matrix[line_int_wall_3, line_int_wall_2]
+    - left_matrix[line_int_wall_3, line_int_wall_4]
+)
+
+# temperature of the 3. node of the internal ceilings
+left_matrix[line_int_ceiling_3, line_int_ceiling_2] = left_matrix[line_int_ceiling_2, line_int_ceiling_3]
+left_matrix[line_int_ceiling_3, line_int_ceiling_4] = -int_ceiling_area * time_step * 1 / (1 / int_ceiling_lambda * int_ceiling_thickness *   0.125)
+left_matrix[line_int_ceiling_3, line_int_ceiling_3] = (
+    int_ceiling_area * int_ceiling_capacity_density * int_ceiling_thickness * 0.125
+    - left_matrix[line_int_ceiling_3, line_int_ceiling_2]
+    - left_matrix[line_int_ceiling_3, line_int_ceiling_4]
+)
+
+# temperature of the 4. node of the external wall in north direction
+left_matrix[line_wall_n_4, line_wall_n_3] = left_matrix[line_wall_n_3, line_wall_n_4]
+left_matrix[line_wall_n_4, line_wall_n_4] = (
+    wall_area_n * wall_outside_capacity_density * wall_outside_thickness * 0.5
+    + wall_area_n * surf_htc_out * time_step
+    - left_matrix[line_wall_n_4, line_wall_n_3]
+)
+
+# temperature of the 4. node of the external wall in east direction
+left_matrix[line_wall_e_4, line_wall_e_3] = left_matrix[line_wall_e_3, line_wall_e_4]
+left_matrix[line_wall_e_4, line_wall_e_4] = (
+    wall_area_e * wall_outside_capacity_density * wall_outside_thickness * 0.5
+    + wall_area_e * surf_htc_out * time_step
+    - left_matrix[line_wall_e_4, line_wall_e_3]
+)
+
+# temperature of the 4. node of the external wall in south direction
+left_matrix[line_wall_s_4, line_wall_s_3] = left_matrix[line_wall_s_3, line_wall_s_4]
+left_matrix[line_wall_s_4, line_wall_s_4] = (
+    wall_area_s * wall_outside_capacity_density * wall_outside_thickness * 0.5
+    + wall_area_s * surf_htc_out * time_step
+    - left_matrix[line_wall_s_4, line_wall_s_3]
+)
+
+# temperature of the 4. node of the external wall in west direction
+left_matrix[line_wall_w_4, line_wall_w_3] = left_matrix[line_wall_w_3, line_wall_w_4]
+left_matrix[line_wall_w_4, line_wall_w_4] = (
+    wall_area_w * wall_outside_capacity_density * wall_outside_thickness * 0.5
+    + wall_area_w * surf_htc_out * time_step
+    - left_matrix[line_wall_w_4, line_wall_w_3]
+)
+
+# temperature of the 4. node of the roof
+left_matrix[line_roof_4, line_roof_3] = left_matrix[line_roof_3, line_roof_4]
+left_matrix[line_roof_4, line_roof_4] = (
+    roof_area * roof_outside_capacity_density * roof_outside_thickness * 0.5
+    + roof_area * surf_htc_out * time_step
+    - left_matrix[line_roof_4, line_roof_3]
+)
+
+# temperature of the 4. node of the floor
+left_matrix[line_floor_4, line_floor_3] = left_matrix[line_floor_3, line_floor_4]
+left_matrix[line_floor_4, line_floor_4] = (
+    floor_area * floor_outside_capacity_density * floor_outside_thickness * 0.5
+    + floor_area * surf_htc_out * time_step
+    - left_matrix[line_floor_4, line_floor_3]
+)
+
+# temperature of the 4. node of the internal walls
+left_matrix[line_int_wall_4, line_int_wall_3] = left_matrix[line_int_wall_3, line_int_wall_4]
+left_matrix[line_int_wall_4, line_int_wall_4] = (
+    int_wall_area * int_wall_capacity_density * int_wall_thickness * 0.125
+    - left_matrix[line_int_wall_4, line_int_wall_3]
+)
+
+# temperature of the 4. node of the internal ceilings
+left_matrix[line_int_ceiling_4, line_int_ceiling_3] = left_matrix[line_int_ceiling_3, line_int_ceiling_4]
+left_matrix[line_int_ceiling_4, line_int_ceiling_4] = (
+    int_ceiling_area * int_ceiling_capacity_density * int_ceiling_thickness * 0.125
+    - left_matrix[line_int_ceiling_4, line_int_ceiling_3]
+)
 
 # endregion
 
