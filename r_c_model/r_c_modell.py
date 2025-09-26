@@ -45,7 +45,6 @@ frame_area_e = unshaded_frame_area_e + shaded_frame_area_e  # East facade   [m²
 frame_area_s = unshaded_frame_area_s + shaded_frame_area_s  # South facade  [m²]
 frame_area_w = unshaded_frame_area_w + shaded_frame_area_w  # West facade   [m²]
 
-% - areas of external walls
 # areas of external walls (excluding glazings and frames)
 wall_area_n = 2.5 * 3 * (32.6 + 1.6 - 6.0) - glazing_area_n - frame_area_n # North facade [m^2], excluding glazings
 wall_area_e = 2.5 * 3 * 14.0 - glazing_area_e - frame_area_e # East facade [m^2], excluding glazings
@@ -85,8 +84,99 @@ total_area_constructions = (glazing_area_n + glazing_area_e + glazing_area_s + g
                             roof_area + floor_area + int_wall_area + int_ceiling_area) # Total area of all constructions [m²] 
 # endregion 
 
+# ------------------------------------------------------
+# region: Definition of thermal properties of building components
+# ------------------------------------------------------
+
+# Thermal Properties of window components
+glazing_u_value = 0.7       # U-value of glazing [W/m²K]
+glazing_g_value = 0.45      # g-value of glazing (fraction of solar radiation transmitted into the building) []
+shading_g_value_reduction_factor = 0.14  # Reduction factor of g-value due to shading (e.g. balconies) []
+frame_u_value = 2.0         # U-value of window frame [W/m²K]
+
+# Thermal properties of opaque building components
+wall_against_inheated_u_value = 1 / (2 / 8.0 + 0.17 / 0.79) # u-value of Wall against unheated zones [W/m²K]
+
+# Thermal properties of inside layers of building components
+wall_inside_lambda = 1.8 
+roof_inside_lambda = 1.8
+floor_inside_lambda = 1.8
+
+# capacity density of inside layers of building components. (rho * c) [J/m³K]
+wall_inside_capacity_density = 2400 * 1100
+roof_inside_capacity_density = 2400 * 1100
+floor_inside_capacity_density = 2400 * 1100
+
+# thermal properties of outside layers of building components 
+wall_outside_lambda = 0.031
+roof_outside_lambda = 0.02
+floor_outside_lambda = 0.03
+
+# capacity density of outside layers of building components. (rho * c) [J/m³K]
+wall_outside_capacity_density = 16 * 1400
+roof_outside_capacity_density = 30 * 1400
+floor_outside_capacity_density = 18 * 1400
+
+# thermal properties of internal building components
+int_wall_lambda = 0.79
+int_ceiling_lambda = 1.8
+
+# capacity density of internal building components. (rho * c) [J/m³K]
+int_wall_capacity_density = 1070.0 * 850.0
+int_ceiling_capacity_density = 2400.0 * 1100.0
+# endregion
+
+# ------------------------------------------------------
+# region: thickness of layers of building components [m]
+# ------------------------------------------------------
+
+# thickness of layers of outside walls
+wall_inside_thickness = 0.2  # thickness of inside layer of walls (brick) [m]
+wall_outside_thickness = 0.1  # thickness of outside layer of walls (insulation) [m]
+
+# thickness of layers of outside roof
+roof_inside_thickness = 0.25  # thickness of inside layer of roof (concrete) [m]
+roof_outside_thickness = 0.1   # thickness of outside layer of roof (insulation) [m]
+
+# thickness of layers of floor against unheated zones or ground
+floor_inside_thickness = 0.3   # thickness of inside layer of floor (concrete) [m]
+floor_outside_thickness = 0.08  # thickness of outside layer of floor (insulation) [m]
+
+# thickness of layers of internal walls
+int_wall_thickness = 0.17       # thickness of internal walls (drywall) [m]
+int_ceiling_thickness = 0.3654  # thickness of internal ceiling (drywall) [m]
+
+# endregion
+
+# ------------------------------------------------------
+# region: Building thermal parameters
+# ------------------------------------------------------
+# total infiltration rate of the building
+infiltration_rate = 0.194444 * 0.001 * floor_area * 3.0
+
+# ventilation rate of the building (assumed to be always on)
+air_ventilation_rate = 0.278 * 0.001 * floor_area * 3.0  # [m³/s]
+heat_exchanger_efficiency = 0.0  # efficiency of heat exchanger in ventilation system []
+
+# thermal bridges
+thermal_bridges = 123.4 # thermal bridges [W/K]
+
+# difference power input [W] 
+occupancy_power = 70.0 * 0.033 * floor_area * 3.0
+lighting_power = 2.7 * floor_area * 3.0
+equipment_power = 8.0 * floor_area * 3.0
+
+# shedules [0..1] for occupancy, lighting and equipment (24 values for 24 hours)
+occupancy_schedule = [1 1 1 1 1 1 0.6 0.4 0 0 0 0 0.8 0.4 0 0 0 0.4 0.8 0.8 0.8 1 1 1]
+lighting_schedule = [0 0 0 0 0 0 1 1 0 0 0 0 1 1 0 0 0 1 1 1 1 0 0 0]
+equipment_schedule = [0.1 0.1 0.1 0.1 0.1 0.2 0.8 0.2 0.1 0.1 0.1 0.1 0.8 0.2 0.1 0.1 0.1 0.2 0.8 1.0 0.2 0.2 0.2 0.1]
+
+# todo: change description of comments for better understanding
+
+# endregion
+
 # ======================================================
-# Load weather data from file
+# region: Load weather data from file
 # ======================================================
 # load weather data from .mat file
 weather_data = sio.loadmat('basel_dry_ver2.mat')
@@ -132,3 +222,5 @@ except IndexError as e:
     print("possible causes:")
     print("- Table has fewer columns than expected")
     print("- Data structure is not as expected")
+
+# endregion
