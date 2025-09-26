@@ -395,7 +395,7 @@ surf_rad_htc_int_ceiling_int_wall = surf_rad_htc_int_wall_int_ceiling
 left_matrix = np.zeros((49, 49))
 
 # definition of the lines of the system of linear equations
-line_air =     # line for air temperature node
+line_air = 0     # line for air temperature node
 
 line_in_glazing_n = 1  # line for inside glazing temperature in north direction
 line_in_glazing_e = 2  # line for inside glazing temperature in east direction
@@ -988,3 +988,121 @@ left_matrix[line_int_ceiling_4, line_int_ceiling_4] = (
 
 # endregion
 
+#  --------------------------------------------------------------
+# calculate inverse matrix
+#  --------------------------------------------------------------
+inverse_matrix = np.linalg.inv(left_matrix)
+
+#  --------------------------------------------------------------
+# get the amount of hours from the weather data
+#  --------------------------------------------------------------
+weather_file_size = ambient_temp.size
+
+# --------------------------------------------------------------
+# declare initial and resulting temperature vectors
+# --------------------------------------------------------------
+initial_temperatures = 20.0 * np.ones((49, 1))
+output_temperatures = np.zeros((8760, 49))
+output_heating_power = np.zeros((8760, 1))
+output_cooling_power = np.zeros((8760, 1))
+output_lighting_electricity = np.zeros((8760, 1))
+output_equipment_electricity = np.zeros((8760, 1))
+
+#  --------------------------------------------------------------
+# region: run the simulation for the number of hours in the weather data
+#  --------------------------------------------------------------
+hour_counter = 0
+for day in range(1, int(weather_file_size/24)+1):
+    hour = 1
+    if day == 1 and hour == 1:
+        hour += 1
+    while hour <= 24:
+        for internal_time_step = in range(1, int(3600/time_step)+1):
+            right_matrix = np.zeros((49, 1))
+        
+            #interpolation of wather data
+            interpolated_amb_temp = ambient_temp(hour_counter - 1) + internal_time_step * time_step / 3600 * (ambient_temp(hour_counter) - ambient_temp(hour_counter - 1))
+            interpolated_sun_flux_n = sun_flux_north(hour_counter - 1) + internal_time_step * time_step / 3600 * (sun_flux_north(hour_counter) - sun_flux_north(hour_counter - 1))
+            interpolated_sun_flux_e = sun_flux_east(hour_counter - 1) + internal_time_step * time_step / 3600 * (sun_flux_east(hour_counter) - sun_flux_east(hour_counter - 1))
+            interpolated_sun_flux_s = sun_flux_south(hour_counter - 1) + internal_time_step * time_step / 3600 * (sun_flux_south(hour_counter) - sun_flux_south(hour_counter - 1))
+            interpolated_sun_flux_w = sun_flux_west(hour_counter - 1) + internal_time_step * time_step / 3600 * (sun_flux_west(hour_counter) - sun_flux_west(hour_counter - 1))
+            interpolated_sun_flux_r = sun_flux_roof(hour_counter - 1) + internal_time_step * time_step / 3600 * (sun_flux_roof(hour_counter) - sun_flux_roof(hour_counter - 1))
+            interpolated_diff_rad = diff_radiation(hour_counter - 1) + internal_time_step * time_step / 3600 * (diff_radiation(hour_counter) - diff_radiation(hour_counter - 1))
+            interpolated_global_rad = global_radiation(hour_counter - 1) + internal_time_step * time_step / 3600 * (global_radiation(hour_counter) - global_radiation(hour_counter - 1))
+            interpolated_shading_flux = (0.5 * interpolated_diff_rad + 0.2 * 0.5 * interpolated_global_rad)
+            interpolated_ground_temp = 15 - 5 * np.cos(np.deg2rad((hour_counter - 31 * 2 * 24) *360 / 8760))
+            interpolated_unheated_temp = 18 - 3 * np.cos(np.rad2deg((hour_counter - 31 * 2 * 24) *360 / 8760))
+        
+            # calculation of shading
+            shading_value_shaded_windows_north = 1.0
+            shading_value_shaded_windows_east = 1.0
+            shading_value_shaded_windows_south = 1.0
+            shading_value_shaded_windows_west = 1.0
+        
+            if initial_temperatures[line_air] > 23.0 and interpolated_shading_flux > 200.0:
+                shading_value_shaded_windows_north = shading_g_value_reduction_factor
+                shading_value_shaded_windows_east = shading_g_value_reduction_factor
+                shading_value_shaded_windows_south = shading_g_value_reduction_factor
+                shading_value_shaded_windows_west = shading_g_value_reduction_factor
+            
+            shading_value_unshaded_windows_north = 1.0
+            shading_value_unshaded_windows_east = 1.0
+            shading_value_unshaded_windows_south = 1.0
+            shading_value_unshaded_windows_west = 1.0
+
+            if initial_temperatures[line_air] > 23.0:
+                if interpolated_sun_flux_n > 200.0:
+                    shading_value_unshaded_windows_north = shading_g_value_reduction_factor
+                if interpolated_sun_flux_e > 200.0:
+                    shading_value_unshaded_windows_east = shading_g_value_reduction_factor
+                if interpolated_sun_flux_s > 200.0:
+                    shading_value_unshaded_windows_south = shading_g_value_reduction_factor
+                if interpolated_sun_flux_w > 200.0:
+                    shading_value_unshaded_windows_west = shading_g_value_reduction_factor
+
+            total_sun_heat_gain = (
+                shading_value_unshaded_windows_north * unshaded_glazing_area_n * interpolated_sun_flux_n  
+                + shading_value_shaded_windows_north * shaded_glazing_area_n * interpolated_shading_flux  
+                + shading_value_unshaded_windows_east * unshaded_glazing_area_e * interpolated_sun_flux_e 
+                + shading_value_shaded_windows_east * shaded_glazing_area_e * interpolated_shading_flux 
+                + shading_value_unshaded_windows_south * unshaded_glazing_area_s * interpolated_sun_flux_s 
+                + shading_value_shaded_windows_south * shaded_glazing_area_s * interpolated_shading_flux 
+                + shading_value_unshaded_windows_west * unshaded_glazing_area_w * interpolated_sun_flux_w 
+                + shading_value_shaded_windows_west * shaded_glazing_area_w * interpolated_shading_flux
+            ) 
+            internal_heat_gain = (
+                shading_value_unshaded_windows_north * unshaded_glazing_area_n * interpolated_sun_flux_n
+                + shading_value_shaded_windows_north * shaded_glazing_area_n * interpolated_shading_flux
+                + shading_value_unshaded_windows_east * unshaded_glazing_area_e * interpolated_sun_flux_e
+                + shading_value_shaded_windows_east * shaded_glazing_area_e * interpolated_shading_flux
+                + shading_value_unshaded_windows_south * unshaded_glazing_area_s * interpolated_sun_flux_s
+                + shading_value_shaded_windows_south * shaded_glazing_area_s * interpolated_shading_flux
+                + shading_value_unshaded_windows_west * unshaded_glazing_area_w * interpolated_sun_flux_w
+                + shading_value_shaded_windows_west * shaded_glazing_area_w * interpolated_shading_flux
+            )
+
+            if lighting_schedule[hour] > 0:
+                if ((shading_value_unshaded_windows_north * unshaded_glazing_area_n * interpolated_sun_flux_n 
+                    + shading_value_shaded_windows_north * shaded_glazing_area_n * interpolated_shading_flux) / glazing_area_n) < 15.0:
+                        int_heat_gain = int_heat_gain + lighting_schedule[hour] * lighting_power * lighting_north_side
+                
+                if ((
+                    shading_value_unshaded_windows_east * unshaded_glazing_area_e * interpolated_sun_flux_e
+                    + shading_value_shaded_windows_east * shaded_glazing_area_e * interpolated_shading_flux) / glazing_area_e < 15.0):
+                        int_heat_gain = int_heat_gain + lighting_schedule[hour] * lighting_power * lighting_east_side
+                
+                if ((
+                    shading_value_unshaded_windows_south * unshaded_glazing_area_s * interpolated_sun_flux_s 
+                    + shading_value_shaded_windows_south * shaded_glazing_area_s * interpolated_shading_flux) / glazing_area_s) < 15.0:
+                        int_heat_gain = int_heat_gain + lighting_schedule[hour] * lighting_power * lighting_south_side
+
+                if ((
+                    shading_value_unshaded_windows_west * unshaded_glazing_area_w * interpolated_sun_flux_w
+                    + shading_value_shaded_windows_west * shaded_glazing_area_w * interpolated_shading_flux) / glazing_area_w) < 15.0:
+                        int_heat_gain = int_heat_gain + lighting_schedule[hour] * lighting_power * lighting_west_side
+            
+            # air temperature equation
+            
+                    
+
+# endregion
