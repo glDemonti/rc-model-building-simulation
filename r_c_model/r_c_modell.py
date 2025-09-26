@@ -167,9 +167,9 @@ lighting_power = 2.7 * floor_area * 3.0
 equipment_power = 8.0 * floor_area * 3.0
 
 # shedules [0..1] for occupancy, lighting and equipment (24 values for 24 hours)
-occupancy_schedule = [1 1 1 1 1 1 0.6 0.4 0 0 0 0 0.8 0.4 0 0 0 0.4 0.8 0.8 0.8 1 1 1]
-lighting_schedule = [0 0 0 0 0 0 1 1 0 0 0 0 1 1 0 0 0 1 1 1 1 0 0 0]
-equipment_schedule = [0.1 0.1 0.1 0.1 0.1 0.2 0.8 0.2 0.1 0.1 0.1 0.1 0.8 0.2 0.1 0.1 0.1 0.2 0.8 1.0 0.2 0.2 0.2 0.1]
+occupancy_schedule = np.array([1, 1, 1, 1, 1, 1, 0.6, 0.4, 0, 0, 0, 0, 0.8, 0.4, 0, 0, 0, 0.4, 0.8, 0.8, 0.8, 1, 1, 1])
+lighting_schedule = np.array([0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0])
+equipment_schedule = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.8, 0.2, 0.1, 0.1, 0.1, 0.1, 0.8, 0.2, 0.1, 0.1, 0.1, 0.2, 0.8, 1.0, 0.2, 0.2, 0.2, 0.1])
 
 # todo: change description of comments for better understanding
 
@@ -224,3 +224,170 @@ except IndexError as e:
     print("- Data structure is not as expected")
 
 # endregion
+
+# ------------------------------------------------------
+# region: Calculation of sun vector and global radiation
+# ------------------------------------------------------
+# definition of sund vector and global radiation
+sun_vector = np.zeros((len(sun_elevation), 3))  # Initialize sund vector array
+global_radiation = np.zeros(len(sun_elevation))    # Initialize global radiation array
+
+# calculation of sun vector and global radiation
+mask = sun_elevation > 0.0  # Only calculate for positive sun elevations
+sun_vector[mask, 0] = np.cos(np.deg2rad(sun_elevation[mask])) * np.sin(np.deg2rad(sun_azimuth[mask]))  # X-component
+sun_vector[mask, 1] = np.cos(np.deg2rad(sun_elevation[mask])) * np.cos(np.deg2rad(sun_azimuth[mask]))  # Y-component
+sun_vector[mask, 2] = -np.sin(np.deg2rad(sun_elevation[mask]))  # Z-component
+
+global_radiation = diff_radiation - beam_radiation * sun_vector[:, 2]  # Global radiation on horizontal surface [W/m²]
+
+# endregion
+
+# ------------------------------------------------------
+# region: Calculation of the sun flux on building surfaces: direct + diffuse + reflected
+# ------------------------------------------------------
+# initialization of sun flux arrays for each facade and roof
+sun_flux_north = np.zeros(len(sun_elevation))  # Initialize sun flux array for north facade
+sun_flux_east = np.zeros(len(sun_elevation))   # Initialize sun flux array for east facade
+sun_flux_south = np.zeros(len(sun_elevation))  # Initialize sun flux array for south facade
+sun_flux_west = np.zeros(len(sun_elevation))   # Initialize sun flux array for west facade
+sun_flux_roof = np.zeros(len(sun_elevation))   # Initialize sun flux array for roof
+
+# calculation of sun flux on each facade and roof
+mask = sun_elevation > 0.0  # Only calculate for positive sun elevations
+
+# Sun flux on north facade [W/m²]
+sun_flux_north[mask] = (
+    -beam_radiation[mask] * np.min(0.0, 
+        surface_vector_north[0] * sun_vector[mask, 0] +
+        surface_vector_north[1] * sun_vector[mask, 1] +
+        surface_vector_north[2] * sun_vector[mask, 2]
+    ) +
+    0.5 * diff_radiation[mask] +
+    0.2 * 0.5 * global_radiation[mask]
+)  
+
+# Sun flux on east facade [W/m²]
+sun_flux_east[mask] = (
+    -beam_radiation[mask] * np.minimum(0.0,
+        surface_vector_east[0] * sun_vector[mask, 0] + 
+        surface_vector_east[1] * sun_vector[mask, 1] + 
+        surface_vector_east[2] * sun_vector[mask, 2]
+    ) + 
+    0.5 * diff_radiation[mask] + 
+    0.2 * 0.5 * global_radiation[mask]
+)
+
+# sun flux on west facade [W/m²]
+sun_flux_west[mask] = (
+    -beam_radiation[mask] * np.minimum(0.0,
+        surface_vector_west[0] * sun_vector[mask, 0] + 
+        surface_vector_west[1] * sun_vector[mask, 1] + 
+        surface_vector_west[2] * sun_vector[mask, 2]
+    ) + 
+    0.5 * diff_radiation[mask] + 
+    0.2 * 0.5 * global_radiation[mask]
+)
+
+# sun flux on south facade [W/m²]
+sun_flux_south[mask] = (
+    -beam_radiation[mask] * np.minimum(0.0,
+        surface_vector_south[0] * sun_vector[mask, 0] + 
+        surface_vector_south[1] * sun_vector[mask, 1] + 
+        surface_vector_south[2] * sun_vector[mask, 2]
+    ) + 
+    0.5 * diff_radiation[mask] + 
+    0.2 * 0.5 * global_radiation[mask]
+)
+
+# sun flux on roof [W/m²]
+sun_flux_roof = global_radiation  # Roof is horizontal, so sun flux equals global radiation
+
+# endregion
+
+# ------------------------------------------------------
+# region: deffinition of simulation parameters
+# ------------------------------------------------------
+
+# simulation time step
+time_step = 5.0 * 60  # [s]
+
+# surface heat transfer coefficients of internal surfaces
+surf_htc_in =  4.5  # internal surface heat transfer coefficient [W/m²K]
+
+# surface heat transfer coefficients of external surfaces
+surf_htc_out = 23.0  # external surface heat transfer coefficient [W/m²K]
+
+# heating and cooling setpoints
+heating_setpoint = 21.0  # heating setpoint temperature [°C]
+cooling_setpoint = 26.0  # cooling setpoint temperature [°C]
+
+# distribution of internal heat gains to air and building constructions
+int_heat_gain_to_air_coef = 0.6
+int_heat_gain_to_glazing_n_coef = (1 - int_heat_gain_to_air_coef) * glazing_area_n / total_area_constructions
+int_heat_gain_to_glazing_e_coef = (1 - int_heat_gain_to_air_coef) * glazing_area_e / total_area_constructions
+int_heat_gain_to_glazing_s_coef = (1 - int_heat_gain_to_air_coef) * glazing_area_s / total_area_constructions
+int_heat_gain_to_glazing_w_coef = (1 - int_heat_gain_to_air_coef) * glazing_area_w / total_area_constructions
+int_heat_gain_to_frame_n_coef = (1 - int_heat_gain_to_air_coef) * frame_area_n / total_area_constructions
+int_heat_gain_to_frame_e_coef = (1 - int_heat_gain_to_air_coef) * frame_area_e / total_area_constructions
+int_heat_gain_to_frame_s_coef = (1 - int_heat_gain_to_air_coef) * frame_area_s / total_area_constructions
+int_heat_gain_to_frame_w_coef = (1 - int_heat_gain_to_air_coef) * frame_area_w / total_area_constructions
+int_heat_gain_to_wall_n_coef = (1 - int_heat_gain_to_air_coef) * wall_area_n / total_area_constructions
+int_heat_gain_to_wall_e_coef = (1 - int_heat_gain_to_air_coef) * wall_area_e / total_area_constructions
+int_heat_gain_to_wall_s_coef = (1 - int_heat_gain_to_air_coef) * wall_area_s / total_area_constructions
+int_heat_gain_to_wall_w_coef = (1 - int_heat_gain_to_air_coef) * wall_area_w / total_area_constructions
+int_heat_gain_to_roof_coef = (1 - int_heat_gain_to_air_coef) * roof_area / total_area_constructions
+int_heat_gain_to_floor_coef = (1 - int_heat_gain_to_air_coef) * floor_area / total_area_constructions
+int_heat_gain_to_int_wall_coef = (1 - int_heat_gain_to_air_coef) * int_wall_area / total_area_constructions
+int_heat_gain_to_int_ceiling_coef = (1 - int_heat_gain_to_air_coef) * int_ceiling_area / total_area_constructions
+
+# distribution of solar heat gains on building constructions
+sun_heat_gain_to_outside_glazing = 0.25 * (1.0 - glazing_g_value)
+sun_heat_gain_to_inside_glazing = 0.25 * (1.0 - glazing_g_value) * glazing_g_value
+sun_heat_gain_to_int_wall = (1.0 - 0.25 * (1.0 - glazing_g_value)) * glazing_g_value * int_wall_area / (int_wall_area + int_ceiling_area)
+sun_heat_gain_to_int_ceiling = (1.0 - 0.25 * (1.0 - glazing_g_value)) * glazing_g_value * int_ceiling_area / (int_wall_area + int_ceiling_area)
+
+# distribution of lighting power according to north, east, south, west orientation
+lighting_north_side = wall_area_n / (wall_area_n + wall_area_e + wall_area_s + wall_area_w)
+lighting_east_side = wall_area_e / (wall_area_n + wall_area_e + wall_area_s + wall_area_w)
+lighting_south_side = wall_area_s / (wall_area_n + wall_area_e + wall_area_s + wall_area_w)
+lighting_west_side = wall_area_w / (wall_area_n + wall_area_e + wall_area_s + wall_area_w)
+
+# surface heat transfer coefficients for radiation exchange between internal surfaces
+surf_rad_htc = 4.0
+
+# radiation heat transfer coefficients between internal walls and other internal surfaces
+surf_rad_htc_int_wall_glazing_n = surf_rad_htc * int_wall_area * glazing_area_n / (total_area_constructions - int_wall_area)
+surf_rad_htc_int_wall_glazing_e = surf_rad_htc * int_wall_area * glazing_area_e / (total_area_constructions - int_wall_area)
+surf_rad_htc_int_wall_glazing_s = surf_rad_htc * int_wall_area * glazing_area_s / (total_area_constructions - int_wall_area)
+surf_rad_htc_int_wall_glazing_w = surf_rad_htc * int_wall_area * glazing_area_w / (total_area_constructions - int_wall_area)
+surf_rad_htc_int_wall_frame_n = surf_rad_htc * int_wall_area * frame_area_n / (total_area_constructions - int_wall_area)
+surf_rad_htc_int_wall_frame_e = surf_rad_htc * int_wall_area * frame_area_e / (total_area_constructions - int_wall_area)
+surf_rad_htc_int_wall_frame_s = surf_rad_htc * int_wall_area * frame_area_s / (total_area_constructions - int_wall_area)
+surf_rad_htc_int_wall_frame_w = surf_rad_htc * int_wall_area * frame_area_w / (total_area_constructions - int_wall_area)
+surf_rad_htc_int_wall_wall_n = surf_rad_htc * int_wall_area * wall_area_n / (total_area_constructions - int_wall_area)
+surf_rad_htc_int_wall_wall_e = surf_rad_htc * int_wall_area * wall_area_e / (total_area_constructions - int_wall_area)
+surf_rad_htc_int_wall_wall_s = surf_rad_htc * int_wall_area * wall_area_s / (total_area_constructions - int_wall_area)
+surf_rad_htc_int_wall_wall_w = surf_rad_htc * int_wall_area * wall_area_w / (total_area_constructions - int_wall_area)
+surf_rad_htc_int_wall_roof = surf_rad_htc * int_wall_area * roof_area / (total_area_constructions - int_wall_area)
+surf_rad_htc_int_wall_floor = surf_rad_htc * int_wall_area * floor_area / (total_area_constructions - int_wall_area)
+surf_rad_htc_int_wall_int_ceiling = surf_rad_htc * int_wall_area * int_ceiling_area / (total_area_constructions - int_wall_area)
+
+# radiation heat transfer coefficients between internal ceilings and other internal surfaces
+surf_rad_htc_int_ceiling_glazing_n = surf_rad_htc * int_ceiling_area * glazing_area_n / (total_area_constructions - int_ceiling_area)
+surf_rad_htc_int_ceiling_glazing_e = surf_rad_htc * int_ceiling_area * glazing_area_e / (total_area_constructions - int_ceiling_area)
+surf_rad_htc_int_ceiling_glazing_s = surf_rad_htc * int_ceiling_area * glazing_area_s / (total_area_constructions - int_ceiling_area)
+surf_rad_htc_int_ceiling_glazing_w = surf_rad_htc * int_ceiling_area * glazing_area_w / (total_area_constructions - int_ceiling_area)
+surf_rad_htc_int_ceiling_frame_n = surf_rad_htc * int_ceiling_area * frame_area_n / (total_area_constructions - int_ceiling_area)
+surf_rad_htc_int_ceiling_frame_e = surf_rad_htc * int_ceiling_area * frame_area_e / (total_area_constructions - int_ceiling_area)
+surf_rad_htc_int_ceiling_frame_s = surf_rad_htc * int_ceiling_area * frame_area_s / (total_area_constructions - int_ceiling_area)
+surf_rad_htc_int_ceiling_frame_w = surf_rad_htc * int_ceiling_area * frame_area_w / (total_area_constructions - int_ceiling_area)
+surf_rad_htc_int_ceiling_wall_n = surf_rad_htc * int_ceiling_area * wall_area_n / (total_area_constructions - int_ceiling_area)
+surf_rad_htc_int_ceiling_wall_e = surf_rad_htc * int_ceiling_area * wall_area_e / (total_area_constructions - int_ceiling_area)
+surf_rad_htc_int_ceiling_wall_s = surf_rad_htc * int_ceiling_area * wall_area_s / (total_area_constructions - int_ceiling_area)
+surf_rad_htc_int_ceiling_wall_w = surf_rad_htc * int_ceiling_area * wall_area_w / (total_area_constructions - int_ceiling_area)
+surf_rad_htc_int_ceiling_roof = surf_rad_htc * int_ceiling_area * roof_area / (total_area_constructions - int_ceiling_area)
+surf_rad_htc_int_ceiling_floor = surf_rad_htc * int_ceiling_area * floor_area / (total_area_constructions - int_ceiling_area)
+surf_rad_htc_int_ceiling_int_wall = surf_rad_htc_int_wall_int_ceiling
+
+# endregion
+
