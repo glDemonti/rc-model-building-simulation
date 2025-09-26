@@ -257,7 +257,7 @@ mask = sun_elevation > 0.0  # Only calculate for positive sun elevations
 
 # Sun flux on north facade [W/m²]
 sun_flux_north[mask] = (
-    -beam_radiation[mask] * np.min(0.0, 
+    -beam_radiation[mask] * np.minimum(0.0, 
         surface_vector_north[0] * sun_vector[mask, 0] +
         surface_vector_north[1] * sun_vector[mask, 1] +
         surface_vector_north[2] * sun_vector[mask, 2]
