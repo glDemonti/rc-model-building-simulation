@@ -1071,10 +1071,10 @@ for day in range(1, int(weather_file_size/24)+1):
                 + shading_value_shaded_windows_west * shaded_glazing_area_w * interpolated_shading_flux
             )
 
-            int_heat_gain = occupancy_schedule[hour] * occupancy_power + equipment_schedule[hour] * equipment_power
+            int_heat_gain = occupancy_schedule[hour-1] * occupancy_power + equipment_schedule[hour-1] * equipment_power
 
-            if lighting_schedule[hour] > 0:
-                if ((shading_value_unshaded_windows_north * unshaded_glazing_area_n * interpolated_sun_flux_n 
+            if lighting_schedule[hour-1] > 0:
+                if ((shading_value_unshaded_windows_north * unshaded_glazing_area_n * interpolated_sun_flux_n
                     + shading_value_shaded_windows_north * shaded_glazing_area_n * interpolated_shading_flux) / glazing_area_n) < 15.0:
                         int_heat_gain = int_heat_gain + lighting_schedule[hour] * lighting_power * lighting_north_side
                 
@@ -1416,11 +1416,11 @@ for day in range(1, int(weather_file_size/24)+1):
                 )
                 output_lighting_electricity[hour_counter - weather_file_size + 8760] = (
                     output_lighting_electricity[hour_counter - weather_file_size + 8760] 
-                    + lighting_schedule[hour] * lighting_power / 1000 * time_step / 3600
+                    + lighting_schedule[hour - 1] * lighting_power / 1000 * time_step / 3600
                 )
                 output_equipment_electricity[hour_counter - weather_file_size + 8760] = (
                     output_equipment_electricity[hour_counter - weather_file_size + 8760] 
-                    + equipment_schedule[hour] * equipment_power / 1000 * time_step / 3600
+                    + equipment_schedule[hour - 1] * equipment_power / 1000 * time_step / 3600
                 )
         if hour_counter > weather_file_size - 8760:
             output_temperatures[hour_counter - weather_file_size + 8760, :] = initial_temperatures.T
