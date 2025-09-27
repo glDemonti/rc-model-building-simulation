@@ -1433,3 +1433,8 @@ output_cooling_power = sum(output_cooling_power) / 10**6
 output_lighting_electricity = sum(output_lighting_electricity) / 10**6
 output_equipment_electricity = sum(output_equipment_electricity) / 10**6
 # endregion
+
+print(f"total heating power = {output_heating_power} MWh")
+print(f"total cooling power = {output_cooling_power} MWh")
+print(f"total lighting electricity = {output_lighting_electricity} MWh")
+print(f"total equipment electricity = {output_equipment_electricity} MWh")
