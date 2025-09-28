@@ -17,8 +17,8 @@ unshaded_glazing_area_w = 0.825 * (3.45 * 3 + 2.3 * 3 + 2.07 * 1)  # West facade
 
 # shaded glazing area (under permanent obstacles like balconies)
 shaded_glazing_area_n = 0.0 # North facade  [m²]
-shaded_glazing_area_e = 0.825 * (1.98 + 2) # East facade   [m²]
-shaded_glazing_area_s = 0.825 * (1.73 * 4 + 5.18 * 4 + 1.98 * 1) # South facade  [m²]
+shaded_glazing_area_e = 0.825 * (1.98 * 2) # East facade   [m²]
+shaded_glazing_area_s = 0.825 * (1.73 * 4 + 5.18 * 4 + 1.98 * 8 + 2.07 * 2) # South facade  [m²]
 shaded_glazing_area_w = 0.825 * (2.07 * 2) # West facade   [m²]
 
 # unshaded window frame area (without permanent obstacles like balcony)
@@ -1011,27 +1011,31 @@ output_equipment_electricity = np.zeros((8760, 1))
 #  --------------------------------------------------------------
 # region: run the simulation for the number of hours in the weather data
 #  --------------------------------------------------------------
-hour_counter = 0
+hour_counter = 1
 for day in range(1, int(weather_file_size/24)+1):
     hour = 1
     if day == 1 and hour == 1:
         hour += 1
+        hour_counter += 1
     while hour <= 24:
         for internal_time_step in range(1, int(3600/time_step)+1):
             right_matrix = np.zeros((49, 1))
+
+            i_prev = hour_counter - 2   # index for previous hour
+            i_curr = hour_counter - 1   # index for current hour
         
             #interpolation of wather data
-            interpolated_amb_temp = ambient_temp[hour_counter - 1] + internal_time_step * time_step / 3600 * (ambient_temp[hour_counter] - ambient_temp[hour_counter - 1])
-            interpolated_sun_flux_n = sun_flux_north[hour_counter - 1] + internal_time_step * time_step / 3600 * (sun_flux_north[hour_counter] - sun_flux_north[hour_counter - 1])
-            interpolated_sun_flux_e = sun_flux_east[hour_counter - 1] + internal_time_step * time_step / 3600 * (sun_flux_east[hour_counter] - sun_flux_east[hour_counter - 1])
-            interpolated_sun_flux_s = sun_flux_south[hour_counter - 1] + internal_time_step * time_step / 3600 * (sun_flux_south[hour_counter] - sun_flux_south[hour_counter - 1])
-            interpolated_sun_flux_w = sun_flux_west[hour_counter - 1] + internal_time_step * time_step / 3600 * (sun_flux_west[hour_counter] - sun_flux_west[hour_counter - 1])
-            interpolated_sun_flux_r = sun_flux_roof[hour_counter - 1] + internal_time_step * time_step / 3600 * (sun_flux_roof[hour_counter] - sun_flux_roof[hour_counter - 1])
-            interpolated_diff_rad = diff_radiation[hour_counter - 1] + internal_time_step * time_step / 3600 * (diff_radiation[hour_counter] - diff_radiation[hour_counter - 1])
-            interpolated_global_rad = global_radiation[hour_counter - 1] + internal_time_step * time_step / 3600 * (global_radiation[hour_counter] - global_radiation[hour_counter - 1])
+            interpolated_amb_temp = ambient_temp[i_prev] + internal_time_step * time_step / 3600 * (ambient_temp[i_curr] - ambient_temp[i_prev])
+            interpolated_sun_flux_n = sun_flux_north[i_prev] + internal_time_step * time_step / 3600 * (sun_flux_north[i_curr] - sun_flux_north[i_prev])
+            interpolated_sun_flux_e = sun_flux_east[i_prev] + internal_time_step * time_step / 3600 * (sun_flux_east[i_curr] - sun_flux_east[i_prev])
+            interpolated_sun_flux_s = sun_flux_south[i_prev] + internal_time_step * time_step / 3600 * (sun_flux_south[i_curr] - sun_flux_south[i_prev])
+            interpolated_sun_flux_w = sun_flux_west[i_prev] + internal_time_step * time_step / 3600 * (sun_flux_west[i_curr] - sun_flux_west[i_prev])
+            interpolated_sun_flux_r = sun_flux_roof[i_prev] + internal_time_step * time_step / 3600 * (sun_flux_roof[i_curr] - sun_flux_roof[i_prev])
+            interpolated_diff_rad = diff_radiation[i_prev] + internal_time_step * time_step / 3600 * (diff_radiation[i_curr] - diff_radiation[i_prev])
+            interpolated_global_rad = global_radiation[i_prev] + internal_time_step * time_step / 3600 * (global_radiation[i_curr] - global_radiation[i_prev])
             interpolated_shading_flux = (0.5 * interpolated_diff_rad + 0.2 * 0.5 * interpolated_global_rad)
-            interpolated_ground_temp = 15 - 5 * np.cos(np.deg2rad((hour_counter - 31 * 2 * 24) *360 / 8760))
-            interpolated_unheated_temp = 18 - 3 * np.cos(np.rad2deg((hour_counter - 31 * 2 * 24) *360 / 8760))
+            interpolated_ground_temp = 15 - 5 * np.cos(np.deg2rad((i_prev - 31 * 2 * 24) *360 / 8760))
+            interpolated_unheated_temp = 18 - 3 * np.cos(np.deg2rad((i_prev - 31 * 2 * 24) *360 / 8760))
         
             # calculation of shading
             shading_value_shaded_windows_north = 1.0
@@ -1039,7 +1043,7 @@ for day in range(1, int(weather_file_size/24)+1):
             shading_value_shaded_windows_south = 1.0
             shading_value_shaded_windows_west = 1.0
         
-            if initial_temperatures[line_air] > 23.0 and interpolated_shading_flux > 200.0:
+            if initial_temperatures[line_air].item() > 23.0 and interpolated_shading_flux > 200.0:
                 shading_value_shaded_windows_north = shading_g_value_reduction_factor
                 shading_value_shaded_windows_east = shading_g_value_reduction_factor
                 shading_value_shaded_windows_south = shading_g_value_reduction_factor
@@ -1050,7 +1054,7 @@ for day in range(1, int(weather_file_size/24)+1):
             shading_value_unshaded_windows_south = 1.0
             shading_value_unshaded_windows_west = 1.0
 
-            if initial_temperatures[line_air] > 23.0:
+            if initial_temperatures[line_air].item() > 23.0:
                 if interpolated_sun_flux_n > 200.0:
                     shading_value_unshaded_windows_north = shading_g_value_reduction_factor
                 if interpolated_sun_flux_e > 200.0:
@@ -1076,22 +1080,22 @@ for day in range(1, int(weather_file_size/24)+1):
             if lighting_schedule[hour-1] > 0:
                 if ((shading_value_unshaded_windows_north * unshaded_glazing_area_n * interpolated_sun_flux_n
                     + shading_value_shaded_windows_north * shaded_glazing_area_n * interpolated_shading_flux) / glazing_area_n) < 15.0:
-                        int_heat_gain = int_heat_gain + lighting_schedule[hour] * lighting_power * lighting_north_side
+                        int_heat_gain = int_heat_gain + lighting_schedule[hour-1] * lighting_power * lighting_north_side
                 
                 if ((
                     shading_value_unshaded_windows_east * unshaded_glazing_area_e * interpolated_sun_flux_e
                     + shading_value_shaded_windows_east * shaded_glazing_area_e * interpolated_shading_flux) / glazing_area_e) < 15.0:
-                        int_heat_gain = int_heat_gain + lighting_schedule[hour] * lighting_power * lighting_east_side
+                        int_heat_gain = int_heat_gain + lighting_schedule[hour-1] * lighting_power * lighting_east_side
                 
                 if ((
                     shading_value_unshaded_windows_south * unshaded_glazing_area_s * interpolated_sun_flux_s 
                     + shading_value_shaded_windows_south * shaded_glazing_area_s * interpolated_shading_flux) / glazing_area_s) < 15.0:
-                        int_heat_gain = int_heat_gain + lighting_schedule[hour] * lighting_power * lighting_south_side
+                        int_heat_gain = int_heat_gain + lighting_schedule[hour-1] * lighting_power * lighting_south_side
 
                 if ((
                     shading_value_unshaded_windows_west * unshaded_glazing_area_w * interpolated_sun_flux_w
                     + shading_value_shaded_windows_west * shaded_glazing_area_w * interpolated_shading_flux) / glazing_area_w) < 15.0:
-                        int_heat_gain = int_heat_gain + lighting_schedule[hour] * lighting_power * lighting_west_side
+                        int_heat_gain = int_heat_gain + lighting_schedule[hour-1] * lighting_power * lighting_west_side
             
             # air temperature equation
             right_matrix[line_air] = (
@@ -1340,26 +1344,31 @@ for day in range(1, int(weather_file_size/24)+1):
             right_matrix[line_wall_n_4] = (
                 wall_area_n * wall_outside_capacity_density * wall_outside_thickness * 0.5 * initial_temperatures[line_wall_n_4]
                 + interpolated_amb_temp * wall_area_n * surf_htc_out * time_step
+                + 0.8 * interpolated_sun_flux_n * wall_area_n * time_step
             )
             # temperature of the 4. node of the east wall
             right_matrix[line_wall_e_4] = (
                 wall_area_e * wall_outside_capacity_density * wall_outside_thickness * 0.5 * initial_temperatures[line_wall_e_4]
                 + interpolated_amb_temp * wall_area_e * surf_htc_out * time_step
+                + 0.8 * interpolated_sun_flux_e * wall_area_e * time_step
             )
             # temperature of the 4. node of the south wall
             right_matrix[line_wall_s_4] = (
                 wall_area_s * wall_outside_capacity_density * wall_outside_thickness * 0.5 * initial_temperatures[line_wall_s_4]
                 + interpolated_amb_temp * wall_area_s * surf_htc_out * time_step
+                + 0.8 * interpolated_sun_flux_s * wall_area_s * time_step
             )
             # temperature of the 4. node of the west wall
             right_matrix[line_wall_w_4] = (
                 wall_area_w * wall_outside_capacity_density * wall_outside_thickness * 0.5 * initial_temperatures[line_wall_w_4]
                 + interpolated_amb_temp * wall_area_w * surf_htc_out * time_step
+                + 0.8 * interpolated_sun_flux_w * wall_area_w * time_step
             )
             # temperature of the 4. node of the roof
             right_matrix[line_roof_4] = (
                 roof_area * roof_outside_capacity_density * roof_outside_thickness * 0.5 * initial_temperatures[line_roof_4]
                 + interpolated_amb_temp * roof_area * surf_htc_out * time_step
+                + 0.8 * interpolated_sun_flux_r * roof_area * time_step
             )
             # temperature of the 4. node of the floor
             right_matrix[line_floor_4] = (
@@ -1381,8 +1390,8 @@ for day in range(1, int(weather_file_size/24)+1):
             heating_power = 0.0
             cooling_power = 0.0
 
-            if initial_temperatures[line_air] < heating_setpoint:
-                for i in range(0, 4):
+            if initial_temperatures[line_air].item() < heating_setpoint:
+                for i in range(5):
                     heating_power = heating_power + left_matrix[line_air, line_air] * (heating_setpoint - initial_temperatures[line_air]) / time_step
                     right_matrix[line_air] = (
                         building_height * floor_area * 1006 * 1.185 * initial_temperatures[line_air]
@@ -1393,8 +1402,8 @@ for day in range(1, int(weather_file_size/24)+1):
                         + heating_power * time_step
                     )
                     initial_temperatures = inverse_matrix @ right_matrix
-            elif initial_temperatures[line_air] > cooling_setpoint:
-                for i in range(0, 4):
+            elif initial_temperatures[line_air].item() > cooling_setpoint:
+                for i in range(5):
                     cooling_power = cooling_power + left_matrix[line_air, line_air] * (initial_temperatures[line_air] - cooling_setpoint) / time_step
                     right_matrix[line_air] = (
                         building_height * floor_area * 1006 * 1.185 * initial_temperatures[line_air]
@@ -1406,24 +1415,27 @@ for day in range(1, int(weather_file_size/24)+1):
                     )
                     initial_temperatures = inverse_matrix @ right_matrix
             if hour_counter > weather_file_size -8760:
-                output_heating_power[hour_counter - weather_file_size + 8760] = (
-                    output_heating_power[hour_counter - weather_file_size + 8760] 
+                out_idx = hour_counter - weather_file_size + 8760 -1
+                output_heating_power[out_idx] = (
+                    output_heating_power[out_idx] 
                     + heating_power * time_step / 3600
                 )
-                output_cooling_power[hour_counter - weather_file_size + 8760] = (
-                    output_cooling_power[hour_counter - weather_file_size + 8760] 
+                output_cooling_power[out_idx] = (
+                    output_cooling_power[out_idx] 
                     + cooling_power * time_step / 3600
                 )
-                output_lighting_electricity[hour_counter - weather_file_size + 8760] = (
-                    output_lighting_electricity[hour_counter - weather_file_size + 8760] 
-                    + lighting_schedule[hour - 1] * lighting_power / 1000 * time_step / 3600
+                output_lighting_electricity[out_idx] = (
+                    output_lighting_electricity[out_idx]
+                    + (int_heat_gain - occupancy_schedule[hour - 1] * occupancy_power - equipment_schedule[hour - 1] * equipment_power) * time_step / 3600
+
                 )
-                output_equipment_electricity[hour_counter - weather_file_size + 8760] = (
-                    output_equipment_electricity[hour_counter - weather_file_size + 8760] 
-                    + equipment_schedule[hour - 1] * equipment_power / 1000 * time_step / 3600
+                output_equipment_electricity[out_idx] = (
+                    output_equipment_electricity[out_idx]
+                    + equipment_schedule[hour - 1] * equipment_power * time_step / 3600
                 )
         if hour_counter > weather_file_size - 8760:
-            output_temperatures[hour_counter - weather_file_size + 8760, :] = initial_temperatures.T
+            out_idx = hour_counter - weather_file_size + 8760 - 1
+            output_temperatures[out_idx, :] = initial_temperatures.T
 
         hour = hour + 1
         hour_counter = hour_counter + 1
