@@ -1453,4 +1453,11 @@ print(f"total lighting electricity = {output_lighting_electricity} MWh")
 print(f"total equipment electricity = {output_equipment_electricity} MWh")
 
 # save results as a binary file
-np.savez('py_out.npz', output_temperatures=output_temperatures, output_heating_power=output_heating_power, output_cooling_power=output_cooling_power, output_lighting_electricity=output_lighting_electricity, output_equipment_electricity=output_equipment_electricity)
+np.savez(
+    'py_out.npz', 
+    output_temperatures=output_temperatures, 
+    output_heating_power=output_heating_power, 
+    output_cooling_power=output_cooling_power, 
+    output_lighting_electricity=output_lighting_electricity, 
+    output_equipment_electricity=output_equipment_electricity,
+    left_matrix=left_matrix)
