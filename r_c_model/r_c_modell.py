@@ -1021,6 +1021,7 @@ for day in range(1, int(weather_file_size/24)+1):
         for internal_time_step in range(1, int(3600/time_step)+1):
             right_matrix = np.zeros((49, 1))
 
+
             i_prev = hour_counter - 2   # index for previous hour
             i_curr = hour_counter - 1   # index for current hour
         
@@ -1034,8 +1035,8 @@ for day in range(1, int(weather_file_size/24)+1):
             interpolated_diff_rad = diff_radiation[i_prev] + internal_time_step * time_step / 3600 * (diff_radiation[i_curr] - diff_radiation[i_prev])
             interpolated_global_rad = global_radiation[i_prev] + internal_time_step * time_step / 3600 * (global_radiation[i_curr] - global_radiation[i_prev])
             interpolated_shading_flux = (0.5 * interpolated_diff_rad + 0.2 * 0.5 * interpolated_global_rad)
-            interpolated_ground_temp = 15 - 5 * np.cos(np.deg2rad((i_prev - 31 * 2 * 24) *360 / 8760))
-            interpolated_unheated_temp = 18 - 3 * np.cos(np.deg2rad((i_prev - 31 * 2 * 24) *360 / 8760))
+            interpolated_ground_temp = 15 - 5 * np.cos(np.deg2rad((i_curr - 31 * 2 * 24) *360 / 8760))
+            interpolated_unheated_temp = 18 - 3 * np.cos(np.deg2rad((i_curr - 31 * 2 * 24) *360 / 8760))
         
             # calculation of shading
             shading_value_shaded_windows_north = 1.0
@@ -1392,9 +1393,9 @@ for day in range(1, int(weather_file_size/24)+1):
 
             if initial_temperatures[line_air].item() < heating_setpoint:
                 for i in range(5):
-                    heating_power = heating_power + left_matrix[line_air, line_air] * (heating_setpoint - initial_temperatures[line_air]) / time_step
+                    heating_power = heating_power + left_matrix[line_air, line_air] * (heating_setpoint - initial_temperatures[line_air].item()) / time_step
                     right_matrix[line_air] = (
-                        building_height * floor_area * 1006 * 1.185 * initial_temperatures[line_air]
+                        building_height * floor_area * 1006 * 1.185 * initial_temperatures[line_air].item()
                         + wall_against_unheated_u_value * wall_against_unheated_area * time_step * interpolated_unheated_temp
                         + thermal_bridges * time_step * interpolated_amb_temp
                         + (infiltration_rate + air_ventilation_rate * (1 - heat_exchanger_efficiency)) * 1006 * 1.185 * time_step * interpolated_amb_temp
@@ -1404,9 +1405,9 @@ for day in range(1, int(weather_file_size/24)+1):
                     initial_temperatures = inverse_matrix @ right_matrix
             elif initial_temperatures[line_air].item() > cooling_setpoint:
                 for i in range(5):
-                    cooling_power = cooling_power + left_matrix[line_air, line_air] * (initial_temperatures[line_air] - cooling_setpoint) / time_step
+                    cooling_power = cooling_power + left_matrix[line_air, line_air] * (initial_temperatures[line_air].item() - cooling_setpoint) / time_step
                     right_matrix[line_air] = (
-                        building_height * floor_area * 1006 * 1.185 * initial_temperatures[line_air]
+                        building_height * floor_area * 1006 * 1.185 * initial_temperatures[line_air].item()
                         + wall_against_unheated_u_value * wall_against_unheated_area * time_step * interpolated_unheated_temp
                         + thermal_bridges * time_step * interpolated_amb_temp
                         + (infiltration_rate + air_ventilation_rate * (1 - heat_exchanger_efficiency)) * 1006 * 1.185 * time_step * interpolated_amb_temp
@@ -1440,10 +1441,10 @@ for day in range(1, int(weather_file_size/24)+1):
         hour = hour + 1
         hour_counter = hour_counter + 1
 
-output_heating_power = sum(output_heating_power) / 10**6
-output_cooling_power = sum(output_cooling_power) / 10**6
-output_lighting_electricity = sum(output_lighting_electricity) / 10**6
-output_equipment_electricity = sum(output_equipment_electricity) / 10**6
+output_heating_power = output_heating_power.sum() / 1e6
+output_cooling_power = output_cooling_power.sum() / 1e6
+output_lighting_electricity = output_lighting_electricity.sum() / 1e6
+output_equipment_electricity = output_equipment_electricity.sum() / 1e6
 # endregion
 
 print(f"total heating power = {output_heating_power} MWh")
