@@ -256,8 +256,6 @@ sun_flux_south = np.zeros(len(sun_elevation))  # Initialize sun flux array for s
 sun_flux_west = np.zeros(len(sun_elevation))   # Initialize sun flux array for west facade
 sun_flux_roof = np.zeros(len(sun_elevation))   # Initialize sun flux array for roof
 
-# calculation of sun flux on each facade and roof
-mask = sun_elevation > 0.0  # Only calculate for positive sun elevations
 
 # Sun flux on north facade [W/m²]
 sun_flux_north[mask] = (
@@ -1024,7 +1022,7 @@ steps_per_hour = int(3600 / time_step)
 for i in range(1, weather_file_size): # loop over all hours in the weather data. i = 1..N-1 (actual hour)
     hour = (i % 24) or 24 # hour = 1..24 (ensure hour is between 1 and 24) (modulo and fallback operation)
     for k in range(steps_per_hour): # loop over all time steps in one hour. k = 0..steps_per_hour-1
-        alpha = k * time_step / 3600 # alpha = 0..1 (fraction of the hour)
+        alpha = (k+1) * time_step / 3600 # alpha = 0..1 (fraction of the hour)
         i_prev = i - 1 # index for previous hour
         i_curr = i     # index for current hour
 
@@ -1422,7 +1420,7 @@ for i in range(1, weather_file_size): # loop over all hours in the weather data.
                 initial_temperatures = inverse_matrix @ right_matrix
 
         if i > weather_file_size - 8760:
-            out_idx = i - weather_file_size + 8760 - 1
+            out_idx = i - weather_file_size + 8760
             output_heating_power[out_idx] += heating_power * time_step / 3600
             output_cooling_power[out_idx] += cooling_power * time_step / 3600
             output_lighting_electricity[out_idx] += (
@@ -1433,7 +1431,7 @@ for i in range(1, weather_file_size): # loop over all hours in the weather data.
             )
 
     if i > weather_file_size - 8760:
-        out_idx = i - weather_file_size + 8760 - 1
+        out_idx = i - weather_file_size + 8760
         output_temperatures[out_idx, :] = initial_temperatures
 
 

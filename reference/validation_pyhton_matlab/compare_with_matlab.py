@@ -18,7 +18,7 @@ Qh_ref = np.asarray(ref['output_heating_power']).ravel()  # heating power refere
 Qc_ref = np.asarray(ref['output_cooling_power']).ravel()  # cooling power reference [MWh], shape (1, )
 El_ref = np.asarray(ref['output_lighting_electricity']).ravel()  # lighting electricity reference [MWh], shape (1, )
 Eq_ref = np.asarray(ref['output_equipment_electricity']).ravel()  # equipment electricity reference [MWh], shape (1, )
-A = np.asarray(ref['left_matrix'])  # left matrix A
+A_ref = np.asarray(ref['left_matrix'])  # left matrix A
 
 py = np.load("py_out.npz")
 T_py = py['output_temperatures']  # temperature python [°C], shape (8760, 49)
@@ -38,14 +38,22 @@ def rmse(a,b):
     d = np.asarray(a) - np.asarray(b)
     return float(np.sqrt(np.mean(d*d)))
 
+def MWh(x): return float(np.sum(x)/1e6)  # sum in MWh
+
+print("=== comparison matlab vs python ===")
+print(f"Temperature shape: py={T_py.shape}, ref={T_ref.shape}")
+print(f"Matrix-shape     : py={A_py.shape}, ref={A_ref.shape}")
+
+Qc_py_comp = -Qc_py if np.mean(Qc_ref) < 0 else Qc_py  # ensure same sign convention for cooling power
+
 # compare temperatures
-t_rmse = rmse(T_py[:,0], T_ref[:,0])
-print(f"RMSE T_air = {t_rmse:.6f} K")
+t_rmse = rmse(T_py[:, 0], T_ref[:, 0]) # compare only first column (air temperature)
 
 # compare heating and cooling power hourly
 qh_rmse = rmse(Qh_py, Qh_ref)
 qc_rmse = rmse(Qc_py, Qc_ref)
+
+print(f"RMSE T_air = {t_rmse:.6f} K")
 print(f"RMSE Q_h (Wh) = {qh_rmse:.6f}")
 print(f"RMSE Q_c (Wh) = {qc_rmse:.6f}")
 
-def MWh(x): return float(np.sum(x)/1e6)  # sum in MWh
