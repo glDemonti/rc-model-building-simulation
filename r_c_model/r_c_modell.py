@@ -254,7 +254,7 @@ sun_flux_north = np.zeros(len(sun_elevation))  # Initialize sun flux array for n
 sun_flux_east = np.zeros(len(sun_elevation))   # Initialize sun flux array for east facade
 sun_flux_south = np.zeros(len(sun_elevation))  # Initialize sun flux array for south facade
 sun_flux_west = np.zeros(len(sun_elevation))   # Initialize sun flux array for west facade
-sun_flux_roof = np.zeros(len(sun_elevation))   # Initialize sun flux array for roof
+sun_flux_roof = np.zeros_like(global_radiation)   # Initialize sun flux array for roof
 
 
 # Sun flux on north facade [W/m²]
@@ -1022,7 +1022,7 @@ steps_per_hour = int(3600 / time_step)
 for i in range(1, weather_file_size): # loop over all hours in the weather data. i = 1..N-1 (actual hour)
     hour = (i % 24) or 24 # hour = 1..24 (ensure hour is between 1 and 24) (modulo and fallback operation)
     for k in range(steps_per_hour): # loop over all time steps in one hour. k = 0..steps_per_hour-1
-        alpha = (k+1) * time_step / 3600 # alpha = 0..1 (fraction of the hour)
+        alpha = (k + 1) * time_step / 3600 # alpha = 0..1 (fraction of the hour)
         i_prev = i - 1 # index for previous hour
         i_curr = i     # index for current hour
 
@@ -1435,16 +1435,16 @@ for i in range(1, weather_file_size): # loop over all hours in the weather data.
         output_temperatures[out_idx, :] = initial_temperatures
 
 
-output_heating_power = output_heating_power.sum() / 1e6
-output_cooling_power = output_cooling_power.sum() / 1e6
-output_lighting_electricity = output_lighting_electricity.sum() / 1e6
-output_equipment_electricity = output_equipment_electricity.sum() / 1e6
+output_heating_power_sum = output_heating_power.sum() / 1e6
+output_cooling_power_sum = output_cooling_power.sum() / 1e6
+output_lighting_electricity_sum = output_lighting_electricity.sum() / 1e6
+output_equipment_electricity_sum = output_equipment_electricity.sum() / 1e6
 # endregion
 
-print(f"total heating power = {output_heating_power} MWh")
-print(f"total cooling power = {output_cooling_power} MWh")
-print(f"total lighting electricity = {output_lighting_electricity} MWh")
-print(f"total equipment electricity = {output_equipment_electricity} MWh")
+print(f"total heating power = {output_heating_power_sum} MWh")
+print(f"total cooling power = {output_cooling_power_sum} MWh")
+print(f"total lighting electricity = {output_lighting_electricity_sum} MWh")
+print(f"total equipment electricity = {output_equipment_electricity_sum} MWh")
 
 # save results as a binary file
 np.savez(

@@ -1175,10 +1175,10 @@ for day=1:weather_file_size(1)/24
         hour_counter = hour_counter + 1;
     end 
 end
-output_total_heating_power = sum(output_heating_power) / 10^6
-output_total_cooling_power = sum(output_cooling_power) / 10^6
-output_total_lighting_power = sum(output_lighting_electricity) / 10^6
-output_total_equipment_power = sum(output_equipment_electricity) / 10^6
+output_total_heating_power_sum = sum(output_heating_power) / 10^6
+output_total_cooling_power_sum = sum(output_cooling_power) / 10^6
+output_total_lighting_power_sum = sum(output_lighting_electricity) / 10^6
+output_total_equipment_power_sum = sum(output_equipment_electricity) / 10^6
 
 %%
 % load("ida_results_ver2.mat");
