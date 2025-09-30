@@ -51,6 +51,10 @@ def rmse(a,b):
 
 def MWh(x): return float(np.sum(x)/1e6)  # sum in MWh
 
+print("First 10 entries of Qh_ref:", Qh_ref[:10])
+print("First 10 entries of Qh_gpt_py:", Qh_gpt_py[:10])
+print("First 10 entries of Qh_py:", Qh_py[:10])
+
 
 print("=== comparison matlab vs python ===")
 print(f"Temperature shape: py={T_py.shape}, ref={T_ref.shape}")
