@@ -1420,7 +1420,7 @@ for i in range(1, weather_file_size): # loop over all hours in the weather data.
                 initial_temperatures = inverse_matrix @ right_matrix
 
         if i > weather_file_size - 8760:
-            out_idx = i - weather_file_size + 8760
+            out_idx = i -1 - weather_file_size + 8760
             output_heating_power[out_idx] += heating_power * time_step / 3600
             output_cooling_power[out_idx] += cooling_power * time_step / 3600
             output_lighting_electricity[out_idx] += (
@@ -1431,7 +1431,7 @@ for i in range(1, weather_file_size): # loop over all hours in the weather data.
             )
 
     if i > weather_file_size - 8760:
-        out_idx = i - weather_file_size + 8760
+        out_idx = i -1 - weather_file_size + 8760
         output_temperatures[out_idx, :] = initial_temperatures
 
 
