@@ -46,6 +46,99 @@ glazing_g_value = 0.45      # g-value of glazing (fraction of solar radiation tr
 shading_g_value_reduction_factor = 0.14  # Reduction factor of g-value due to shading (e.g. balconies) []
 frame_u_value = 2.0         # U-value of window frame [W/m²K]
 
+# Thermal properties of opaque building components
+wall_against_unheated_u_value = "1 / (2 / 8.0 + 0.17 / 0.79)" # u-value of Wall against unheated zones [W/m²K]
+
+# Thermal properties of inside layers of building components
+wall_inside_lambda = 1.8 
+roof_inside_lambda = 1.8
+floor_inside_lambda = 1.8
+
+# capacity density of inside layers of building components. (rho * c) [J/m³K]
+wall_inside_capacity_density = "2400 * 1100"
+roof_inside_capacity_density = "2400 * 1100"
+floor_inside_capacity_density = "2400 * 1100"
+
+# thermal properties of outside layers of building components 
+wall_outside_lambda = 0.031
+roof_outside_lambda = 0.02
+floor_outside_lambda = 0.03
+
+# capacity density of outside layers of building components. (rho * c) [J/m³K]
+wall_outside_capacity_density = "16 * 1400"
+roof_outside_capacity_density = "30 * 1400"
+floor_outside_capacity_density = "18 * 1400"
+
+# thermal properties of internal building components
+int_wall_lambda = 0.79
+int_ceiling_lambda = 1.8
+
+# capacity density of internal building components. (rho * c) [J/m³K]
+int_wall_capacity_density = "1070.0 * 850.0"
+int_ceiling_capacity_density = "2400.0 * 1100.0"
+
+# Thermal properties of opaque building components
+wall_against_unheated_u_value = 1 / (2 / 8.0 + 0.17 / 0.79) # u-value of Wall against unheated zones [W/m²K]
+
+# Thermal properties of inside layers of building components
+wall_inside_lambda = 1.8 
+roof_inside_lambda = 1.8
+floor_inside_lambda = 1.8
+
+# capacity density of inside layers of building components. (rho * c) [J/m³K]
+wall_inside_capacity_density = 2400 * 1100
+roof_inside_capacity_density = 2400 * 1100
+floor_inside_capacity_density = 2400 * 1100
+
+# thermal properties of outside layers of building components 
+wall_outside_lambda = 0.031
+roof_outside_lambda = 0.02
+floor_outside_lambda = 0.03
+
+# capacity density of outside layers of building components. (rho * c) [J/m³K]
+wall_outside_capacity_density = 16 * 1400
+roof_outside_capacity_density = 30 * 1400
+floor_outside_capacity_density = 18 * 1400
+
+# thermal properties of internal building components
+int_wall_lambda = 0.79
+int_ceiling_lambda = 1.8
+
+# capacity density of internal building components. (rho * c) [J/m³K]
+int_wall_capacity_density = 1070.0 * 850.0
+int_ceiling_capacity_density = 2400.0 * 1100.0
+
+# thickness of layers of outside walls
+wall_inside_thickness = 0.2  # thickness of inside layer of walls (brick) [m]
+wall_outside_thickness = 0.1  # thickness of outside layer of walls (insulation) [m]
+
+# thickness of layers of outside roof
+roof_inside_thickness = 0.25  # thickness of inside layer of roof (concrete) [m]
+roof_outside_thickness = 0.1   # thickness of outside layer of roof (insulation) [m]
+
+# thickness of layers of floor against unheated zones or ground
+floor_inside_thickness = 0.3   # thickness of inside layer of floor (concrete) [m]
+floor_outside_thickness = 0.08  # thickness of outside layer of floor (insulation) [m]
+
+# thickness of layers of internal walls
+int_wall_thickness = 0.17       # thickness of internal walls (drywall) [m]
+int_ceiling_thickness = 0.3654  # thickness of internal ceiling (drywall) [m]
+
+infiltration_rate = "0.194444 * 0.001 * floor_area * 3.0"
+
+# ventilation rate of the building (assumed to be always on)
+air_ventilation_rate = "0.278 * 0.001 * floor_area * 3.0"  # [m³/s]
+heat_exchanger_efficiency = 0.0  # efficiency of heat exchanger in ventilation system []
+
+# thermal bridges
+thermal_bridges = 123.4 # thermal bridges [W/K]
+
+# difference power input [W] 
+occupancy_power = "70.0 * 0.033 * floor_area * 3.0"
+lighting_power = "2.7 * floor_area * 3.0"
+equipment_power = "8.0 * floor_area * 3.0"
+
+
 ui.page_opts(
     title="Simple simulation app",
     page_fn=partial(page_navbar, id="page"),
@@ -55,6 +148,11 @@ with ui.nav_panel("home"):
     "page 1"
 
 with ui.nav_panel("settings"):
+    ui.input_action_button(
+        id="button_save_settings",
+        label="Save settings",
+        disabled=False,
+    )
     with ui.navset_pill_list(id="tab"):
         with ui.nav_panel("basic settings"):
 
@@ -305,8 +403,274 @@ with ui.nav_panel("settings"):
                     max=None,
                     step=0.1,
                 )
+                ui.input_text(
+                    id="wall_against_unheated_u_value",
+                    label="u-value of Wall against unheated zones [W/m²K]",
+                    value=wall_against_unheated_u_value,
+                    width="600px",
+                    placeholder="Enter a number",
+                )
+                ui.input_numeric(
+                    id="wall_inside_lambda",
+                    label="Thermal conductivity of inside layer of wall [W/mK]",
+                    value=wall_inside_lambda,
+                    width=None,
+                    min=0,
+                    max=None,
+                    step=0.1,
+                )
+                ui.input_numeric(
+                    id="roof_inside_lambda",
+                    label="Thermal conductivity of inside layer of roof [W/mK]",
+                    value=roof_inside_lambda,
+                    width=None,
+                    min=0,
+                    max=None,
+                    step=0.1,
+                )
+                ui.input_numeric(
+                    id="floor_inside_lambda",
+                    label="Thermal conductivity of inside layer of floor [W/mK]",
+                    value=floor_inside_lambda,
+                    width=None,
+                    min=0,
+                    max=None,
+                    step=0.1,
+                )
+                ui.input_text(
+                    id="wall_inside_capacity_density",
+                    label="Capacity density of inside layer of wall (rho * c) [J/m³K]",
+                    value=wall_inside_capacity_density,
+                    width="600px",
+                    placeholder="Enter a number",
+                )
+                ui.input_text(
+                    id="roof_inside_capacity_density",
+                    label="Capacity density of inside layer of roof (rho * c) [J/m³K]",
+                    value=roof_inside_capacity_density,
+                    width="600px",
+                    placeholder="Enter a number",
+                )
+                ui.input_text(
+                    id="floor_inside_capacity_density",
+                    label="Capacity density of inside layer of floor (rho * c) [J/m³K]",
+                    value=floor_inside_capacity_density,
+                    width="600px",
+                    placeholder="Enter a number",
+                )
+                ui.input_numeric(
+                    id="wall_outside_lambda",
+                    label="Thermal conductivity of outside layer of wall [W/mK]",
+                    value=wall_outside_lambda,
+                    width=None,
+                    min=0,
+                    max=None,
+                    step=0.001,
+                )
+                ui.input_numeric(
+                    id="roof_outside_lambda",
+                    label="Thermal conductivity of outside layer of roof [W/mK]",
+                    value=roof_outside_lambda,
+                    width=None,
+                    min=0,
+                    max=None,
+                    step=0.001,
+                )
+                ui.input_numeric(
+                    id="floor_outside_lambda",
+                    label="Thermal conductivity of outside layer of floor [W/mK]",
+                    value=floor_outside_lambda,
+                    width=None,
+                    min=0,
+                    max=None,
+                    step=0.001,
+                )
+                ui.input_text(
+                    id="wall_outside_capacity_density",
+                    label="Capacity density of outside layer of wall (rho * c) [J/m³K]",
+                    value=wall_outside_capacity_density,
+                    width="600px",
+                    placeholder="Enter a number",
+                )
+                ui.input_text(
+                    id="roof_outside_capacity_density",
+                    label="Capacity density of outside layer of roof (rho * c) [J/m³K]",
+                    value=roof_outside_capacity_density,
+                    width="600px",
+                    placeholder="Enter a number",
+                )
+                ui.input_text(
+                    id="floor_outside_capacity_density",
+                    label="Capacity density of outside layer of floor (rho * c) [J/m³K]",
+                    value=floor_outside_capacity_density,
+                    width="600px",
+                    placeholder="Enter a number",
+                )
+                ui.input_numeric(
+                    id="int_wall_lambda",
+                    label="Thermal conductivity of internal wall [W/mK]",
+                    value=int_wall_lambda,
+                    width=None,
+                    min=0,
+                    max=None,
+                    step=0.1,
+                )
+                ui.input_numeric(
+                    id="int_ceiling_lambda",
+                    label="Thermal conductivity of internal ceiling [W/mK]",
+                    value=int_ceiling_lambda,
+                    width=None,
+                    min=0,
+                    max=None,
+                    step=0.1,
+                )
+                ui.input_text(
+                    id="int_wall_capacity_density",
+                    label="Capacity density of internal wall (rho * c) [J/m³K]",
+                    value=int_wall_capacity_density,
+                    width="600px",
+                    placeholder="Enter a number",
+                )
+                ui.input_text(
+                    id="int_ceiling_capacity_density",
+                    label="Capacity density of internal ceiling (rho * c) [J/m³K]",
+                    value=int_ceiling_capacity_density,
+                    width="600px",
+                    placeholder="Enter a number",
+                )
 
-            # input fields for internal gains
+
+            # input fields for thicknesses of building components
+            with ui.card():
+                ui.card_header("Thicknesses of building components")
+                ui.input_numeric(
+                    id="wall_inside_thickness",
+                    label="Thickness of inside layer of wall (brick) [m]",
+                    value=wall_inside_thickness,
+                    width=None,
+                    min=0,
+                    max=None,
+                    step=0.01,
+                )
+                ui.input_numeric(
+                    id="wall_outside_thickness",
+                    label="Thickness of outside layer of wall (insulation) [m]",
+                    value=wall_outside_thickness,
+                    width=None,
+                    min=0,
+                    max=None,
+                    step=0.01,
+                )
+                ui.input_numeric(
+                    id="roof_inside_thickness",
+                    label="Thickness of inside layer of roof (concrete) [m]",
+                    value=roof_inside_thickness,
+                    width=None,
+                    min=0,
+                    max=None,
+                    step=0.01,
+                )
+                ui.input_numeric(
+                    id="roof_outside_thickness",
+                    label="Thickness of outside layer of roof (insulation) [m]",
+                    value=roof_outside_thickness,
+                    width=None,
+                    min=0,
+                    max=None,
+                    step=0.01,
+                )
+                ui.input_numeric(
+                    id="floor_inside_thickness",
+                    label="Thickness of inside layer of floor (concrete) [m]",
+                    value=floor_inside_thickness,
+                    width=None,
+                    min=0,
+                    max=None,
+                    step=0.01,
+                )
+                ui.input_numeric(
+                    id="floor_outside_thickness",
+                    label="Thickness of outside layer of floor (insulation) [m]",
+                    value=floor_outside_thickness,
+                    width=None,
+                    min=0,
+                    max=None,
+                    step=0.01,
+                )
+                ui.input_numeric(
+                    id="int_wall_thickness",
+                    label="Thickness of internal wall (drywall) [m]",
+                    value=int_wall_thickness,
+                    width=None,
+                    min=0,
+                    max=None,
+                    step=0.01,
+                )
+                ui.input_numeric(
+                    id="int_ceiling_thickness",
+                    label="Thickness of internal ceiling (drywall) [m]",
+                    value=int_ceiling_thickness,
+                    width=None,
+                    min=0,
+                    max=None,
+                    step=0.01,
+                )
+
+            #input fields for building thermal parameters
+            with ui.card():
+                ui.card_header("Building thermal parameters")
+                ui.input_text(
+                    id="infiltration_rate",
+                    label="Infiltration rate of the building [m³/s]",
+                    value=infiltration_rate,
+                    width="600px",
+                    placeholder="Enter a number",
+                )
+                ui.input_text(
+                    id="air_ventilation_rate",
+                    label="Ventilation rate of the building (assumed to be always on) [m³/s]",
+                    value=air_ventilation_rate,
+                    width="600px",
+                    placeholder="Enter a number",
+                )
+                ui.input_numeric(
+                    id="heat_exchanger_efficiency",
+                    label="Efficiency of heat exchanger in ventilation system []",
+                    value=heat_exchanger_efficiency,
+                    width=None,
+                    min=0,
+                    max=1,
+                    step=0.01,
+                )
+                ui.input_text(
+                    id="thermal_bridges",
+                    label="Thermal bridges [W/K]",
+                    value=thermal_bridges,
+                    width="600px",
+                    placeholder="Enter a number",
+                )
+                ui.input_text(
+                    id="occupancy_power",
+                    label="Occupancy power input [W]",
+                    value=occupancy_power,
+                    width="600px",
+                    placeholder="Enter a number",
+                )
+                ui.input_text(
+                    id="lighting_power",
+                    label="Lighting power input [W]",
+                    value=lighting_power,
+                    width="600px",
+                    placeholder="Enter a number",
+                )
+                ui.input_text(
+                    id="equipment_power",
+                    label="Equipment power input [W]",
+                    value=equipment_power,
+                    width="600px",
+                    placeholder="Enter a number",
+                )
+
 
         with ui.nav_panel("advanced settings"):
             "Advanced settings"
