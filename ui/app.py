@@ -1,4 +1,5 @@
 from functools import partial
+import pandas as pd
 
 from shiny import reactive
 from shiny.express import input, render, ui
@@ -138,6 +139,22 @@ occupancy_power = "70.0 * 0.033 * floor_area * 3.0"
 lighting_power = "2.7 * floor_area * 3.0"
 equipment_power = "8.0 * floor_area * 3.0"
 
+# sheduled parameters
+df_schedule_occupancy = pd.DataFrame(
+    columns=[f'{i:02d}:00' for i in range(24)],
+    index=['Occupancy'],
+    # data=[[1], [1], [1], [1], [1], [1], [0.6], [0.4], [0], [0], [0], [0], [0.8], [0.4], [0], [0], [0], [0.4], [0.8], [0.8], [0.8], [1], [1], [1]]
+    data=[[0.0] * 24])
+
+df_schedule_lighting = pd.DataFrame(
+    columns=[f'{i:02d}:00' for i in range(24)],
+    index=['Lighting'],
+    data=[[0.0] * 24])
+
+df_schedule_equipment = pd.DataFrame(
+    columns=[f'{i:02d}:00' for i in range(24)],
+    index=['Equipment'],
+    data=[[0.0] * 24])
 
 ui.page_opts(
     title="Simple simulation app",
@@ -671,12 +688,58 @@ with ui.nav_panel("settings"):
                     placeholder="Enter a number",
                 )
 
+            # iput fields for sheduled parameters
+            with ui.card():
+                ui.card_header("Scheduled parameters")
+                @render.data_frame
+                def table_parameters():
+                    return render.DataGrid(
+                        df_schedule_occupancy,
+                        editable=True,
+                        
+                        )
+        with ui.nav_panel("scheduled parameters"):
+            with ui.card():
+                ui.card_header("Occupancy schedule")
+                @render.data_frame
+                def table_occupancy():
+                    return render.DataGrid(
+                        df_schedule_occupancy,
+                        editable=True,
+                        )
+
+            with ui.card():
+                ui.card_header("Lighting schedule")
+                "Lighting schedule input table (to be implemented)"
+
+            with ui.card():
+                ui.card_header("Equipment schedule")
+                "Equipment schedule input table (to be implemented)"
 
         with ui.nav_panel("advanced settings"):
             "Advanced settings"
 
 with ui.nav_panel("about"):
     "About this app"
+    # Create initial schedule with hours as columns
+    schedule = pd.DataFrame(
+        columns=[f'{i:02d}:00' for i in range(24)],
+        index=['Occupancy'],
+        data=[[0.0] * 24]
+    )
 
 
 
+    # UI layout
+    ui.h2("24-Hour Schedule Input")
+
+    # Server function
+    @render.data_frame
+    def schedule_table():
+        # Create editable DataGrid with hours as columns
+        return render.DataGrid(
+            schedule,
+            editable=True,
+            filters=False,
+            summary=False
+        )
