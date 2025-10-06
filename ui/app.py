@@ -143,18 +143,18 @@ equipment_power = "8.0 * floor_area * 3.0"
 df_schedule_occupancy = pd.DataFrame(
     columns=[f'{i:02d}:00' for i in range(24)],
     index=['Occupancy'],
-    # data=[[1], [1], [1], [1], [1], [1], [0.6], [0.4], [0], [0], [0], [0], [0.8], [0.4], [0], [0], [0], [0.4], [0.8], [0.8], [0.8], [1], [1], [1]]
-    data=[[0.0] * 24])
+    data=[[1, 1, 1, 1, 1, 1, 0.6, 0.4, 0, 0, 0, 0, 0.8, 0.4, 0, 0, 0, 0.4, 0.8, 0.8, 0.8, 1, 1, 1]])
+    # data=[[0.0] * 24])
 
 df_schedule_lighting = pd.DataFrame(
     columns=[f'{i:02d}:00' for i in range(24)],
     index=['Lighting'],
-    data=[[0.0] * 24])
+    data=[[0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0]])
 
 df_schedule_equipment = pd.DataFrame(
     columns=[f'{i:02d}:00' for i in range(24)],
     index=['Equipment'],
-    data=[[0.0] * 24])
+    data=[[0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.8, 0.2, 0.1, 0.1, 0.1, 0.1, 0.8, 0.2, 0.1, 0.1, 0.1, 0.2, 0.8, 1.0, 0.2, 0.2, 0.2, 0.1]])
 
 ui.page_opts(
     title="Simple simulation app",
@@ -710,11 +710,21 @@ with ui.nav_panel("settings"):
 
             with ui.card():
                 ui.card_header("Lighting schedule")
-                "Lighting schedule input table (to be implemented)"
+                @render.data_frame
+                def table_lighting():
+                    return render.DataGrid(
+                        df_schedule_lighting,
+                        editable=True,
+                        )
 
             with ui.card():
                 ui.card_header("Equipment schedule")
-                "Equipment schedule input table (to be implemented)"
+                @render.data_frame
+                def table_equipment():
+                    return render.DataGrid(
+                        df_schedule_equipment,
+                        editable=True,
+                        )
 
         with ui.nav_panel("advanced settings"):
             "Advanced settings"
