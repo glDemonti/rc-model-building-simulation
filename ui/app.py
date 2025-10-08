@@ -4,6 +4,7 @@ import pandas as pd
 from shiny import reactive
 from shiny.express import input, render, ui
 from shiny.ui import page_navbar, nav_panel, navset_pill_list
+import matplotlib.pyplot as plt
 
 # Example of a calculated default value for an input field
 
@@ -688,17 +689,10 @@ with ui.nav_panel("settings"):
                     placeholder="Enter a number",
                 )
 
-            # iput fields for sheduled parameters
-            with ui.card():
-                ui.card_header("Scheduled parameters")
-                @render.data_frame
-                def table_parameters():
-                    return render.DataGrid(
-                        df_schedule_occupancy,
-                        editable=True,
-                        
-                        )
+            
+        # Settings for scheduled parameters
         with ui.nav_panel("scheduled parameters"):
+
             with ui.card():
                 ui.card_header("Occupancy schedule")
                 @render.data_frame
@@ -707,6 +701,17 @@ with ui.nav_panel("settings"):
                         df_schedule_occupancy,
                         editable=True,
                         )
+                @render.plot(alt="Plot of occupancy schedule")
+                def plot_occupancy():
+                    plt.figure(figsize=(10, 5))
+                    plt.bar(df_schedule_occupancy.columns, df_schedule_occupancy.loc['Occupancy'], color='skyblue')
+                    plt.title('Occupancy Schedule')
+                    plt.xlabel('Hour')
+                    plt.ylabel('Occupancy')
+                    plt.xticks(rotation=45)
+                    plt.grid()
+                    plt.tight_layout()
+                    return plt.gcf()
 
             with ui.card():
                 ui.card_header("Lighting schedule")
@@ -716,6 +721,17 @@ with ui.nav_panel("settings"):
                         df_schedule_lighting,
                         editable=True,
                         )
+                @render.plot(alt="Plot of lighting schedule")
+                def plot_lighting():
+                    plt.figure(figsize=(10, 5))
+                    plt.bar(df_schedule_lighting.columns, df_schedule_lighting.loc['Lighting'], color='orange')
+                    plt.title('Lighting Schedule')
+                    plt.xlabel('Hour')
+                    plt.ylabel('Lighting Power [W]')
+                    plt.xticks(rotation=45)
+                    plt.grid()
+                    plt.tight_layout()
+                    return plt.gcf()
 
             with ui.card():
                 ui.card_header("Equipment schedule")
@@ -725,6 +741,17 @@ with ui.nav_panel("settings"):
                         df_schedule_equipment,
                         editable=True,
                         )
+                @render.plot(alt="Plot of equipment schedule")
+                def plot_equipment():
+                    plt.figure(figsize=(10, 5))
+                    plt.bar(df_schedule_equipment.columns, df_schedule_equipment.loc['Equipment'], color='green')
+                    plt.title('Equipment Schedule')
+                    plt.xlabel('Hour')
+                    plt.ylabel('Equipment Power [W]')
+                    plt.xticks(rotation=45)
+                    plt.grid()
+                    plt.tight_layout()
+                    return plt.gcf()
 
         with ui.nav_panel("advanced settings"):
             "Advanced settings"
