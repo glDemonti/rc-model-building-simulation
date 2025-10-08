@@ -165,6 +165,12 @@ ui.page_opts(
 with ui.nav_panel("home"):
     "page 1"
 
+    ui.input_action_button(
+        id="button_start_simulation",
+        label="Start simulation",
+        disabled=True,
+    )
+
 with ui.nav_panel("settings"):
     ui.input_action_button(
         id="button_save_settings",
@@ -753,8 +759,29 @@ with ui.nav_panel("settings"):
                     plt.tight_layout()
                     return plt.gcf()
 
+        # settings for weather data input       
+        with ui.nav_panel("Weather data"):
+            with ui.card():
+                ui.card_header("Weather data file (.mat)")
+                ui.input_file(
+                    "weather_file",
+                    "load .mat weather file",
+                    accept=".mat",
+                    width="600px",
+                    multiple=False
+                )
+
         with ui.nav_panel("advanced settings"):
-            "Advanced settings"
+
+            with ui.card():
+                ui.card_header("initial values")
+                ui.input_text(
+                    id="initial_temperature",
+                    label="Initial temperature [°C]",
+                    value="20.0",
+                    width="600px",
+                    placeholder="Enter a number",
+                )
 
 with ui.nav_panel("about"):
     "About this app"
