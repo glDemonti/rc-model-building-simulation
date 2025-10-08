@@ -758,25 +758,4 @@ with ui.nav_panel("settings"):
 
 with ui.nav_panel("about"):
     "About this app"
-    # Create initial schedule with hours as columns
-    schedule = pd.DataFrame(
-        columns=[f'{i:02d}:00' for i in range(24)],
-        index=['Occupancy'],
-        data=[[0.0] * 24]
-    )
 
-
-
-    # UI layout
-    ui.h2("24-Hour Schedule Input")
-
-    # Server function
-    @render.data_frame
-    def schedule_table():
-        # Create editable DataGrid with hours as columns
-        return render.DataGrid(
-            schedule,
-            editable=True,
-            filters=False,
-            summary=False
-        )
