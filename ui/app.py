@@ -6,6 +6,9 @@ from shiny.express import input, render, ui
 from shiny.ui import page_navbar, nav_panel, navset_pill_list
 import matplotlib.pyplot as plt
 
+from adapters import sim_io_mock  # mock simulation I/O for testing
+
+
 # Example of a calculated default value for an input field
 
 unshaded_glazing_area_n = "0.825 * (2.3 * 12 + 1.2 * 6 + 3 * 2.07)"  # North facade  [m²]
@@ -255,6 +258,10 @@ with ui.nav_panel("home"):
         label="Start simulation",
         disabled=True,
     )
+    @render.data_frame
+    def table_simulation_results():
+        return render.data_frame(sim_io_mock.res_temp)
+
 
 with ui.nav_panel("settings"):
     ui.input_action_button(
