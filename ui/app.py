@@ -699,6 +699,25 @@ with ui.nav_panel("settings"):
         # Settings for scheduled parameters
         with ui.nav_panel("scheduled parameters"):
 
+            def restrict_to_0_1(table_render):
+                @table_render.set_patches_fn
+                def _validate(*, patches: list[render.CellPatch]) -> list[render.CellPatch]:
+                    accepted: list[render.CellPatch] = []
+                    for p in patches:
+                        raw = str(p["value"]).strip().replace(",", ".")
+                        try:
+                            v = float(raw)
+                        except ValueError:
+                            ui.notification_show("Ungültig: bitte eine Zahl zwischen 0 und 1 eingeben", type="error")
+                            continue # skip invalid values
+                        if 0.0 <= v <= 1.0:
+                            p["value"] = round(v, 2) # round to 2 decimal places
+                            accepted.append(p) # only accept values between 0 and 1
+                        else:
+                            ui.notification_show(f"Wert {v} ist ausserhalb des gültigen Bereichs (0 bis 1)", type="warning")
+                            # skip values outside the range
+                    return accepted
+
             with ui.card():
                 ui.card_header("Occupancy schedule")
                 @render.data_frame
@@ -707,10 +726,21 @@ with ui.nav_panel("settings"):
                         df_schedule_occupancy,
                         editable=True,
                         )
+                restrict_to_0_1(table_occupancy)
+
+                @table_occupancy.set_patches_fn
+                def _cast_cc(*, patches: list[render.CellPatch]) -> list[render.CellPatch]:
+                    for p in patches:
+                        p["value"] = float(p["value"])
+                    return patches
+                
                 @render.plot(alt="Plot of occupancy schedule")
                 def plot_occupancy():
+                    df = table_occupancy.data_patched()
+                    y = df.loc['Occupancy'].tolist()
+                    x = list(df.columns)
                     plt.figure(figsize=(10, 5))
-                    plt.bar(df_schedule_occupancy.columns, df_schedule_occupancy.loc['Occupancy'], color='skyblue')
+                    plt.bar(x, y, color='skyblue')
                     plt.title('Occupancy Schedule')
                     plt.xlabel('Hour')
                     plt.ylabel('Occupancy')
@@ -727,10 +757,20 @@ with ui.nav_panel("settings"):
                         df_schedule_lighting,
                         editable=True,
                         )
+                restrict_to_0_1(table_lighting)
+                @table_lighting.set_patches_fn
+                def _cast_light(*, patches: list[render.CellPatch]) -> list[render.CellPatch]:
+                    for p in patches:
+                        p["value"] = float(p["value"])
+                    return patches
+                
                 @render.plot(alt="Plot of lighting schedule")
                 def plot_lighting():
+                    df = table_lighting.data_patched()
+                    y = df.loc['Lighting'].tolist()
+                    x = list(df.columns)
                     plt.figure(figsize=(10, 5))
-                    plt.bar(df_schedule_lighting.columns, df_schedule_lighting.loc['Lighting'], color='orange')
+                    plt.bar(x, y, color='orange')
                     plt.title('Lighting Schedule')
                     plt.xlabel('Hour')
                     plt.ylabel('Lighting Power [W]')
@@ -747,10 +787,19 @@ with ui.nav_panel("settings"):
                         df_schedule_equipment,
                         editable=True,
                         )
+                restrict_to_0_1(table_equipment)
+                @table_equipment.set_patches_fn
+                def _cast_eq(*, patches: list[render.CellPatch]) -> list[render.CellPatch]:
+                    for p in patches:
+                        p["value"] = float(p["value"])
+                    return patches
                 @render.plot(alt="Plot of equipment schedule")
                 def plot_equipment():
+                    df = table_equipment.data_patched()
+                    y = df.loc['Equipment'].tolist()
+                    x = list(df.columns)
                     plt.figure(figsize=(10, 5))
-                    plt.bar(df_schedule_equipment.columns, df_schedule_equipment.loc['Equipment'], color='green')
+                    plt.bar(x, y, color='green')
                     plt.title('Equipment Schedule')
                     plt.xlabel('Hour')
                     plt.ylabel('Equipment Power [W]')
@@ -758,7 +807,7 @@ with ui.nav_panel("settings"):
                     plt.grid()
                     plt.tight_layout()
                     return plt.gcf()
-
+ 
         # settings for weather data input       
         with ui.nav_panel("Weather data"):
             with ui.card():
