@@ -5,7 +5,6 @@ from shiny import reactive
 from shiny.express import input, render, ui
 from shiny.ui import page_navbar, nav_panel, navset_pill_list
 import matplotlib.pyplot as plt
-from streamlit import toast
 
 # Example of a calculated default value for an input field
 
@@ -145,18 +144,103 @@ equipment_power = "8.0 * floor_area * 3.0"
 df_schedule_occupancy = pd.DataFrame(
     columns=[f'{i:02d}:00' for i in range(24)],
     index=['Occupancy'],
-    data=[[1, 1, 1, 1, 1, 1, 0.6, 0.4, 0, 0, 0, 0, 0.8, 0.4, 0, 0, 0, 0.4, 0.8, 0.8, 0.8, 1, 1, 1]])
-    # data=[[0.0] * 24])
+    data=[[1, 1, 1, 1, 1, 1, 0.6, 0.4, 0, 0, 0, 0, 0.8, 0.4, 0, 0, 0, 0.4, 0.8, 0.8, 0.8, 1, 1, 1]],
+    dtype=float
+    )
 
 df_schedule_lighting = pd.DataFrame(
     columns=[f'{i:02d}:00' for i in range(24)],
     index=['Lighting'],
-    data=[[0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0]])
+    data=[[0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0]],
+    dtype=float
+    )
 
 df_schedule_equipment = pd.DataFrame(
     columns=[f'{i:02d}:00' for i in range(24)],
     index=['Equipment'],
-    data=[[0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.8, 0.2, 0.1, 0.1, 0.1, 0.1, 0.8, 0.2, 0.1, 0.1, 0.1, 0.2, 0.8, 1.0, 0.2, 0.2, 0.2, 0.1]])
+    data=[[0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.8, 0.2, 0.1, 0.1, 0.1, 0.1, 0.8, 0.2, 0.1, 0.1, 0.1, 0.2, 0.8, 1.0, 0.2, 0.2, 0.2, 0.1]],
+    dtype=float
+    )
+
+# Helper function to attach a numeric guard to a DataGrid render
+def attach_numeric_guard(
+    table_render,
+    *,
+    schedule_name: str, # name of schedule for error messages
+    min_value=0.0,
+    max_value=1.0,
+    decimals=2,
+    toast=True,  # show toast notification on invalid input
+    keep_last=5,
+):
+    """
+    Attach a guard to a DataGrid render to restrict the input values to the following range.
+    - only numeric values in the range [min_value, max_value] are accepted
+    - values are rounded to the specified number of decimals
+    - if toast is True, a notification is shown for invalid values
+    Gives a reactive.Values back, which contains the last error message (for inline warning display)
+    """
+    last_error = reactive.Value("") # last error message
+    error_log = reactive.Value([])  # keep a log of the last errors
+
+    @table_render.set_patches_fn
+    def _validate(*, patches: list[render.CellPatch]) -> list[render.CellPatch]:
+        accepted: list[render.CellPatch] = []
+        msg = ""
+
+        for p in patches:
+            # extract value and cell info from patch (robust to different key namings)
+            col = (
+                p.get("column_key")     # preferred
+                or p.get("columnId")    # fallback
+                or p.get("col")         # fallback
+            )
+            # inidices as further fallback (if only index is given)
+            if col is None and "colmn_index" in p:
+                try:
+                    # read the current column name from the grid
+                    col_idx = int(p["colmn_index"])
+                    col = list(table_render.data_patched().columns)[col_idx]
+                except Exception:
+                    col = "unknown"
+
+            # row info
+            row = (
+                p.get("row_key")        # preferred
+                or p.get("row")         # fallback
+                or schedule_name        # fallback to schedule name if no row info is given (e.g. only one row present)
+            )
+
+            cell_label = f"{row}@{col}"
+
+            # validate the value
+            raw = str(p["value"]).strip().replace(",", ".")
+            try:
+                v = float(raw)
+            except ValueError:
+                msg = f"{schedule_name} - cell {cell_label}:Invalid number, please enter a numeric value between {min_value} and {max_value}."
+                continue     # skip invalid values
+
+            if not (min_value <= v <= max_value):
+                msg = f"{schedule_name} - cell {cell_label}:Value {v} out of range, please enter a value between {min_value} and {max_value}."
+                continue    # skip values outside the range
+
+            p["value"] = round(v, decimals) # round to specified decimal places
+            accepted.append(p) # only accept valid values
+
+        # feedback
+        last_error.set(msg)
+        if msg:
+            # keep a log of the last errors
+            log = error_log.get() or []
+            error_log.set(([msg] + log)[:keep_last]) # keep only the last n errors
+        if toast:
+            ui.notification_show(msg, type="error", duration=4)
+            
+        return accepted
+    
+    return last_error, error_log
+
 
 ui.page_opts(
     title="Simple simulation app",
@@ -699,49 +783,6 @@ with ui.nav_panel("settings"):
             
         # Settings for scheduled parameters
         with ui.nav_panel("scheduled parameters"):
-
-            # 
-            def attach_numeric_guard(
-                table_render,
-                *,
-                min_value:0.0,
-                max_value:1.0,
-                decimals=2,
-                toast=True
-            ):
-                """
-                Attach a guard to a DataGrid render to restrict the input values to the following range.
-                - only numeric values in the range [min_value, max_value] are accepted
-                - values are rounded to the specified number of decimals
-                - if toast is True, a notification is shown for invalid values
-                Gives a reactive.Values back, which contains the last error message (for inline warning display)
-                """
-                err = reactive.Value("")
-
-                @table_render.set_patches_fn
-                def _validate(*, patches: list[render.CellPatch]) -> list[render.CellPatch]:
-                    accepted: list[render.CellPatch] = []
-                    last_msg = ""
-                    for p in patches:
-                        raw = str(p["value"]).strip().replace(",", ".")
-                        try:
-                            v = float(raw)
-                        except ValueError:
-                            last_msg = f"Invalid input: please enter a number between {min_value} and {max_value}"
-                            continue # skip invalid values
-                        if not (min_value <= v <= max_value):
-                            last_msg = f"Value {v} is out of range ({min_value} to {max_value})"
-                            continue # skip values outside the range
-                        p["value"] = round(v, decimals) # round to specified decimal places
-                        accepted.append(p) # only accept valid values
-
-                        # feedback
-                        err.set(last_msg)
-                        if toast and last_msg:
-                            ui.notification_show(last_msg, type="error", duration=4)
-                        
-                        return accepted
-                    return err
                 
             with ui.card():
                 ui.card_header("Occupancy schedule")
@@ -752,17 +793,33 @@ with ui.nav_panel("settings"):
                         df_schedule_occupancy,
                         editable=True,
                         )
-                occ_error = attach_numeric_guard(table_occupancy, min_value=0.0, max_value=1.0)
+                occ_last_error, occ_error_log = attach_numeric_guard(
+                    table_occupancy,
+                    schedule_name="Occupancy",
+                    min_value=0.0,
+                    max_value=1.0,
+                    decimals=2
+                )
 
                 @render.ui
-                def occ_inline_warning():
-                    msg = occ_error.get()
+                def occ_last_error_msg():
+                    msg = occ_last_error.get()
                     if not msg:
                         return ui.div()
-                    return ui.div({"style":"color:#b91c1c;margine-top:6px;"}, f"⚠ {msg}")
+                    return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
+                @render.ui
+                def occ_error_list():
+                    items = occ_error_log.get() or []
+                    if not items:
+                        return ui.div()
+                    return ui.div(
+                        {"style":"margin-top:6px;font-size:0.9rem;"},
+                        ui.tags.ul(*[ui.tags.li(it) for it in items])
+                    )
+                
                 @render.plot(alt="Plot of occupancy schedule")
                 def plot_occupancy():
-                    df = table_occupancy.data_patched()
+                    df = table_occupancy.data_patched().astype(float)
                     y = df.loc['Occupancy'].tolist()
                     x = list(df.columns)
                     plt.figure(figsize=(10, 5))
@@ -783,11 +840,35 @@ with ui.nav_panel("settings"):
                         df_schedule_lighting,
                         editable=True,
                         )
-                light_error = attach_numeric_guard(table_lighting, min_value=0.0, max_value=1.0)
+                light_last_error, light_error_log = attach_numeric_guard(
+                    table_lighting,
+                    schedule_name="Lighting",
+                    min_value=0.0, 
+                    max_value=1.0,
+                    decimals=2
+                )
+
+                @render.ui
+                def light_last_error_msg():
+                    msg = light_last_error.get()
+                    if not msg:
+                        return ui.div()
+                    return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
+
+                @render.ui
+                def light_error_list():
+                    items = light_error_log.get() or []
+                    if not items:
+                        return ui.div()
+                    return ui.div(
+                        {"style":"margin-top:6px;font-size:0.9rem;"},
+                        ui.tags.ul(*[ui.tags.li(it) for it in items])
+                    )
+
                 
                 @render.plot(alt="Plot of lighting schedule")
                 def plot_lighting():
-                    df = table_lighting.data_patched()
+                    df = table_lighting.data_patched().astype(float)
                     y = df.loc['Lighting'].tolist()
                     x = list(df.columns)
                     plt.figure(figsize=(10, 5))
@@ -808,10 +889,35 @@ with ui.nav_panel("settings"):
                         df_schedule_equipment,
                         editable=True,
                         )
-                equip_error = attach_numeric_guard(table_equipment, min_value=0.0, max_value=1.0)
+                
+                equip_error, equip_error_log = attach_numeric_guard(
+                    table_equipment,
+                    schedule_name="Equipment",
+                    min_value=0.0,
+                    max_value=1.0,
+                    decimals=2
+                )
+
+                @render.ui
+                def equip_last_error_msg():
+                    msg = equip_error.get()
+                    if not msg:
+                        return ui.div()
+                    return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
+
+                @render.ui
+                def equip_error_list():
+                    items = equip_error_log.get() or []
+                    if not items:
+                        return ui.div()
+                    return ui.div(
+                        {"style":"margin-top:6px;font-size:0.9rem;"},
+                        ui.tags.ul(*[ui.tags.li(it) for it in items])
+                    )     
+
                 @render.plot(alt="Plot of equipment schedule")
                 def plot_equipment():
-                    df = table_equipment.data_patched()
+                    df = table_equipment.data_patched().astype(float)
                     y = df.loc['Equipment'].tolist()
                     x = list(df.columns)
                     plt.figure(figsize=(10, 5))
