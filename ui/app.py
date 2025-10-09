@@ -5,6 +5,7 @@ from shiny import reactive
 from shiny.express import input, render, ui
 from shiny.ui import page_navbar, nav_panel, navset_pill_list
 import matplotlib.pyplot as plt
+from streamlit import toast
 
 # Example of a calculated default value for an input field
 
@@ -699,41 +700,66 @@ with ui.nav_panel("settings"):
         # Settings for scheduled parameters
         with ui.nav_panel("scheduled parameters"):
 
-            def restrict_to_0_1(table_render):
+            # 
+            def attach_numeric_guard(
+                table_render,
+                *,
+                min_value:0.0,
+                max_value:1.0,
+                decimals=2,
+                toast=True
+            ):
+                """
+                Attach a guard to a DataGrid render to restrict the input values to the following range.
+                - only numeric values in the range [min_value, max_value] are accepted
+                - values are rounded to the specified number of decimals
+                - if toast is True, a notification is shown for invalid values
+                Gives a reactive.Values back, which contains the last error message (for inline warning display)
+                """
+                err = reactive.Value("")
+
                 @table_render.set_patches_fn
                 def _validate(*, patches: list[render.CellPatch]) -> list[render.CellPatch]:
                     accepted: list[render.CellPatch] = []
+                    last_msg = ""
                     for p in patches:
                         raw = str(p["value"]).strip().replace(",", ".")
                         try:
                             v = float(raw)
                         except ValueError:
-                            ui.notification_show("Ungültig: bitte eine Zahl zwischen 0 und 1 eingeben", type="error")
+                            last_msg = f"Invalid input: please enter a number between {min_value} and {max_value}"
                             continue # skip invalid values
-                        if 0.0 <= v <= 1.0:
-                            p["value"] = round(v, 2) # round to 2 decimal places
-                            accepted.append(p) # only accept values between 0 and 1
-                        else:
-                            ui.notification_show(f"Wert {v} ist ausserhalb des gültigen Bereichs (0 bis 1)", type="warning")
-                            # skip values outside the range
-                    return accepted
+                        if not (min_value <= v <= max_value):
+                            last_msg = f"Value {v} is out of range ({min_value} to {max_value})"
+                            continue # skip values outside the range
+                        p["value"] = round(v, decimals) # round to specified decimal places
+                        accepted.append(p) # only accept valid values
 
+                        # feedback
+                        err.set(last_msg)
+                        if toast and last_msg:
+                            ui.notification_show(last_msg, type="error", duration=4)
+                        
+                        return accepted
+                    return err
+                
             with ui.card():
                 ui.card_header("Occupancy schedule")
+
                 @render.data_frame
                 def table_occupancy():
                     return render.DataGrid(
                         df_schedule_occupancy,
                         editable=True,
                         )
-                restrict_to_0_1(table_occupancy)
+                occ_error = attach_numeric_guard(table_occupancy, min_value=0.0, max_value=1.0)
 
-                @table_occupancy.set_patches_fn
-                def _cast_cc(*, patches: list[render.CellPatch]) -> list[render.CellPatch]:
-                    for p in patches:
-                        p["value"] = float(p["value"])
-                    return patches
-                
+                @render.ui
+                def occ_inline_warning():
+                    msg = occ_error.get()
+                    if not msg:
+                        return ui.div()
+                    return ui.div({"style":"color:#b91c1c;margine-top:6px;"}, f"⚠ {msg}")
                 @render.plot(alt="Plot of occupancy schedule")
                 def plot_occupancy():
                     df = table_occupancy.data_patched()
@@ -757,12 +783,7 @@ with ui.nav_panel("settings"):
                         df_schedule_lighting,
                         editable=True,
                         )
-                restrict_to_0_1(table_lighting)
-                @table_lighting.set_patches_fn
-                def _cast_light(*, patches: list[render.CellPatch]) -> list[render.CellPatch]:
-                    for p in patches:
-                        p["value"] = float(p["value"])
-                    return patches
+                light_error = attach_numeric_guard(table_lighting, min_value=0.0, max_value=1.0)
                 
                 @render.plot(alt="Plot of lighting schedule")
                 def plot_lighting():
@@ -787,12 +808,7 @@ with ui.nav_panel("settings"):
                         df_schedule_equipment,
                         editable=True,
                         )
-                restrict_to_0_1(table_equipment)
-                @table_equipment.set_patches_fn
-                def _cast_eq(*, patches: list[render.CellPatch]) -> list[render.CellPatch]:
-                    for p in patches:
-                        p["value"] = float(p["value"])
-                    return patches
+                equip_error = attach_numeric_guard(table_equipment, min_value=0.0, max_value=1.0)
                 @render.plot(alt="Plot of equipment schedule")
                 def plot_equipment():
                     df = table_equipment.data_patched()
