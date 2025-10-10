@@ -244,6 +244,7 @@ def attach_numeric_guard(
     
     return last_error, error_log
 
+df_results = sim_io_mock.load_sim_results()
 
 ui.page_opts(
     title="Simple simulation app",
@@ -260,7 +261,7 @@ with ui.nav_panel("home"):
     )
     @render.data_frame
     def table_simulation_results():
-        return render.data_frame(sim_io_mock.res_temp)
+        return render.DataGrid(df_results)  # load simulation results from mock I/O
 
 
 with ui.nav_panel("settings"):

@@ -1,10 +1,47 @@
 import numpy as np
+import pandas as pd
+import scipy.io as sio
 
-# Load reusults from the .npz file
-results = np.load("adapters/py_out.npz")
-res_temp = results['output_temperatures']
-# res_output_heating_power = results['output_heating_power']
-# res_output_cooling_power = results['output_cooling_power']
-# res_output_lighting_power = results['output_lighting_power']
-# res_output_equipment_power = results['output_equipment_power']
-# print(f"temp: {temp}")
+def load_sim_results():
+    """
+    Load simulation results from a .npz file and return the output temperatures.
+    
+    Returns:
+        np.ndarray: Array of output temperatures.
+    """
+    # 
+    with np.load("adapters/py_out.npz") as npz:
+        arrays = {
+        # 'temperature': npz['output_temperatures'],
+        'heating_power': npz['output_heating_power'],
+        'cooling_power': npz['output_cooling_power'],
+        'lighithg_electricity': npz['output_lighting_electricity'],
+        'equipment_electricity': npz['output_equipment_electricity'],
+    }
+    arrays = {name: arr.flatten() for name, arr in arrays.items()}
+    df = pd.DataFrame(arrays)
+    return df
+
+def load_weather_data():
+    """
+    Load weather data from a .mat file and return it as a DataFrame.
+    
+    Returns:
+        pd.DataFrame: DataFrame containing weather data.
+    """
+    weather_data = sio.loadmat('basel_dry_ver2.mat', squeeze_me=True, struct_as_record=False)
+    table = np.asarray(weather_data['basel_dry'])  # Convert to numpy array for easier handling
+    df_weather = pd.DataFrame({
+        'time':table[:,0],
+        'air_temperature':table[:,1],
+        'relative_humidity':table[:,2],
+        'wind_speed_x':table[:,3],
+        'wind_speed_y':table[:,4],
+        'direct_sun_radiation':table[:,5],
+        'diffuse_sun_radiation':table[:,6],
+        'sky_cover':table[:,7],
+        'sun_elevation':table[:,8],
+        'sun_azimuth':table[:,9]
+    })
+    return df_weather
+
