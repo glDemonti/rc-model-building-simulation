@@ -1,10 +1,13 @@
 from functools import partial
 import pandas as pd
+import matplotlib.pyplot as plt
+import plotly.express as px
 
 from shiny import reactive
 from shiny.express import input, render, ui
 from shiny.ui import page_navbar, nav_panel, navset_pill_list
-import matplotlib.pyplot as plt
+from shinywidgets import render_widget 
+ 
 
 from adapters import sim_io_mock  # mock simulation I/O for testing
 
@@ -244,7 +247,9 @@ def attach_numeric_guard(
     
     return last_error, error_log
 
+
 df_results = sim_io_mock.load_sim_results()
+df_weather = sim_io_mock.load_weather_data()
 
 ui.page_opts(
     title="Simple simulation app",
@@ -262,6 +267,20 @@ with ui.nav_panel("home"):
     @render.data_frame
     def table_simulation_results():
         return render.DataGrid(df_results)  # load simulation results from mock I/O
+    
+    with ui.card():
+        @render_widget
+        def plot_temperatures():
+            fig = px.line(
+                df_weather['air_temperature'],
+                # x="time [s]",
+                # y="air_temperature [°C]",
+                ).update_layout(
+                    title="Outdoor air temperature",
+                    xaxis_title="Time [s]",
+                    yaxis_title="Air Temperature [°C]",
+                )
+            return fig
 
 
 with ui.nav_panel("settings"):
