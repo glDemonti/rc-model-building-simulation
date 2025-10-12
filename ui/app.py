@@ -189,6 +189,7 @@ def attach_numeric_guard(
     last_error = reactive.Value("") # last error message
     error_log = reactive.Value([])  # keep a log of the last errors
 
+
     @table_render.set_patches_fn
     def _validate(*, patches: list[render.CellPatch]) -> list[render.CellPatch]:
         accepted: list[render.CellPatch] = []
@@ -251,6 +252,7 @@ def attach_numeric_guard(
 df_results = sim_io_mock.load_sim_results()
 df_weather = sim_io_mock.load_weather_data()
 
+
 ui.page_opts(
     title="Simple simulation app",
     page_fn=partial(page_navbar, id="page"),
@@ -279,6 +281,21 @@ with ui.nav_panel("home"):
                     title="Outdoor air temperature",
                     xaxis_title="Time [s]",
                     yaxis_title="Air Temperature [°C]",
+                )
+            return fig
+    
+        
+    with ui.card():
+        @render_widget
+        def plot_cooling_power():
+            fig = px.line(
+                df_results[['cooling_power', 'heating_power']],
+                # x="time [s]",
+                # y="cooling_power [W]",
+                ).update_layout(
+                    title="Cooling and Heating power",
+                    xaxis_title="Time [s]",
+                    yaxis_title="Power [W]",
                 )
             return fig
 
