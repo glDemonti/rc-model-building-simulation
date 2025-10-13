@@ -12,10 +12,10 @@ def load_sim_results():
     # 
     with np.load("adapters/py_out.npz") as npz:
         arrays = {
-        # 'temperature': npz['output_temperatures'],
+        'output_temperature': npz['output_temperatures'],
         'heating_power': npz['output_heating_power'],
         'cooling_power': npz['output_cooling_power'],
-        'lighithg_electricity': npz['output_lighting_electricity'],
+        'lighting_electricity': npz['output_lighting_electricity'],
         'equipment_electricity': npz['output_equipment_electricity'],
     }
     arrays = {name: arr.flatten() for name, arr in arrays.items()}

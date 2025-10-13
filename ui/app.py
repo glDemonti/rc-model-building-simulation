@@ -274,9 +274,7 @@ with ui.nav_panel("home"):
         @render_widget
         def plot_temperatures():
             fig = px.line(
-                df_weather['air_temperature'],
-                # x="time [s]",
-                # y="air_temperature [°C]",
+                df_weather[['air_temperature', 'output_temperature']]
                 ).update_layout(
                     title="Outdoor air temperature",
                     xaxis_title="Time [s]",
@@ -287,13 +285,24 @@ with ui.nav_panel("home"):
         
     with ui.card():
         @render_widget
-        def plot_cooling_power():
+        def plot_cooling_heating_power():
             fig = px.line(
                 df_results[['cooling_power', 'heating_power']],
-                # x="time [s]",
-                # y="cooling_power [W]",
                 ).update_layout(
                     title="Cooling and Heating power",
+                    xaxis_title="Time [s]",
+                    yaxis_title="Power [W]",
+                )
+            return fig
+        
+    with ui.card():
+        @render_widget
+        def plot_electricity_consumption():
+            fig = px.line(
+                df_results[['lighting_electricity', 'equipment_electricity']],
+                color_discrete_sequence=["orange", "red"]
+                ).update_layout(
+                    title="Electricity consumption",
                     xaxis_title="Time [s]",
                     yaxis_title="Power [W]",
                 )
