@@ -5,19 +5,33 @@ import scipy.io as sio
 def load_sim_results():
     """
     Load simulation results from a .npz file and return the output temperatures.
+
+    Args:
+        None
     
     Returns:
-        np.ndarray: Array of output temperatures.
+        np.ndarray: Array of simulation results.
+
+        todo: adjust if output results from file will have the right length
     """
-    # 
+    # Load the .npz file and extract the simulation results
     with np.load("adapters/py_out.npz") as npz:
         arrays = {
-        'output_temperature': npz['output_temperatures'],
-        'heating_power': npz['output_heating_power'],
-        'cooling_power': npz['output_cooling_power'],
-        'lighting_electricity': npz['output_lighting_electricity'],
-        'equipment_electricity': npz['output_equipment_electricity'],
-    }
+            'output_temperature': npz['output_temperatures'][:,0],  # take only the first column with the Air temperature
+            'heating_power': npz['output_heating_power'],
+            'cooling_power': npz['output_cooling_power'],
+            'lighting_electricity': npz['output_lighting_electricity'],
+            'equipment_electricity': npz['output_equipment_electricity'],
+        }
+
+    # find the target length (length of other arrays)
+    target_length = arrays['heating_power'].size
+
+    # Truncate temperature array if it's longer than target length
+    # if arrays['output_temperature'].size > target_length:
+    # arrays['output_temperature'] = arrays['output_temperature'][:target_length]
+    
+    # Flatten arrays and convert to DataFrame    
     arrays = {name: arr.flatten() for name, arr in arrays.items()}
     df = pd.DataFrame(arrays)
     return df

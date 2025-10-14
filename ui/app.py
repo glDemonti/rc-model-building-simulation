@@ -251,7 +251,12 @@ def attach_numeric_guard(
 
 df_results = sim_io_mock.load_sim_results()
 df_weather = sim_io_mock.load_weather_data()
-
+df_temperatures = pd.DataFrame(
+    {
+        "Outdoor Air Temperature": df_weather['air_temperature'],
+        "Indoor Air Temperature": df_results['output_temperature'],
+    }
+)
 
 ui.page_opts(
     title="Simple simulation app",
@@ -266,22 +271,20 @@ with ui.nav_panel("home"):
         label="Start simulation",
         disabled=True,
     )
-    @render.data_frame
-    def table_simulation_results():
-        return render.DataGrid(df_results)  # load simulation results from mock I/O
     
     with ui.card():
         @render_widget
         def plot_temperatures():
             fig = px.line(
-                df_weather[['air_temperature', 'output_temperature']]
-                ).update_layout(
-                    title="Outdoor air temperature",
-                    xaxis_title="Time [s]",
-                    yaxis_title="Air Temperature [°C]",
+                df_temperatures,
+
+                labels={"value": "Temperature [°C]", "variable": "Legend"},
+            ).update_layout(
+                title="Temperature",
+                xaxis_title="Time [s]",
+                yaxis_title="Temperature [°C]",
                 )
             return fig
-    
         
     with ui.card():
         @render_widget
