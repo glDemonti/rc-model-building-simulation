@@ -281,7 +281,7 @@ with ui.nav_panel("home"):
                 labels={"value": "Temperature [°C]", "variable": "Legend"},
             ).update_layout(
                 title="Temperature",
-                xaxis_title="Time [s]",
+                xaxis_title="Time [h]",
                 yaxis_title="Temperature [°C]",
                 )
             return fig
@@ -293,7 +293,7 @@ with ui.nav_panel("home"):
                 df_results[['cooling_power', 'heating_power']],
                 ).update_layout(
                     title="Cooling and Heating power",
-                    xaxis_title="Time [s]",
+                    xaxis_title="Time [h]",
                     yaxis_title="Power [W]",
                 )
             return fig
@@ -306,7 +306,7 @@ with ui.nav_panel("home"):
                 color_discrete_sequence=["orange", "red"]
                 ).update_layout(
                     title="Electricity consumption",
-                    xaxis_title="Time [s]",
+                    xaxis_title="Time [h]",
                     yaxis_title="Power [W]",
                 )
             return fig
@@ -318,6 +318,7 @@ with ui.nav_panel("settings"):
         label="Save settings",
         disabled=False,
     )
+    # Basic Settings tab
     with ui.navset_pill_list(id="tab"):
         with ui.nav_panel("basic settings"):
 
@@ -1006,6 +1007,38 @@ with ui.nav_panel("settings"):
                     id="initial_temperature",
                     label="Initial temperature [°C]",
                     value="20.0",
+                    width="600px",
+                    placeholder="Enter a number",
+                )
+            with ui.card():
+                ui.card_header("Energy costs")
+                ui.input_text(
+                    id="electricity_price_nt",
+                    label="Strompreis Niedertarif [CHF/kWh]",
+                    value="0.15",
+                    width="600px",
+                    placeholder="Enter a number",
+                )
+                ui.input_text(
+                    id="electricity_price_ht",
+                    label="Strompreis Hochtarif [CHF/kWh]",
+                    value="0.20",
+                    width="600px",
+                    placeholder="Enter a number",
+                )
+            with ui.card():
+                ui.card_header("Heatpump and Coolingmaschine settings")
+                ui.input_text(
+                    id="cop_heating",
+                    label="Coefficient of performance for heating []",
+                    value="3.0",
+                    width="600px",
+                    placeholder="Enter a number",
+                )
+                ui.input_text(
+                    id="cop_cooling",
+                    label="Coefficient of performance for cooling []",
+                    value="3.0",
                     width="600px",
                     placeholder="Enter a number",
                 )
