@@ -258,8 +258,9 @@ df_temperatures = pd.DataFrame(
     }
 )
 
+
 ui.page_opts(
-    title="Simple simulation app",
+    title="Einfache Simulationsanwendung für ein RC-Gebäudemodell",
     page_fn=partial(page_navbar, id="page"),
 )
 
@@ -267,7 +268,7 @@ with ui.nav_panel("home"):
     with ui.card():
         ui.input_action_button(
             id="button_start_simulation",
-            label="Start simulation",
+            label="Simulation starten",
             disabled=False,
         )
 
@@ -279,33 +280,33 @@ with ui.nav_panel("home"):
                 value="1234",
                 width=4,
             ):
-                "Heating demand [kWh]"
+                "Heizwärmebedarf [kWh]"
 
             with ui.value_box(
                 id="value_box_cooling_demand",
                 value="567",
                 width=4,
             ):
-                "Cooling demand [kWh]"
+                "Kühlbedarf [kWh]"
             with ui.value_box(
                 id="value_box_total_electricity",
                 value="8901",
                 width=4,
             ):
-                "Total electricity consumption [kWh]"
+                "Jährlicher Stromverbrauch [kWh]"
 
             with ui.value_box(
                 id_="value_box_energy_costs_electricity",
                 value="123.45",
                 width=4,
             ):
-                "Energy costs [CHF]"
+                "Jährliche Stromkosten Beleuchtung und Geräte [CHF]"
             with ui.value_box(
                 id="value_box_energy_costs_heating_cooling",
                 value="67.89",
                 width=4,
             ):
-                "Energy costs [CHF]"
+                "Jährliche Stromkosten Heizung und Kühlung [CHF]"
 
     with ui.card():
         @render_widget
