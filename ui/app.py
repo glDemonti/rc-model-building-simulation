@@ -268,42 +268,44 @@ with ui.nav_panel("home"):
         ui.input_action_button(
             id="button_start_simulation",
             label="Start simulation",
-            disabled=True,
+            disabled=False,
         )
 
     with ui.card():
-        with ui.value_box(
-            id="value_box_heating_demand",
-            value="1234",
-            width=4,
-        ):
-            "Heating demand [kWh]"
 
-        with ui.value_box(
-            id="value_box_cooling_demand",
-            value="567",
-            width=4,
-        ):
-            "Cooling demand [kWh]"
-        with ui.value_box(
-            id="value_box_total_electricity",
-            value="8901",
-            width=4,
-        ):
-            "Total electricity consumption [kWh]"
+        with ui.layout_column_wrap():
+            with ui.value_box(
+                id="value_box_heating_demand",
+                value="1234",
+                width=4,
+            ):
+                "Heating demand [kWh]"
 
-        with ui.value_box(
-            id_="value_box_energy_costs_electricity",
-            value="123.45",
-            width=4,
-        ):
-            "Energy costs [CHF]"
-        with ui.value_box(
-            id="value_box_energy_costs_heating_cooling",
-            value="67.89",
-            width=4,
-        ):
-            "Energy costs [CHF]"
+            with ui.value_box(
+                id="value_box_cooling_demand",
+                value="567",
+                width=4,
+            ):
+                "Cooling demand [kWh]"
+            with ui.value_box(
+                id="value_box_total_electricity",
+                value="8901",
+                width=4,
+            ):
+                "Total electricity consumption [kWh]"
+
+            with ui.value_box(
+                id_="value_box_energy_costs_electricity",
+                value="123.45",
+                width=4,
+            ):
+                "Energy costs [CHF]"
+            with ui.value_box(
+                id="value_box_energy_costs_heating_cooling",
+                value="67.89",
+                width=4,
+            ):
+                "Energy costs [CHF]"
 
     with ui.card():
         @render_widget
