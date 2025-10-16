@@ -264,13 +264,12 @@ ui.page_opts(
 )
 
 with ui.nav_panel("home"):
-    "page 1"
-
-    ui.input_action_button(
-        id="button_start_simulation",
-        label="Start simulation",
-        disabled=True,
-    )
+    with ui.card():
+        ui.input_action_button(
+            id="button_start_simulation",
+            label="Start simulation",
+            disabled=True,
+        )
     
     with ui.card():
         @render_widget
