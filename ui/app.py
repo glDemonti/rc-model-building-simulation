@@ -253,8 +253,8 @@ df_results = sim_io_mock.load_sim_results()
 df_weather = sim_io_mock.load_weather_data()
 df_temperatures = pd.DataFrame(
     {
-        "Outdoor Air Temperature": df_weather['air_temperature'],
-        "Indoor Air Temperature": df_results['output_temperature'],
+        "Aussenlufttemperatur": df_weather['air_temperature'],
+        "Inennlufttemperatur": df_results['output_temperature'],
     }
 )
 
@@ -316,9 +316,9 @@ with ui.nav_panel("home"):
 
                 labels={"value": "Temperature [°C]", "variable": "Legend"},
             ).update_layout(
-                title="Temperature",
-                xaxis_title="Time [h]",
-                yaxis_title="Temperature [°C]",
+                title="Temperaturverläufe",
+                xaxis_title="Zeit [h]",
+                yaxis_title="Temperatur [°C]",
                 )
             return fig
         
@@ -328,9 +328,9 @@ with ui.nav_panel("home"):
             fig = px.line(
                 df_results[['cooling_power', 'heating_power']],
                 ).update_layout(
-                    title="Cooling and Heating power",
-                    xaxis_title="Time [h]",
-                    yaxis_title="Power [W]",
+                    title="Heiz- und Kühlleistung",
+                    xaxis_title="Zeit [h]",
+                    yaxis_title="Leistung [W]",
                 )
             return fig
         
@@ -341,237 +341,237 @@ with ui.nav_panel("home"):
                 df_results[['lighting_electricity', 'equipment_electricity']],
                 color_discrete_sequence=["orange", "red"]
                 ).update_layout(
-                    title="Electricity consumption",
-                    xaxis_title="Time [h]",
-                    yaxis_title="Power [W]",
+                    title="Stromverbrauch",
+                    xaxis_title="Zeit [h]",
+                    yaxis_title="Leistung [W]",
                 )
             return fig
 
 
-with ui.nav_panel("settings"):
+with ui.nav_panel("Einstellungen"):
     ui.input_action_button(
         id="button_save_settings",
-        label="Save settings",
+        label=" Speichern",
         disabled=False,
     )
     # Basic Settings tab
     with ui.navset_pill_list(id="tab"):
-        with ui.nav_panel("basic settings"):
+        with ui.nav_panel("Grundeinstellungen"):
 
             # Input fields for building geometry
             with ui.card():
 
-                ui.card_header("Building geometry")
+                ui.card_header("Gebäudegeometrie")
 
                 with ui.card():
-                    ui.card_header("Unshaded glazing areas")
+                    ui.card_header("Unbeschattete Verglasungsflächen")
                     ui.input_text(
                         id="unshaded_glazing_area_n",
-                        label="Unshaded glazing area (north) [m²]",
+                        label="Unbeschattete Verglasungsfläche (Nord) [m²]",
                         value=unshaded_glazing_area_n,
                         width="600px",
-                        placeholder="Enter a number",   
+                        placeholder="Geben Sie eine Zahl ein",
                     )
 
                     ui.input_text(
                         id="unshaded_glazing_area_e",
-                        label="Unshaded glazing area (east) [m²]",
+                        label="Unbeschattete Verglasungsfläche (Ost) [m²]",
                         value=unshaded_glazing_area_e,
                         width="600px",
-                        placeholder="Enter a number",   
+                        placeholder="Geben Sie eine Zahl ein",
                     )
 
                     ui.input_text(
                         id="unshaded_glazing_area_s",
-                        label="Unshaded glazing area (south) [m²]",
+                        label="Unbeschattete Verglasungsfläche (Süd) [m²]",
                         value=unshaded_glazing_area_s,
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
 
                     ui.input_text(
                         id="unshaded_glazing_area_w",
-                        label="Unshaded glazing area (west) [m²]",
+                        label="Unbeschattete Verglasungsfläche (West) [m²]",
                         value=unshaded_glazing_area_w,
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
 
                 with ui.card():
-                    ui.card_header("Shaded glazing areas")
+                    ui.card_header("Beschattete Verglasungsflächen")
                     ui.input_text(
                         id="shaded_glazing_area_n",
-                        label="Shaded glazing area (north) [m²]",
+                        label="Beschattete Verglasungsfläche (Nord) [m²]",
                         value=shaded_glazing_area_n,
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="shaded_glazing_area_e",
-                        label="Shaded glazing area (east) [m²]",
+                        label="Beschattete Verglasungsfläche (Ost) [m²]",
                         value=shaded_glazing_area_e,
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="shaded_glazing_area_s",
-                        label="Shaded glazing area (south) [m²]",
+                        label="Beschattete Verglasungsfläche (Süd) [m²]",
                         value=shaded_glazing_area_s,
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="shaded_glazing_area_w",
-                        label="Shaded glazing area (west) [m²]",
+                        label="Beschattete Verglasungsfläche (West) [m²]",
                         value=shaded_glazing_area_w,
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     
                 with ui.card():
-                    ui.card_header("unshaded frame areas")
+                    ui.card_header("Unbeschattete Rahmenflächen")
                     ui.input_text(
                         id="unshaded_frame_area_n",
-                        label="Unshaded frame area (north) [m²]",
+                        label="Unbeschattete Rahmenfläche (Nord) [m²]",
                         value=unshaded_frame_area_n,
                         width="600px",
-                        placeholder="Enter a number",   
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="unshaded_frame_area_e",
-                        label="Unshaded frame area (east) [m²]",
+                        label="Unbeschattete Rahmenfläche (Ost) [m²]",
                         value=unshaded_frame_area_e,
                         width="600px",
-                        placeholder="Enter a number",   
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="unshaded_frame_area_s",
-                        label="Unshaded frame area (south) [m²]",
+                        label="Unbeschattete Rahmenfläche (Süd) [m²]",
                         value=unshaded_frame_area_s,
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="unshaded_frame_area_w",
-                        label="Unshaded frame area (west) [m²]",
+                        label="Unbeschattete Rahmenfläche (West) [m²]",
                         value=unshaded_frame_area_w,
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                 
                 with ui.card():
-                    ui.card_header("shaded frame areas")
+                    ui.card_header("Beschattete Rahmenflächen")
                     ui.input_text(
                         id="shaded_frame_area_n",
-                        label="Shaded frame area (north) [m²]",
+                        label="Beschattete Rahmenfläche (Nord) [m²]",
                         value=shaded_frame_area_n,
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="shaded_frame_area_e",
-                        label="Shaded frame area (east) [m²]",
+                        label="Beschattete Rahmenfläche (Ost) [m²]",
                         value=shaded_frame_area_e,
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="shaded_frame_area_s",
-                        label="Shaded frame area (south) [m²]",
+                        label="Beschattete Rahmenfläche (Süd) [m²]",
                         value=shaded_frame_area_s,
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="shaded_frame_area_w",
-                        label="Shaded frame area (west) [m²]",
+                        label="Beschattete Rahmenfläche (West) [m²]",
                         value=shaded_frame_area_w,
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                 
                 with ui.card():
-                    ui.card_header("Wall areas (including glazings)")
+                    ui.card_header("Wandflächen (inkl. Verglasungen)")
                     ui.input_text(
                         id="wall_area_n",
-                        label="Wall area (north) [m²]",
+                        label="Wandfläche (Nord) [m²]",
                         value=wall_area_n,
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="wall_area_e",
-                        label="Wall area (east) [m²]",
+                        label="Wandfläche (Ost) [m²]",
                         value=wall_area_e,
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="wall_area_s",
-                        label="Wall area (south) [m²]",
+                        label="Wandfläche (Süd) [m²]",
                         value=wall_area_s,
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="wall_area_w",
-                        label="Wall area (west) [m²]",
+                        label="Wandfläche (West) [m²]",
                         value=wall_area_w,
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                 with ui.card():
-                    ui.card_header("Other areas")
+                    ui.card_header("Andere Gebäudeflächen und Abmessungen")
                     ui.input_text(
                         id="roof_area",
-                        label="Roof area [m²]",
+                        label="Dachfläche [m²]",
                         value=roof_area,
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="floor_area",
-                        label="Floor area [m²]",
+                        label="Bodenfläche [m²]",
                         value=floor_area,
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="int_wall_area",
-                        label="Internal wall area (both sides should be present) [m²]",
+                        label="Innenwandflächen (beide seiten sollen vorhanden sein) [m²]",
                         value=int_wall_area,
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="int_ceiling_area",
-                        label="Internal ceiling area (both sides should be present) [m²]",
+                        label="Innendeckenfläche (beide seiten sollen vorhanden sein) [m²]",
                         value=int_ceiling_area,
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="wall_against_unheated_area",
-                        label="Wall area against unheated zones [m²]",
+                        label="Wandfläche gegen unbeheizte Zonen [m²]",
                         value=wall_against_unheated_area,
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="building_height",
-                        label="Height of the building [m]",
+                        label="Höhe des Gebäudes [m]",
                         value=building_height,
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
      
 
             # input fields for thermal properties
             with ui.card():
-                ui.card_header("Thermal_properties")
+                ui.card_header("Thermische Eigenschaften")
                 ui.input_numeric(
                     id="glazing_u_value",
-                    label="U-value of glazing [W/m²K]",
+                    label="U-Wert der Verglasung [W/m²K]",
                     value=glazing_u_value,
                     width=None,
                     min=0,
@@ -580,7 +580,7 @@ with ui.nav_panel("settings"):
                 )
                 ui.input_numeric(
                     id="glazing_g_value",
-                    label="g-value of glazing (fraction of solar radiation transmitted into the building) []",
+                    label="g-Wert der Verglasung (Anteil der solaren Strahlung, welche in das Gebäude gelangt) []",
                     value=glazing_g_value,
                     width=None,
                     min=0,
@@ -589,7 +589,7 @@ with ui.nav_panel("settings"):
                 )
                 ui.input_numeric(
                     id="shading_g_value_reduction_factor",
-                    label="Reduction factor of g-value due to shading (e.g. balconies) []",
+                    label="Reduktionsfaktor des g-Werts aufgrund von Beschattung (z.B. Balkone) []",
                     value=shading_g_value_reduction_factor,
                     width=None,
                     min=0,
@@ -598,7 +598,7 @@ with ui.nav_panel("settings"):
                 )
                 ui.input_numeric(
                     id="frame_u_value",
-                    label="U-value of window frame [W/m²K]",
+                    label="U-Wert des Fensterrahmens [W/m²K]",
                     value=frame_u_value,
                     width=None,
                     min=0,
@@ -607,14 +607,14 @@ with ui.nav_panel("settings"):
                 )
                 ui.input_text(
                     id="wall_against_unheated_u_value",
-                    label="u-value of Wall against unheated zones [W/m²K]",
+                    label="U-Wert der Wand gegen unbeheizte Zonen [W/m²K]",
                     value=wall_against_unheated_u_value,
                     width="600px",
-                    placeholder="Enter a number",
+                    placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_numeric(
                     id="wall_inside_lambda",
-                    label="Thermal conductivity of inside layer of wall [W/mK]",
+                    label="Wärmeleitfähigkeit der inneren Schicht der Wand [W/mK]",
                     value=wall_inside_lambda,
                     width=None,
                     min=0,
@@ -623,7 +623,7 @@ with ui.nav_panel("settings"):
                 )
                 ui.input_numeric(
                     id="roof_inside_lambda",
-                    label="Thermal conductivity of inside layer of roof [W/mK]",
+                    label="Wärmeleitfähigkeit der inneren Schicht des Daches [W/mK]",
                     value=roof_inside_lambda,
                     width=None,
                     min=0,
@@ -632,7 +632,7 @@ with ui.nav_panel("settings"):
                 )
                 ui.input_numeric(
                     id="floor_inside_lambda",
-                    label="Thermal conductivity of inside layer of floor [W/mK]",
+                    label="Wärmeleitfähigkeit der inneren Schicht des Fußbodens [W/mK]",
                     value=floor_inside_lambda,
                     width=None,
                     min=0,
@@ -641,28 +641,28 @@ with ui.nav_panel("settings"):
                 )
                 ui.input_text(
                     id="wall_inside_capacity_density",
-                    label="Capacity density of inside layer of wall (rho * c) [J/m³K]",
+                    label="Speicherdichte der inneren Schicht der Wand (rho * c) [J/m³K]",
                     value=wall_inside_capacity_density,
                     width="600px",
-                    placeholder="Enter a number",
+                    placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="roof_inside_capacity_density",
-                    label="Capacity density of inside layer of roof (rho * c) [J/m³K]",
+                    label="Speicherdichte der inneren Schicht des Daches (rho * c) [J/m³K]",
                     value=roof_inside_capacity_density,
                     width="600px",
-                    placeholder="Enter a number",
+                    placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="floor_inside_capacity_density",
-                    label="Capacity density of inside layer of floor (rho * c) [J/m³K]",
+                    label="Speicherdichte der inneren Schicht des Fußbodens (rho * c) [J/m³K]",
                     value=floor_inside_capacity_density,
                     width="600px",
-                    placeholder="Enter a number",
+                    placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_numeric(
                     id="wall_outside_lambda",
-                    label="Thermal conductivity of outside layer of wall [W/mK]",
+                    label="Wärmeleitfähigkeit der äusseren Schicht der Wand [W/mK]",
                     value=wall_outside_lambda,
                     width=None,
                     min=0,
@@ -671,7 +671,7 @@ with ui.nav_panel("settings"):
                 )
                 ui.input_numeric(
                     id="roof_outside_lambda",
-                    label="Thermal conductivity of outside layer of roof [W/mK]",
+                    label="Wärmeleitfähigkeit der äusseren Schicht des Daches [W/mK]",
                     value=roof_outside_lambda,
                     width=None,
                     min=0,
@@ -680,7 +680,7 @@ with ui.nav_panel("settings"):
                 )
                 ui.input_numeric(
                     id="floor_outside_lambda",
-                    label="Thermal conductivity of outside layer of floor [W/mK]",
+                    label="Wärmeleitfähigkeit der äusseren Schicht des Fußbodens [W/mK]",
                     value=floor_outside_lambda,
                     width=None,
                     min=0,
@@ -689,28 +689,28 @@ with ui.nav_panel("settings"):
                 )
                 ui.input_text(
                     id="wall_outside_capacity_density",
-                    label="Capacity density of outside layer of wall (rho * c) [J/m³K]",
+                    label="Kapazitätsdichte der äusseren Schicht der Wand (rho * c) [J/m³K]",
                     value=wall_outside_capacity_density,
                     width="600px",
-                    placeholder="Enter a number",
+                    placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="roof_outside_capacity_density",
-                    label="Capacity density of outside layer of roof (rho * c) [J/m³K]",
+                    label="Kapazitätsdichte der äusseren Schicht des Daches (rho * c) [J/m³K]",
                     value=roof_outside_capacity_density,
                     width="600px",
-                    placeholder="Enter a number",
+                    placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="floor_outside_capacity_density",
-                    label="Capacity density of outside layer of floor (rho * c) [J/m³K]",
+                    label="Kapazitätsdichte der äusseren Schicht des Fussbodens (rho * c) [J/m³K]",
                     value=floor_outside_capacity_density,
                     width="600px",
                     placeholder="Enter a number",
                 )
                 ui.input_numeric(
                     id="int_wall_lambda",
-                    label="Thermal conductivity of internal wall [W/mK]",
+                    label="Wärmeleitfähigkeit der Innenwand [W/mK]",
                     value=int_wall_lambda,
                     width=None,
                     min=0,
@@ -719,7 +719,7 @@ with ui.nav_panel("settings"):
                 )
                 ui.input_numeric(
                     id="int_ceiling_lambda",
-                    label="Thermal conductivity of internal ceiling [W/mK]",
+                    label="Wärmeleitfähigkeit der Innendecke [W/mK]",
                     value=int_ceiling_lambda,
                     width=None,
                     min=0,
@@ -728,26 +728,26 @@ with ui.nav_panel("settings"):
                 )
                 ui.input_text(
                     id="int_wall_capacity_density",
-                    label="Capacity density of internal wall (rho * c) [J/m³K]",
+                    label="Kapazitätsdichte der Innenwand (rho * c) [J/m³K]",
                     value=int_wall_capacity_density,
                     width="600px",
-                    placeholder="Enter a number",
+                    placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="int_ceiling_capacity_density",
-                    label="Capacity density of internal ceiling (rho * c) [J/m³K]",
+                    label="Kapazitätsdichte der Innendecke (rho * c) [J/m³K]",
                     value=int_ceiling_capacity_density,
                     width="600px",
-                    placeholder="Enter a number",
+                    placeholder="Geben Sie eine Zahl ein",
                 )
 
 
             # input fields for thicknesses of building components
             with ui.card():
-                ui.card_header("Thicknesses of building components")
+                ui.card_header("Dicken der Bauteilschichten")
                 ui.input_numeric(
                     id="wall_inside_thickness",
-                    label="Thickness of inside layer of wall (brick) [m]",
+                    label="Dicke der inneren Schicht der Wand (Ziegel) [m]",
                     value=wall_inside_thickness,
                     width=None,
                     min=0,
@@ -756,7 +756,7 @@ with ui.nav_panel("settings"):
                 )
                 ui.input_numeric(
                     id="wall_outside_thickness",
-                    label="Thickness of outside layer of wall (insulation) [m]",
+                    label="Dicke der äusseren Schicht der Wand (Dämmung) [m]",
                     value=wall_outside_thickness,
                     width=None,
                     min=0,
@@ -765,7 +765,7 @@ with ui.nav_panel("settings"):
                 )
                 ui.input_numeric(
                     id="roof_inside_thickness",
-                    label="Thickness of inside layer of roof (concrete) [m]",
+                    label="Dicke der inneren Schicht des Daches (Beton) [m]",
                     value=roof_inside_thickness,
                     width=None,
                     min=0,
@@ -774,7 +774,7 @@ with ui.nav_panel("settings"):
                 )
                 ui.input_numeric(
                     id="roof_outside_thickness",
-                    label="Thickness of outside layer of roof (insulation) [m]",
+                    label="Dicke der äusseren Schicht des Daches (Dämmung) [m]",
                     value=roof_outside_thickness,
                     width=None,
                     min=0,
@@ -783,7 +783,7 @@ with ui.nav_panel("settings"):
                 )
                 ui.input_numeric(
                     id="floor_inside_thickness",
-                    label="Thickness of inside layer of floor (concrete) [m]",
+                    label="Dicke der inneren Schicht des Fussbodens (Beton) [m]",
                     value=floor_inside_thickness,
                     width=None,
                     min=0,
@@ -792,7 +792,7 @@ with ui.nav_panel("settings"):
                 )
                 ui.input_numeric(
                     id="floor_outside_thickness",
-                    label="Thickness of outside layer of floor (insulation) [m]",
+                    label="Dicke der äusseren Schicht des Fussbodens (Dämmung) [m]",
                     value=floor_outside_thickness,
                     width=None,
                     min=0,
@@ -801,7 +801,7 @@ with ui.nav_panel("settings"):
                 )
                 ui.input_numeric(
                     id="int_wall_thickness",
-                    label="Thickness of internal wall (drywall) [m]",
+                    label="Dicke der Innenwand (Gipskarton) [m]",
                     value=int_wall_thickness,
                     width=None,
                     min=0,
@@ -810,7 +810,7 @@ with ui.nav_panel("settings"):
                 )
                 ui.input_numeric(
                     id="int_ceiling_thickness",
-                    label="Thickness of internal ceiling (drywall) [m]",
+                    label="Dicke der Innendecke (Gipskarton) [m]",
                     value=int_ceiling_thickness,
                     width=None,
                     min=0,
@@ -820,24 +820,24 @@ with ui.nav_panel("settings"):
 
             #input fields for building thermal parameters
             with ui.card():
-                ui.card_header("Building thermal parameters")
+                ui.card_header("Gebäude thermische Parameter")
                 ui.input_text(
                     id="infiltration_rate",
-                    label="Infiltration rate of the building [m³/s]",
+                    label="Infiltrationsrate des Gebäudes [m³/s]",
                     value=infiltration_rate,
                     width="600px",
-                    placeholder="Enter a number",
+                    placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="air_ventilation_rate",
-                    label="Ventilation rate of the building (assumed to be always on) [m³/s]",
+                    label="Mechanischer Luftwechselrate des Gebäudes (angenommen, immer eingeschaltet) [m³/s]",
                     value=air_ventilation_rate,
                     width="600px",
-                    placeholder="Enter a number",
+                    placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_numeric(
                     id="heat_exchanger_efficiency",
-                    label="Efficiency of heat exchanger in ventilation system []",
+                    label="Wirkungsgrad des Wärmetauschers im Belüftungssystem []",
                     value=heat_exchanger_efficiency,
                     width=None,
                     min=0,
@@ -846,39 +846,39 @@ with ui.nav_panel("settings"):
                 )
                 ui.input_text(
                     id="thermal_bridges",
-                    label="Thermal bridges [W/K]",
+                    label="Wärmebrücken [W/K]",
                     value=thermal_bridges,
                     width="600px",
-                    placeholder="Enter a number",
+                    placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="occupancy_power",
-                    label="Occupancy power input [W]",
+                    label="Belegungsstromverbrauch [W]",
                     value=occupancy_power,
                     width="600px",
-                    placeholder="Enter a number",
+                    placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="lighting_power",
-                    label="Lighting power input [W]",
+                    label="Beleuchtungsstromverbrauch [W]",
                     value=lighting_power,
                     width="600px",
-                    placeholder="Enter a number",
+                    placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="equipment_power",
-                    label="Equipment power input [W]",
+                    label="Geräte-Stromverbrauch [W]",
                     value=equipment_power,
                     width="600px",
-                    placeholder="Enter a number",
+                    placeholder="Geben Sie eine Zahl ein",
                 )
 
             
         # Settings for scheduled parameters
-        with ui.nav_panel("scheduled parameters"):
+        with ui.nav_panel("Zeitpläne"):
                 
             with ui.card():
-                ui.card_header("Occupancy schedule")
+                ui.card_header("Belegungszeitplan")
 
                 @render.data_frame
                 def table_occupancy():
@@ -888,27 +888,27 @@ with ui.nav_panel("settings"):
                         )
                 occ_last_error, occ_error_log = attach_numeric_guard(
                     table_occupancy,
-                    schedule_name="Occupancy",
+                    schedule_name="Belegung",
                     min_value=0.0,
                     max_value=1.0,
                     decimals=2
                 )
 
-                @render.ui
-                def occ_last_error_msg():
-                    msg = occ_last_error.get()
-                    if not msg:
-                        return ui.div()
-                    return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
-                @render.ui
-                def occ_error_list():
-                    items = occ_error_log.get() or []
-                    if not items:
-                        return ui.div()
-                    return ui.div(
-                        {"style":"margin-top:6px;font-size:0.9rem;"},
-                        ui.tags.ul(*[ui.tags.li(it) for it in items])
-                    )
+                # @render.ui
+                # def occ_last_error_msg():
+                #     msg = occ_last_error.get()
+                #     if not msg:
+                #         return ui.div()
+                #     return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
+                # @render.ui
+                # def occ_error_list():
+                #     items = occ_error_log.get() or []
+                #     if not items:
+                #         return ui.div()
+                #     return ui.div(
+                #         {"style":"margin-top:6px;font-size:0.9rem;"},
+                #         ui.tags.ul(*[ui.tags.li(it) for it in items])
+                #     )
                 
                 @render.plot(alt="Plot of occupancy schedule")
                 def plot_occupancy():
@@ -917,16 +917,16 @@ with ui.nav_panel("settings"):
                     x = list(df.columns)
                     plt.figure(figsize=(10, 5))
                     plt.bar(x, y, color='skyblue')
-                    plt.title('Occupancy Schedule')
-                    plt.xlabel('Hour')
-                    plt.ylabel('Occupancy')
+                    plt.title('Belegungszeitplan')
+                    plt.xlabel('Stunde')
+                    plt.ylabel('Belegung []')
                     plt.xticks(rotation=45)
                     plt.grid()
                     plt.tight_layout()
                     return plt.gcf()
 
             with ui.card():
-                ui.card_header("Lighting schedule")
+                ui.card_header("Beleuchtungszeitplan")
                 @render.data_frame
                 def table_lighting():
                     return render.DataGrid(
@@ -935,28 +935,28 @@ with ui.nav_panel("settings"):
                         )
                 light_last_error, light_error_log = attach_numeric_guard(
                     table_lighting,
-                    schedule_name="Lighting",
-                    min_value=0.0, 
+                    schedule_name="Beleuchtung",
+                    min_value=0.0,
                     max_value=1.0,
                     decimals=2
                 )
 
-                @render.ui
-                def light_last_error_msg():
-                    msg = light_last_error.get()
-                    if not msg:
-                        return ui.div()
-                    return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
+                # @render.ui
+                # def light_last_error_msg():
+                #     msg = light_last_error.get()
+                #     if not msg:
+                #         return ui.div()
+                #     return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
 
-                @render.ui
-                def light_error_list():
-                    items = light_error_log.get() or []
-                    if not items:
-                        return ui.div()
-                    return ui.div(
-                        {"style":"margin-top:6px;font-size:0.9rem;"},
-                        ui.tags.ul(*[ui.tags.li(it) for it in items])
-                    )
+                # @render.ui
+                # def light_error_list():
+                #     items = light_error_log.get() or []
+                #     if not items:
+                #         return ui.div()
+                #     return ui.div(
+                #         {"style":"margin-top:6px;font-size:0.9rem;"},
+                #         ui.tags.ul(*[ui.tags.li(it) for it in items])
+                #     )
 
                 
                 @render.plot(alt="Plot of lighting schedule")
@@ -966,16 +966,16 @@ with ui.nav_panel("settings"):
                     x = list(df.columns)
                     plt.figure(figsize=(10, 5))
                     plt.bar(x, y, color='orange')
-                    plt.title('Lighting Schedule')
-                    plt.xlabel('Hour')
-                    plt.ylabel('Lighting Power [W]')
+                    plt.title('Beleuchtungszeitplan')
+                    plt.xlabel('Stunde')
+                    plt.ylabel('Beleuchtung []')
                     plt.xticks(rotation=45)
                     plt.grid()
                     plt.tight_layout()
                     return plt.gcf()
 
             with ui.card():
-                ui.card_header("Equipment schedule")
+                ui.card_header("Geräte-Zeitplan")
                 @render.data_frame
                 def table_equipment():
                     return render.DataGrid(
@@ -985,28 +985,28 @@ with ui.nav_panel("settings"):
                 
                 equip_error, equip_error_log = attach_numeric_guard(
                     table_equipment,
-                    schedule_name="Equipment",
+                    schedule_name="Geräte",
                     min_value=0.0,
                     max_value=1.0,
                     decimals=2
                 )
 
-                @render.ui
-                def equip_last_error_msg():
-                    msg = equip_error.get()
-                    if not msg:
-                        return ui.div()
-                    return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
+                # @render.ui
+                # def equip_last_error_msg():
+                #     msg = equip_error.get()
+                #     if not msg:
+                #         return ui.div()
+                #     return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
 
-                @render.ui
-                def equip_error_list():
-                    items = equip_error_log.get() or []
-                    if not items:
-                        return ui.div()
-                    return ui.div(
-                        {"style":"margin-top:6px;font-size:0.9rem;"},
-                        ui.tags.ul(*[ui.tags.li(it) for it in items])
-                    )     
+                # @render.ui
+                # def equip_error_list():
+                #     items = equip_error_log.get() or []
+                #     if not items:
+                #         return ui.div()
+                #     return ui.div(
+                #         {"style":"margin-top:6px;font-size:0.9rem;"},
+                #         ui.tags.ul(*[ui.tags.li(it) for it in items])
+                #     )     
 
                 @render.plot(alt="Plot of equipment schedule")
                 def plot_equipment():
@@ -1015,70 +1015,91 @@ with ui.nav_panel("settings"):
                     x = list(df.columns)
                     plt.figure(figsize=(10, 5))
                     plt.bar(x, y, color='green')
-                    plt.title('Equipment Schedule')
-                    plt.xlabel('Hour')
-                    plt.ylabel('Equipment Power [W]')
+                    plt.title('Geräte-Zeitplan')
+                    plt.xlabel('Stunde')
+                    plt.ylabel('Geräte []')
                     plt.xticks(rotation=45)
                     plt.grid()
                     plt.tight_layout()
                     return plt.gcf()
  
         # settings for weather data input       
-        with ui.nav_panel("Weather data"):
+        with ui.nav_panel("Wetterdaten"):
             with ui.card():
-                ui.card_header("Weather data file (.mat)")
+                ui.card_header("Wetterdaten-Datei (.mat)")
                 ui.input_file(
                     "weather_file",
-                    "load .mat weather file",
+                    "Laden Sie die .mat Wetterdatei hoch",
                     accept=".mat",
                     width="600px",
                     multiple=False
                 )
 
-        with ui.nav_panel("advanced settings"):
+        with ui.nav_panel("Erweiterte Einstellungen"):
 
             with ui.card():
-                ui.card_header("initial values")
+                ui.card_header("Anfangsbedingungen")
                 ui.input_text(
                     id="initial_temperature",
-                    label="Initial temperature [°C]",
+                    label="Anfangstemperatur [°C]",
                     value="20.0",
                     width="600px",
-                    placeholder="Enter a number",
+                    placeholder="Geben Sie eine Zahl ein",
                 )
             with ui.card():
-                ui.card_header("Energy costs")
+                ui.card_header("Energiekosten")
                 ui.input_text(
                     id="electricity_price_nt",
                     label="Strompreis Niedertarif [CHF/kWh]",
                     value="0.15",
                     width="600px",
-                    placeholder="Enter a number",
+                    placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="electricity_price_ht",
                     label="Strompreis Hochtarif [CHF/kWh]",
                     value="0.20",
                     width="600px",
-                    placeholder="Enter a number",
+                    placeholder="Geben Sie eine Zahl ein",
                 )
             with ui.card():
-                ui.card_header("Heatpump and Coolingmaschine settings")
+                ui.card_header("Wärmepumpe und Kühlmaschine Einstellungen")
                 ui.input_text(
                     id="cop_heating",
-                    label="Coefficient of performance for heating []",
+                    label="COP der Wärmepumpe []",
                     value="3.0",
                     width="600px",
-                    placeholder="Enter a number",
+                    placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="cop_cooling",
-                    label="Coefficient of performance for cooling []",
+                    label="COP der Kühlmaschine []",
                     value="3.0",
                     width="600px",
-                    placeholder="Enter a number",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="Co2_emission_factor",
+                    label="CO2-Emissionsfaktor des Strommixes [kg CO2/kWh]",
+                    value="0.2",
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="Co2_emission_factor_heating",
+                    label="CO2-Emissionsfaktor für Heizenergie [kg CO2/kWh]",
+                    value="0.2",
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="Co2_emission_factor_cooling",
+                    label="CO2-Emissionsfaktor für Kühlenergie [kg CO2/kWh]",
+                    value="0.2",
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
                 )
 
-with ui.nav_panel("about"):
-    "About this app"
+with ui.nav_panel("über"):
+    "über diese App"
 
