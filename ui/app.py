@@ -307,7 +307,51 @@ with ui.nav_panel("home"):
                 width=4,
             ):
                 "Jährliche Stromkosten Heizung und Kühlung [CHF]"
-
+            with ui.value_box(
+                id="value_box_spec_heating_load",
+                value="45.6",
+                width=4,
+            ):
+                "Spezifische Heizlast [W/m²]"
+            with ui.value_box(
+                id="value_box_spec_cooling_load",
+                value="78.9",
+                width=4,
+            ):
+                "Spezifische Kühllast [W/m²]"
+    with ui.card():
+        ui.card_header("CO2-Emissionen")
+        with ui.layout_column_wrap():
+            with ui.value_box(
+                id="value_box_co2_emissions_heating",
+                value="234.56",
+                width=6,
+            ):
+                "Jährliche CO2-Emissionen Heizung [kg CO2]"
+            with ui.value_box(
+                id="value_box_co2_emissions_cooling",
+                value="345.67",
+                width=6,
+            ):
+                "Jährliche CO2-Emissionen Kühlung [kg CO2]"
+            with ui.value_box(
+                id="value_box_elektricity_light_co2",
+                value="456.78",
+                width=6,
+            ):
+                "Jährliche CO2-Emissionen Stromverbrauch(Beleuchtung) [kg CO2]"
+            with ui.value_box(
+                id="value_box_elektricity_equip_co2",
+                value="567.89",
+                width=6,
+            ):
+                "Jährliche CO2-Emissionen Stromverbrauch(Geräte) [kg CO2]"
+            with ui.value_box(
+                id="value_box_total_co2_emissions",
+                value="1604.90",
+                width=6,
+            ):
+                "Gesamte jährliche CO2-Emissionen [kg CO2]"
     with ui.card():
         @render_widget
         def plot_temperatures():
@@ -346,6 +390,7 @@ with ui.nav_panel("home"):
                     yaxis_title="Leistung [W]",
                 )
             return fig
+        
 
 
 with ui.nav_panel("Einstellungen"):
