@@ -2,6 +2,15 @@ import numpy as np
 import pandas as pd
 import scipy.io as sio
 
+def date_range(year_length=8760):
+    # Generate a list of hourly timestamps for one year
+    t0 = pd.Timestamp('2000-01-01 00:00:00')
+    timestamps = []
+    for h in range(year_length):
+        t = t0 + pd.Timedelta(hours=h)
+        timestamps.append(t)
+    return timestamps
+
 def load_sim_results():
     """
     Load simulation results from a .npz file and return the output temperatures.
@@ -17,6 +26,7 @@ def load_sim_results():
     # Load the .npz file and extract the simulation results
     with np.load("adapters/py_out.npz") as npz:
         arrays = {
+            # 'datetime': date_range(),  # generate datetime index
             'output_temperature': npz['output_temperatures'][:8759,0],  # take only the first column with the Air temperature
             'heating_power': npz['output_heating_power'][:8759],
             'cooling_power': npz['output_cooling_power'][:8759],
@@ -33,8 +43,10 @@ def load_sim_results():
     
     # Flatten arrays and convert to DataFrame    
     arrays = {name: arr.flatten() for name, arr in arrays.items()}
-    df = pd.DataFrame(arrays)
+    df = pd.DataFrame(arrays)   
+    df.insert(loc=0, column='datetime', value=date_range()[:8759]) # insert datetime as first column
     return df
+
 
 def load_weather_data():
     """
@@ -58,4 +70,5 @@ def load_weather_data():
         'sun_azimuth':table[:8760,9]
     })
     return df_weather
+
 

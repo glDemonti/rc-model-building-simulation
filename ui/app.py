@@ -251,12 +251,15 @@ def attach_numeric_guard(
 
 df_results = sim_io_mock.load_sim_results()
 df_weather = sim_io_mock.load_weather_data()
-df_temperatures = pd.DataFrame(
-    {
-        "Aussenlufttemperatur": df_weather['air_temperature'],
-        "Inennlufttemperatur": df_results['output_temperature'],
-    }
-)
+print(df_weather.head())
+print(df_results.head())
+print(df_results.dtypes)
+print(df_weather.dtypes)
+df_temperatures = pd.DataFrame({
+    "datetime": df_results['datetime'],
+    "Aussenlufttemperatur": df_weather['air_temperature'],
+    "Innenlufttemperatur": df_results['output_temperature'],
+})
 
 
 ui.page_opts(
@@ -271,23 +274,13 @@ with ui.nav_panel("home"):
             label="Simulation starten",
             disabled=False,
         )
-
+    with ui.card():
+        @ render.data_frame
+        def weather_data_table():
+            return df_weather
     with ui.card():
 
         with ui.layout_column_wrap():
-            with ui.value_box(
-                id="value_box_heating_demand",
-                value="1234",
-                width=4,
-            ):
-                "Heizwärmebedarf [kWh]"
-
-            with ui.value_box(
-                id="value_box_cooling_demand",
-                value="567",
-                width=4,
-            ):
-                "Kühlbedarf [kWh]"
             with ui.value_box(
                 id="value_box_total_electricity",
                 value="8901",
@@ -307,18 +300,7 @@ with ui.nav_panel("home"):
                 width=4,
             ):
                 "Jährliche Stromkosten Heizung und Kühlung [CHF]"
-            with ui.value_box(
-                id="value_box_spec_heating_load",
-                value="45.6",
-                width=4,
-            ):
-                "Spezifische Heizlast [W/m²]"
-            with ui.value_box(
-                id="value_box_spec_cooling_load",
-                value="78.9",
-                width=4,
-            ):
-                "Spezifische Kühllast [W/m²]"
+            
     with ui.card():
         ui.card_header("CO2-Emissionen")
         with ui.layout_column_wrap():
@@ -352,17 +334,29 @@ with ui.nav_panel("home"):
                 width=6,
             ):
                 "Gesamte jährliche CO2-Emissionen [kg CO2]"
+                print(df_temperatures.head())
     with ui.card():
         @render_widget
         def plot_temperatures():
+            # df_temperatures['datetime'] = pd.to_datetime(df_temperatures['datetime'])
+            print(df_temperatures.head())
             fig = px.line(
                 df_temperatures,
-
-                labels={"value": "Temperature [°C]", "variable": "Legend"},
+                x="datetime",
+                y=["Innenlufttemperatur", "Aussenlufttemperatur"],
+                labels={
+                    "value": "Temperature [°C]",
+                    "variable": "Legende",
+                    "datetime": "Zeit", 
+                },
             ).update_layout(
                 title="Temperaturverläufe",
                 xaxis_title="Zeit [h]",
                 yaxis_title="Temperatur [°C]",
+                ).update_xaxes(
+                    type="date",
+                    tickformat="%Y-%m-%d %H:%M",
+                    tickangle=45,
                 )
             return fig
         
@@ -377,7 +371,33 @@ with ui.nav_panel("home"):
                     yaxis_title="Leistung [W]",
                 )
             return fig
-        
+        with ui.layout_column_wrap():
+            with ui.value_box(
+                id="value_box_heating_demand",
+                value="1234",
+                width=4,
+            ):
+                "Jährlicher Heizwärmebedarf [kWh]"
+
+            with ui.value_box(
+                id="value_box_cooling_demand",
+                value="567",
+                width=4,
+            ):
+                "Jährlicher Kühlbedarf [kWh]"
+            with ui.value_box(
+                id="value_box_spec_heating_load",
+                value="45.6",
+                width=4,
+            ):
+                "Spezifische Heizlast [W/m²]"
+            with ui.value_box(
+                id="value_box_spec_cooling_load",
+                value="78.9",
+                width=4,
+            ):
+                "Spezifische Kühllast [W/m²]"
+
     with ui.card():
         @render_widget
         def plot_electricity_consumption():
@@ -389,8 +409,7 @@ with ui.nav_panel("home"):
                     xaxis_title="Zeit [h]",
                     yaxis_title="Leistung [W]",
                 )
-            return fig
-        
+            return fig    
 
 
 with ui.nav_panel("Einstellungen"):
