@@ -2,6 +2,7 @@ from functools import partial
 import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.express as px
+import plotly.graph_objects as go
 import numpy as np
 
 from shiny import reactive
@@ -253,6 +254,11 @@ def attach_numeric_guard(
 df_results = sim_io_mock.load_sim_results()
 df_weather = sim_io_mock.load_weather_data()
 
+# Helper: sichere Zeitachse → Millisekunden (vermeidet ns-Probleme)
+def ts_ms(series_dt):
+    dt = pd.to_datetime(series_dt, errors="raise").dt.tz_localize(None)
+    return (dt.view("int64") // 1_000_000).astype("int64")
+
 # def ensure_datetime(col):
 #     s = pd.Series(col)
 #     if np.issubdtype(s.dtype, np.datetime64):
@@ -381,19 +387,74 @@ with ui.nav_panel("home"):
             #     df[c] = pd.to_numeric(df[c], errors="coerce")
             # df = df.dropna(subset=["datetime"]).sort_values("datetime")
 
+            # Zeitstempel in Millisekunden umwandeln
+            df_temp["ts_ms"] = ts_ms(df_temp["datetime"])
+
 
             fig = px.line(
+
                 df_temp,
-                x="datetime",
-                y=["Innenlufttemperatur", "Aussenlufttemperatur"],
+                x="ts_ms",
+                y=[
+                    "Aussenlufttemperatur",
+                    "Innenlufttemperatur", 
+                    # 'Innentemperatur Verglasung Nord',
+                    # 'Innentemperatur Verglasung Ost',
+                    # 'Innentemperatur Verglasung Süd', 
+                    # 'Innentemperatur Verglasung West',
+                    # 'Aussentemperatur Verglasung Nord',
+                    # 'Aussentemperatur Verglasung Ost',
+                    # 'Aussentemperatur Verglasung Süd',
+                    # 'Aussentemperatur Verglasung West',
+                    # 'Inenntemperatur Fensterrahmen Nord',
+                    # 'Inenntemperatur Fensterrahmen Ost',
+                    # 'Inenntemperatur Fensterrahmen Süd', 
+                    # 'Inenntemperatur Fensterrahmen West',
+                    # 'Aussentemperatur Fensterrahmen Nord',
+                    # 'Aussentemperatur Fensterrahmen Ost',
+                    # 'Aussentemperatur Fensterrahmen Süd',
+                    # 'Aussentemperatur Fensterrahmen West',
+                    # "Temperatur 1. Knoten Aussenwand Nord",
+                    # "Temperatur 1. Knoten Aussenwand Ost",
+                    # "Temperatur 1. Knoten Aussenwand Süd",
+                    # "Temperatur 1. Knoten Aussenwand West",
+                    # "Temperatur 1. Knoten Dach",
+                    # "Temperatur 1. Knoten Boden",
+                    # "Temperatur 1. Knoten Innenwand",
+                    # "Temperatur 1. Knoten Innendecke",
+                    # "Temperatur 2. Knoten Aussenwand Nord",
+                    # "Temperatur 2. Knoten Aussenwand Ost",
+                    # "Temperatur 2. Knoten Aussenwand Süd",
+                    # "Temperatur 2. Knoten Aussenwand West",
+                    # "Temperatur 2. Knoten Dach",
+                    # "Temperatur 2. Knoten Boden",
+                    # "Temperatur 2. Knoten Innenwand",
+                    # "Temperatur 2. Knoten Innendecke",
+                    # "Temperatur 3. Knoten Aussenwand Nord",
+                    # "Temperatur 3. Knoten Aussenwand Ost",
+                    # "Temperatur 3. Knoten Aussenwand Süd",
+                    # "Temperatur 3. Knoten Aussenwand West",
+                    # "Temperatur 3. Knoten Dach",
+                    # "Temperatur 3. Knoten Boden",
+                    # "Temperatur 3. Knoten Innenwand",
+                    # "Temperatur 3. Knoten Innendecke",
+                    # "Temperatur 4. Knoten Aussenwand Nord",
+                    # "Temperatur 4. Knoten Aussenwand Ost",
+                    # "Temperatur 4. Knoten Aussenwand Süd",
+                    # "Temperatur 4. Knoten Aussenwand West",
+                    # "Temperatur 4. Knoten Dach",
+                    # "Temperatur 4. Knoten Boden",
+                    # "Temperatur 4. Knoten Innenwand",
+                    # "Temperatur 4. Knoten Innendecke",
+                   ],
                 labels={
                     "datetime": "Zeit", 
                     "value": "Temperature [°C]",
                     "variable": "Legende",
                 },
                 ).update_xaxes(
-                    # type="date",
-                    # tickformat="%Y-%m-%d %H:%M",
+                    type="date",
+                    tickformat="%d-%m %H:%M",
                     tickangle=45,
                     showgrid=True,
                 ).update_layout(
@@ -403,25 +464,25 @@ with ui.nav_panel("home"):
                 yaxis_title="Temperatur [°C]",
                 )
             return fig
-        
-        @render.plot()
-        def plot_matplotlib_example():
-            df_temp = sim_io_mock.make_df_temperatures()
+        # plot with matplotlib
+        # @render.plot()
+        # def plot_matplotlib_example():
+        #     df_temp = sim_io_mock.make_df_temperatures()
 
-            fig, ax  = plt.subplots()
-            ax.plot(
-                df_temp["datetime"],
-                df_temp["Innenlufttemperatur"],
-            )
-            ax.plot(
-                df_temp["datetime"],
-                df_temp["Aussenlufttemperatur"],)
-            ax.set_title("Beispiel Matplotlib Plot")
-            ax.set_xlabel("Innenlufttemperatur [°C]")
-            ax.set(ylim=(-10, 35), yticks=np.arange(-10, 35, 5))
+        #     fig, ax  = plt.subplots()
+        #     ax.plot(
+        #         df_temp["datetime"],
+        #         df_temp["Innenlufttemperatur"],
+        #     )
+        #     ax.plot(
+        #         df_temp["datetime"],
+        #         df_temp["Aussenlufttemperatur"],)
+        #     ax.set_title("Beispiel Matplotlib Plot")
+        #     ax.set_xlabel("Innenlufttemperatur [°C]")
+        #     ax.set(ylim=(-10, 35), yticks=np.arange(-10, 35, 5))
 
-            # plt.show()
-            return fig
+        #     # plt.show()
+        #     return fig
         
         with ui.layout_column_wrap():
             with ui.value_box(
@@ -430,6 +491,97 @@ with ui.nav_panel("home"):
                 width=4,
             ):
                 "Überhitzungsstunden [h]"
+    with ui.card():
+
+        @render_plotly
+        def plot_wall_nodes_over_year():
+            df = sim_io_mock.make_df_temperatures().copy()
+            df["ts_ms"] = ts_ms(df["datetime"])
+
+            node_cols = ["Temperatur 1. Knoten Aussenwand Nord", "Temperatur 2. Knoten Aussenwand Nord", "Temperatur 3. Knoten Aussenwand Nord", "Temperatur 4. Knoten Aussenwand Nord"]  # anpassen, falls nötig
+            df_long = df.melt(id_vars=["ts_ms"], value_vars=node_cols,
+                            var_name="Knoten", value_name="Temperatur [°C]")
+
+            fig = (
+                px.line(
+                    df_long, x="ts_ms", y="Temperatur [°C]", color="Knoten",
+                    labels={"ts_ms": "Zeit", "Knoten": "Knoten"}
+                )
+                .update_xaxes(type="date", tickformat="%d.%m.%Y %H:%M", tickangle=45, showgrid=True)
+                .update_layout(
+                    title="Temperaturverlauf in den 4 Wandknoten (Jahresverlauf)",
+                    xaxis_title="Zeit", yaxis_title="Temperatur [°C]",
+                    hovermode="x unified"
+                )
+            )
+            return fig
+        
+        # === 2) Temperatur durch die Wand (Zeit × Knoten) als Heatmap ===
+        @render_plotly
+        def plot_wall_nodes_heatmap():
+            df = sim_io_mock.make_df_temperatures().copy()
+            X = ts_ms(df["datetime"])                 # Zeit
+            node_cols = ["Temperatur 1. Knoten Aussenwand Nord", "Temperatur 2. Knoten Aussenwand Nord", "Temperatur 3. Knoten Aussenwand Nord", "Temperatur 4. Knoten Aussenwand Nord"]      # von innen nach außen
+            Z = df[node_cols].to_numpy().T            # (knoten × zeit)
+
+            # Optional: echte Tiefen statt Knotenlabels (mm) – falls vorhanden:
+            # depths_mm = [0, 50, 150, 300]
+            # y_labels = [f"{d} mm" for d in depths_mm]
+            y_labels = node_cols
+
+            fig = go.Figure(
+                data=go.Heatmap(z=Z, x=X, y=y_labels, colorbar=dict(title="°C"), zsmooth=False)
+            )
+            fig.update_xaxes(type="date", tickformat="%d.%m.%Y", tickangle=45, showgrid=False)
+            fig.update_layout(
+                title="Temperaturen in der Wand (Zeit × Knoten)",
+                xaxis_title="Zeit", yaxis_title="Knoten (innen → außen)"
+            )
+            return fig
+
+        @render_plotly
+        def plot_wall_3d_surface():
+            df = sim_io_mock.make_df_temperatures().copy()
+            df["datetime"] = pd.to_datetime(df["datetime"], errors="raise").dt.tz_localize(None)
+            # Zeit als Stundenindex (kontinuierlich)
+            df["t_hour"] = (df["datetime"] - df["datetime"].iloc[0]) / pd.Timedelta(hours=1)
+
+            # === Daten vorbereiten ===
+            # y-Achse: Tiefenpositionen (innen→außen). Beispiel: 0, 0.1, 0.2, 0.3 m
+            y_depth = np.array([1, 2, 3, 4])         # m
+            Tcols   = ["Temperatur 1. Knoten Aussenwand Nord", "Temperatur 2. Knoten Aussenwand Nord", "Temperatur 3. Knoten Aussenwand Nord", "Temperatur 4. Knoten Aussenwand Nord"]              # Temperatur-Spalten
+            Z = df[Tcols].to_numpy().T                      # shape: (4 × n_time)
+            X = df["t_hour"].to_numpy()                     # Zeit (h)
+            Y = y_depth                                     # Tiefe (m)
+
+            # Erzeuge Mesh für Oberfläche
+            Xgrid, Ygrid = np.meshgrid(X, Y, indexing="ij")  # shape: (n_time × n_depth)
+            Zgrid = Z.T                                     # transponieren → (n_time × n_depth)
+
+            # === Plot ===
+            fig = go.Figure(data=[
+                go.Surface(
+                    x=Xgrid,
+                    y=Ygrid,
+                    z=Zgrid,
+                    colorscale="RdYlBu_r",
+                    colorbar=dict(title="Temperatur [°C]"),
+                    showscale=True,
+                )
+            ])
+            fig.update_layout(
+                title="3D-Temperaturfeld in der Wand (Zeit × Tiefe × Temperatur)",
+                scene=dict(
+                    xaxis_title="Zeit [h]",
+                    yaxis_title="Knoten",
+                    zaxis_title="Temperatur [°C]",
+                    xaxis=dict(showspikes=False),
+                    yaxis=dict(showspikes=False),
+                    zaxis=dict(showspikes=False),
+                ),
+                margin=dict(l=0, r=0, b=0, t=40)
+            )
+            return fig
 
     with ui.card():
         @render_widget
