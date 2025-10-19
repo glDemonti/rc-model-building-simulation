@@ -355,37 +355,6 @@ with ui.nav_panel("home"):
         def plot_temperatures():
             df_temp = sim_io_mock.make_df_temperatures().copy()
 
-            # df_temp["datetime"] = ensure_datetime(df_temp["datetime"])
-            # df_temp = df_temp.dropna(subset=["datetime"]).sort_values("datetime")
-
-            # for c in ["Innenlufttemperatur", "Aussenlufttemperatur"]:
-            #     df_temp[c] = pd.to_numeric(df_temp[c], errors="coerce")
-
-            # # --- Diagnose: was ist das aktuell? ---
-            # print("dtype vor Konvertierung:", df_temp["datetime"].dtype)
-            # print("Beispielwerte:", list(df_temp["datetime"][:3]))
-
-            # df = df_temp.copy()
-
-            # # --- Harte Konvertierung in Datetime ---
-            # # 1) Wenn Zahl: Einheit (ns/ms/s) erkennen und zu pandas datetime wandeln
-            # if np.issubdtype(df["datetime"].dtype, np.number):
-            #     mx = float(np.nanmax(df["datetime"]))
-            #     unit = "ns" if mx > 1e15 else ("ms" if mx > 1e12 else "s")
-            #     df["datetime"] = pd.to_datetime(df["datetime"], unit=unit, errors="coerce")
-            # else:
-            #     df["datetime"] = pd.to_datetime(df["datetime"], errors="coerce")
-
-            # # 2) (Hammerschlag) in echte Python datetime-Objekte konvertieren
-            # df["datetime"] = df["datetime"].dt.tz_localize(None, nonexistent="shift_forward", ambiguous="NaT") \
-            #                             .dt.to_pydatetime()
-
-            # print("dtype nach Konvertierung:", type(df["datetime"].iloc[0]))
-
-            # # Y-Spalten absichern
-            # for c in ["Innenlufttemperatur", "Aussenlufttemperatur"]:
-            #     df[c] = pd.to_numeric(df[c], errors="coerce")
-            # df = df.dropna(subset=["datetime"]).sort_values("datetime")
 
             # Zeitstempel in Millisekunden umwandeln
             df_temp["ts_ms"] = ts_ms(df_temp["datetime"])
@@ -494,28 +463,28 @@ with ui.nav_panel("home"):
                 "Überhitzungsstunden [h]"
     with ui.card():
 
-        # @render_plotly
-        # def plot_wall_nodes_over_year():
-        #     df = sim_io_mock.make_df_temperatures().copy()
-        #     df["ts_ms"] = ts_ms(df["datetime"])
+        @render_plotly
+        def plot_wall_nodes_over_year():
+            df = sim_io_mock.make_df_temperatures().copy()
+            df["ts_ms"] = ts_ms(df["datetime"])
 
-        #     node_cols = ["Temperatur 1. Knoten Aussenwand Nord", "Temperatur 2. Knoten Aussenwand Nord", "Temperatur 3. Knoten Aussenwand Nord", "Temperatur 4. Knoten Aussenwand Nord"]  # anpassen, falls nötig
-        #     df_long = df.melt(id_vars=["ts_ms"], value_vars=node_cols,
-        #                     var_name="Knoten", value_name="Temperatur [°C]")
+            node_cols = ["Temperatur 1. Knoten Aussenwand Nord", "Temperatur 2. Knoten Aussenwand Nord", "Temperatur 3. Knoten Aussenwand Nord", "Temperatur 4. Knoten Aussenwand Nord"]  # anpassen, falls nötig
+            df_long = df.melt(id_vars=["ts_ms"], value_vars=node_cols,
+                            var_name="Knoten", value_name="Temperatur [°C]")
 
-        #     fig = (
-        #         px.line(
-        #             df_long, x="ts_ms", y="Temperatur [°C]", color="Knoten",
-        #             labels={"ts_ms": "Zeit", "Knoten": "Knoten"}
-        #         )
-        #         .update_xaxes(type="date", tickformat="%d.%m.%Y %H:%M", tickangle=45, showgrid=True)
-        #         .update_layout(
-        #             title="Temperaturverlauf in den 4 Wandknoten (Jahresverlauf)",
-        #             xaxis_title="Zeit", yaxis_title="Temperatur [°C]",
-        #             hovermode="x unified"
-        #         )
-        #     )
-        #     return fig
+            fig = (
+                px.line(
+                    df_long, x="ts_ms", y="Temperatur [°C]", color="Knoten",
+                    labels={"ts_ms": "Zeit", "Knoten": "Knoten"}
+                )
+                .update_xaxes(type="date", tickformat="%d.%m.%Y %H:%M", tickangle=45, showgrid=True)
+                .update_layout(
+                    title="Temperaturverlauf in den 4 Wandknoten (Jahresverlauf)",
+                    xaxis_title="Zeit", yaxis_title="Temperatur [°C]",
+                    hovermode="x unified"
+                )
+            )
+            return fig
         
         # # === 2) Temperatur durch die Wand (Zeit × Knoten) als Heatmap ===
         # @render_plotly
@@ -597,22 +566,33 @@ with ui.nav_panel("home"):
         def plot_wall_3d_surface():
             df = sim_io_mock.make_df_temperatures().copy()
             df["datetime"] = pd.to_datetime(df["datetime"], errors="raise").dt.tz_localize(None)
-            # Zeit als Stundenindex (kontinuierlich)
-            df["t_hour"] = (df["datetime"] - df["datetime"].iloc[0]) / pd.Timedelta(hours=1)
+            df = df.sort_values("datetime")
 
-            # === Daten vorbereiten ===
-            # y-Achse: Tiefenpositionen (innen→außen). Beispiel: 0, 0.1, 0.2, 0.3 m
-            y_depth = np.array([1, 2, 3, 4])         # m
-            Tcols   = ["Temperatur 1. Knoten Aussenwand Nord", "Temperatur 2. Knoten Aussenwand Nord", "Temperatur 3. Knoten Aussenwand Nord", "Temperatur 4. Knoten Aussenwand Nord"]              # Temperatur-Spalten
-            Z = df[Tcols].to_numpy().T                      # shape: (4 × n_time)
-            X = df["t_hour"].to_numpy()                     # Zeit (h)
-            Y = y_depth                                     # Tiefe (m)
+            node_cols = [
+                "Temperatur 1. Knoten Aussenwand Nord",
+                "Temperatur 2. Knoten Aussenwand Nord",
+                "Temperatur 3. Knoten Aussenwand Nord",
+                "Temperatur 4. Knoten Aussenwand Nord"
+            ]
 
-            # Erzeuge Mesh für Oberfläche
-            Xgrid, Ygrid = np.meshgrid(X, Y, indexing="ij")  # shape: (n_time × n_depth)
-            Zgrid = Z.T                                     # transponieren → (n_time × n_depth)
+            node_cols_rev = node_cols[::-1]  # reverse for better visualization (innenseite unten)
 
-            # === Plot ===
+            # x as time in ms, format ticks as datetime later
+            X_num = ts_ms(df["datetime"]).to_numpy()  # Zeit in ms
+            Y_idx = np.arange(len(node_cols))    # Knotenindex [0, 1, 2, 3]
+            Z = df[node_cols].to_numpy()         # shape: (n_time × n_knoten)
+
+            # make meshgrid for surface
+            Xgrid, Ygrid = np.meshgrid(X_num, Y_idx, indexing="ij")  # shape: (n_time × n_knoten)
+            Zgrid = Z                                     # shape: (n_time × n_knoten)
+
+            start = pd.Timestamp(df["datetime"].dt.year.min(), 1, 1)
+            end = pd.Timestamp(df["datetime"].dt.year.max(), 12, 31, 23, 59, 59)
+            
+            x_ticks_dt = pd.date_range(start, end, freq="MS")
+            x_ticksvals =(x_ticks_dt.view("int64") // 1_000_000).astype("int64")
+            x_ticktext = [d.strftime("%b") for d in x_ticks_dt]
+
             fig = go.Figure(data=[
                 go.Surface(
                     x=Xgrid,
@@ -624,16 +604,28 @@ with ui.nav_panel("home"):
                 )
             ])
             fig.update_layout(
-                title="3D-Temperaturfeld in der Wand (Zeit × Tiefe × Temperatur)",
+                title="3D-Temperaturfeld in der Wand (Zeit × Knoten × Temperatur)",
                 scene=dict(
-                    xaxis_title="Zeit [h]",
-                    yaxis_title="Knoten",
-                    zaxis_title="Temperatur [°C]",
-                    xaxis=dict(showspikes=False),
-                    yaxis=dict(showspikes=False),
-                    zaxis=dict(showspikes=False),
+                    xaxis=dict(
+                        title="Zeit",
+                        tickmode="array",
+                        tickvals=x_ticksvals,
+                        ticktext=x_ticktext,
+                        showspikes=False,
+                    ),
+                    yaxis=dict(
+                        title="Knoten",
+                        tickmode="array",
+                        tickvals=Y_idx,
+                        ticktext=node_cols_rev,
+                        showspikes=False,
+                    ),
+                    zaxis=dict(
+                        title="Temperatur [°C]",
+                        showspikes=False,
+                    ),
                 ),
-                margin=dict(l=0, r=0, b=0, t=40)
+                margin=dict(l=0, r=0, b=0, t=40),
             )
             return fig
         

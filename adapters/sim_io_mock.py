@@ -121,7 +121,7 @@ def make_df_temperatures():
     df_weather = load_weather_data()
     # Merge simulation and weather data on datetime
     df =  pd.merge(df_sim[["datetime",
-                            # "Innenlufttemperatur", 
+                            "Innenlufttemperatur", 
                             'Innentemperatur Verglasung Nord',
                             'Innentemperatur Verglasung Ost',
                             'Innentemperatur Verglasung Süd', 
