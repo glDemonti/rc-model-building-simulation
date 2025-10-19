@@ -253,22 +253,22 @@ def attach_numeric_guard(
 df_results = sim_io_mock.load_sim_results()
 df_weather = sim_io_mock.load_weather_data()
 
-def ensure_datetime(col):
-    s = pd.Series(col)
-    if np.issubdtype(s.dtype, np.datetime64):
-        return pd.to_datetime(s)  # schon ok
-    if np.issubdtype(s.dtype, np.number):
-        m = np.nanmax(s.astype("float64"))
-        # Heuristik für Einheit
-        if m > 1e15:        # ns
-            unit = "ns"
-        elif m > 1e12:      # ms
-            unit = "ms"
-        else:               # s
-            unit = "s"
-        return pd.to_datetime(s, unit=unit)
-    # Strings etc.
-    return pd.to_datetime(s, errors="coerce")
+# def ensure_datetime(col):
+#     s = pd.Series(col)
+#     if np.issubdtype(s.dtype, np.datetime64):
+#         return pd.to_datetime(s)  # schon ok
+#     if np.issubdtype(s.dtype, np.number):
+#         m = np.nanmax(s.astype("float64"))
+#         # Heuristik für Einheit
+#         if m > 1e15:        # ns
+#             unit = "ns"
+#         elif m > 1e12:      # ms
+#             unit = "ms"
+#         else:               # s
+#             unit = "s"
+#         return pd.to_datetime(s, unit=unit)
+#     # Strings etc.
+#     return pd.to_datetime(s, errors="coerce")
 
 
 ui.page_opts(
@@ -284,10 +284,10 @@ with ui.nav_panel("home"):
             disabled=False,
         )
     with ui.card():
-        @ render.data_frame
-        def weather_data_table():
-            return df_weather
-    with ui.card():
+        #     @ render.data_frame
+        #     def weather_data_table():
+        #         return df_weather
+        # with ui.card():
 
         with ui.layout_column_wrap():
             with ui.value_box(
@@ -352,40 +352,40 @@ with ui.nav_panel("home"):
             # df_temp["datetime"] = ensure_datetime(df_temp["datetime"])
             # df_temp = df_temp.dropna(subset=["datetime"]).sort_values("datetime")
 
-            for c in ["Innenlufttemperatur", "Aussenlufttemperatur"]:
-                df_temp[c] = pd.to_numeric(df_temp[c], errors="coerce")
+            # for c in ["Innenlufttemperatur", "Aussenlufttemperatur"]:
+            #     df_temp[c] = pd.to_numeric(df_temp[c], errors="coerce")
 
-            # --- Diagnose: was ist das aktuell? ---
-            print("dtype vor Konvertierung:", df_temp["datetime"].dtype)
-            print("Beispielwerte:", list(df_temp["datetime"][:3]))
+            # # --- Diagnose: was ist das aktuell? ---
+            # print("dtype vor Konvertierung:", df_temp["datetime"].dtype)
+            # print("Beispielwerte:", list(df_temp["datetime"][:3]))
 
-            df = df_temp.copy()
+            # df = df_temp.copy()
 
-            # --- Harte Konvertierung in Datetime ---
-            # 1) Wenn Zahl: Einheit (ns/ms/s) erkennen und zu pandas datetime wandeln
-            if np.issubdtype(df["datetime"].dtype, np.number):
-                mx = float(np.nanmax(df["datetime"]))
-                unit = "ns" if mx > 1e15 else ("ms" if mx > 1e12 else "s")
-                df["datetime"] = pd.to_datetime(df["datetime"], unit=unit, errors="coerce")
-            else:
-                df["datetime"] = pd.to_datetime(df["datetime"], errors="coerce")
+            # # --- Harte Konvertierung in Datetime ---
+            # # 1) Wenn Zahl: Einheit (ns/ms/s) erkennen und zu pandas datetime wandeln
+            # if np.issubdtype(df["datetime"].dtype, np.number):
+            #     mx = float(np.nanmax(df["datetime"]))
+            #     unit = "ns" if mx > 1e15 else ("ms" if mx > 1e12 else "s")
+            #     df["datetime"] = pd.to_datetime(df["datetime"], unit=unit, errors="coerce")
+            # else:
+            #     df["datetime"] = pd.to_datetime(df["datetime"], errors="coerce")
 
-            # 2) (Hammerschlag) in echte Python datetime-Objekte konvertieren
-            df["datetime"] = df["datetime"].dt.tz_localize(None, nonexistent="shift_forward", ambiguous="NaT") \
-                                        .dt.to_pydatetime()
+            # # 2) (Hammerschlag) in echte Python datetime-Objekte konvertieren
+            # df["datetime"] = df["datetime"].dt.tz_localize(None, nonexistent="shift_forward", ambiguous="NaT") \
+            #                             .dt.to_pydatetime()
 
-            print("dtype nach Konvertierung:", type(df["datetime"].iloc[0]))
+            # print("dtype nach Konvertierung:", type(df["datetime"].iloc[0]))
 
-            # Y-Spalten absichern
-            for c in ["Innenlufttemperatur", "Aussenlufttemperatur"]:
-                df[c] = pd.to_numeric(df[c], errors="coerce")
-            df = df.dropna(subset=["datetime"]).sort_values("datetime")
+            # # Y-Spalten absichern
+            # for c in ["Innenlufttemperatur", "Aussenlufttemperatur"]:
+            #     df[c] = pd.to_numeric(df[c], errors="coerce")
+            # df = df.dropna(subset=["datetime"]).sort_values("datetime")
 
 
             fig = px.line(
                 df_temp,
                 x="datetime",
-                y=["Innenlufttemperatur"],
+                y=["Innenlufttemperatur", "Aussenlufttemperatur"],
                 labels={
                     "datetime": "Zeit", 
                     "value": "Temperature [°C]",
@@ -393,7 +393,7 @@ with ui.nav_panel("home"):
                 },
                 ).update_xaxes(
                     # type="date",
-                    tickformat="%Y-%m-%d %H:%M",
+                    # tickformat="%Y-%m-%d %H:%M",
                     tickangle=45,
                     showgrid=True,
                 ).update_layout(
@@ -404,7 +404,33 @@ with ui.nav_panel("home"):
                 )
             return fig
         
+        @render.plot()
+        def plot_matplotlib_example():
+            df_temp = sim_io_mock.make_df_temperatures()
+
+            fig, ax  = plt.subplots()
+            ax.plot(
+                df_temp["datetime"],
+                df_temp["Innenlufttemperatur"],
+            )
+            ax.plot(
+                df_temp["datetime"],
+                df_temp["Aussenlufttemperatur"],)
+            ax.set_title("Beispiel Matplotlib Plot")
+            ax.set_xlabel("Innenlufttemperatur [°C]")
+            ax.set(ylim=(-10, 35), yticks=np.arange(-10, 35, 5))
+
+            # plt.show()
+            return fig
         
+        with ui.layout_column_wrap():
+            with ui.value_box(
+                id="value_box_overheating_hours",
+                value="123",
+                width=4,
+            ):
+                "Überhitzungsstunden [h]"
+
     with ui.card():
         @render_widget
         def plot_cooling_heating_power():
