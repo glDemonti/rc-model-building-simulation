@@ -353,7 +353,7 @@ with ui.nav_panel("home"):
 
         @render_plotly
         def plot_temperatures():
-            df_temp = sim_io_mock.make_df_temperatures()
+            df_temp = sim_io_mock.make_df_temperatures().copy()
 
             # df_temp["datetime"] = ensure_datetime(df_temp["datetime"])
             # df_temp = df_temp.dropna(subset=["datetime"]).sort_values("datetime")
@@ -389,7 +389,6 @@ with ui.nav_panel("home"):
 
             # Zeitstempel in Millisekunden umwandeln
             df_temp["ts_ms"] = ts_ms(df_temp["datetime"])
-
 
             fig = px.line(
 
@@ -464,7 +463,9 @@ with ui.nav_panel("home"):
                 yaxis_title="Temperatur [°C]",
                 )
             return fig
+        
         # plot with matplotlib
+
         # @render.plot()
         # def plot_matplotlib_example():
         #     df_temp = sim_io_mock.make_df_temperatures()
@@ -493,49 +494,102 @@ with ui.nav_panel("home"):
                 "Überhitzungsstunden [h]"
     with ui.card():
 
+        # @render_plotly
+        # def plot_wall_nodes_over_year():
+        #     df = sim_io_mock.make_df_temperatures().copy()
+        #     df["ts_ms"] = ts_ms(df["datetime"])
+
+        #     node_cols = ["Temperatur 1. Knoten Aussenwand Nord", "Temperatur 2. Knoten Aussenwand Nord", "Temperatur 3. Knoten Aussenwand Nord", "Temperatur 4. Knoten Aussenwand Nord"]  # anpassen, falls nötig
+        #     df_long = df.melt(id_vars=["ts_ms"], value_vars=node_cols,
+        #                     var_name="Knoten", value_name="Temperatur [°C]")
+
+        #     fig = (
+        #         px.line(
+        #             df_long, x="ts_ms", y="Temperatur [°C]", color="Knoten",
+        #             labels={"ts_ms": "Zeit", "Knoten": "Knoten"}
+        #         )
+        #         .update_xaxes(type="date", tickformat="%d.%m.%Y %H:%M", tickangle=45, showgrid=True)
+        #         .update_layout(
+        #             title="Temperaturverlauf in den 4 Wandknoten (Jahresverlauf)",
+        #             xaxis_title="Zeit", yaxis_title="Temperatur [°C]",
+        #             hovermode="x unified"
+        #         )
+        #     )
+        #     return fig
+        
+        # # === 2) Temperatur durch die Wand (Zeit × Knoten) als Heatmap ===
+        # @render_plotly
+        # def plot_wall_nodes_heatmap():
+        #     df = sim_io_mock.make_df_temperatures().copy()
+        #     X = ts_ms(df["datetime"])                 # Zeit
+        #     node_cols = ["Temperatur 1. Knoten Aussenwand Nord", "Temperatur 2. Knoten Aussenwand Nord", "Temperatur 3. Knoten Aussenwand Nord", "Temperatur 4. Knoten Aussenwand Nord"]      # von innen nach außen
+        #     Z = df[node_cols].to_numpy().T            # (knoten × zeit)
+
+        #     # Optional: echte Tiefen statt Knotenlabels (mm) – falls vorhanden:
+        #     # depths_mm = [0, 50, 150, 300]
+        #     # y_labels = [f"{d} mm" for d in depths_mm]
+        #     y_labels = node_cols
+
+        #     fig = go.Figure(
+        #         data=go.Heatmap(z=Z, x=X, y=y_labels, colorbar=dict(title="°C"), zsmooth=False)
+        #     )
+        #     fig.update_xaxes(type="date", tickformat="%d.%m.%Y", tickangle=45, showgrid=False)
+        #     fig.update_layout(
+        #         title="Temperaturen in der Wand (Zeit × Knoten)",
+        #         xaxis_title="Zeit", yaxis_title="Knoten (innen → außen)"
+        #     )
+        #     return fig
+        
+        
         @render_plotly
-        def plot_wall_nodes_over_year():
+        def plot_temperature_wall_over_nodes():
             df = sim_io_mock.make_df_temperatures().copy()
+
+            # x-axis: time in ms
             df["ts_ms"] = ts_ms(df["datetime"])
 
-            node_cols = ["Temperatur 1. Knoten Aussenwand Nord", "Temperatur 2. Knoten Aussenwand Nord", "Temperatur 3. Knoten Aussenwand Nord", "Temperatur 4. Knoten Aussenwand Nord"]  # anpassen, falls nötig
-            df_long = df.melt(id_vars=["ts_ms"], value_vars=node_cols,
-                            var_name="Knoten", value_name="Temperatur [°C]")
+            # y-axis: wall nodes
+            node_cols = [
+                "Temperatur 1. Knoten Aussenwand Nord",
+                "Temperatur 2. Knoten Aussenwand Nord",
+                "Temperatur 3. Knoten Aussenwand Nord",
+                "Temperatur 4. Knoten Aussenwand Nord"
+            ]
 
-            fig = (
-                px.line(
-                    df_long, x="ts_ms", y="Temperatur [°C]", color="Knoten",
-                    labels={"ts_ms": "Zeit", "Knoten": "Knoten"}
-                )
-                .update_xaxes(type="date", tickformat="%d.%m.%Y %H:%M", tickangle=45, showgrid=True)
-                .update_layout(
-                    title="Temperaturverlauf in den 4 Wandknoten (Jahresverlauf)",
-                    xaxis_title="Zeit", yaxis_title="Temperatur [°C]",
-                    hovermode="x unified"
-                )
-            )
-            return fig
-        
-        # === 2) Temperatur durch die Wand (Zeit × Knoten) als Heatmap ===
-        @render_plotly
-        def plot_wall_nodes_heatmap():
-            df = sim_io_mock.make_df_temperatures().copy()
-            X = ts_ms(df["datetime"])                 # Zeit
-            node_cols = ["Temperatur 1. Knoten Aussenwand Nord", "Temperatur 2. Knoten Aussenwand Nord", "Temperatur 3. Knoten Aussenwand Nord", "Temperatur 4. Knoten Aussenwand Nord"]      # von innen nach außen
-            Z = df[node_cols].to_numpy().T            # (knoten × zeit)
-
-            # Optional: echte Tiefen statt Knotenlabels (mm) – falls vorhanden:
-            # depths_mm = [0, 50, 150, 300]
-            # y_labels = [f"{d} mm" for d in depths_mm]
-            y_labels = node_cols
+            # z-values: temperatures matrix (nodes × time)
+            Z = df[node_cols].to_numpy().T
+            X = df["ts_ms"].to_numpy()
+            Y = node_cols
 
             fig = go.Figure(
-                data=go.Heatmap(z=Z, x=X, y=y_labels, colorbar=dict(title="°C"), zsmooth=False)
+                data=go.Heatmap(
+                    x=X,
+                    y=Y,
+                    z=Z,
+                    colorbar=dict(title="Temperatur [°C]"),
+                    zsmooth=False, # True = smoothed, False = original values
+                )
             )
-            fig.update_xaxes(type="date", tickformat="%d.%m.%Y", tickangle=45, showgrid=False)
+
+            fig.update_xaxes(
+                type="date",
+                tickformat="%d-%m %H:%M",
+                tickangle=45,
+                showgrid=False,
+                title_text="Zeit",
+            )
+
+            fig.update_yaxes(
+                categoryorder="array",
+                categoryarray=Y,
+                title_text="Knoten",
+            )
             fig.update_layout(
-                title="Temperaturen in der Wand (Zeit × Knoten)",
-                xaxis_title="Zeit", yaxis_title="Knoten (innen → außen)"
+                title="Temperaturverlauf in den Wandknoten (Zeit x Knoten)",
+                margin=dict(l=0, r=0, b=0, t=40),
+            )
+            fig.update_traces(
+                hovertemplate="Zeit: %{x|%d-%m %H:%M}<br>Knoten: %{y}<br>Temperatur: %{z} °C<extra></extra>"
             )
             return fig
 
@@ -582,6 +636,8 @@ with ui.nav_panel("home"):
                 margin=dict(l=0, r=0, b=0, t=40)
             )
             return fig
+        
+
 
     with ui.card():
         @render_widget
