@@ -289,66 +289,12 @@ with ui.nav_panel("home"):
             label="Simulation starten",
             disabled=False,
         )
-    with ui.card():
+    # with ui.card():
         #     @ render.data_frame
         #     def weather_data_table():
         #         return df_weather
         # with ui.card():
-
-        with ui.layout_column_wrap():
-            with ui.value_box(
-                id="value_box_total_electricity",
-                value="8901",
-                width=4,
-            ):
-                "Jährlicher Stromverbrauch [kWh]"
-
-            with ui.value_box(
-                id_="value_box_energy_costs_electricity",
-                value="123.45",
-                width=4,
-            ):
-                "Jährliche Stromkosten Beleuchtung und Geräte [CHF]"
-            with ui.value_box(
-                id="value_box_energy_costs_heating_cooling",
-                value="67.89",
-                width=4,
-            ):
-                "Jährliche Stromkosten Heizung und Kühlung [CHF]"
-            
-    with ui.card():
-        ui.card_header("CO2-Emissionen")
-        with ui.layout_column_wrap():
-            with ui.value_box(
-                id="value_box_co2_emissions_heating",
-                value="234.56",
-                width=6,
-            ):
-                "Jährliche CO2-Emissionen Heizung [kg CO2]"
-            with ui.value_box(
-                id="value_box_co2_emissions_cooling",
-                value="345.67",
-                width=6,
-            ):
-                "Jährliche CO2-Emissionen Kühlung [kg CO2]"
-            with ui.value_box(
-                id="value_box_elektricity_light_co2",
-                value="456.78",
-                width=6,
-            ):
-                "Jährliche CO2-Emissionen Stromverbrauch(Beleuchtung) [kg CO2]"
-            with ui.value_box(
-                id="value_box_elektricity_equip_co2",
-                value="567.89",
-                width=6,
-            ):
-                "Jährliche CO2-Emissionen Stromverbrauch(Geräte) [kg CO2]"
-            with ui.value_box(
-                id="value_box_total_co2_emissions",
-                value="1604.90",
-                width=6,
-            ):
-                "Gesamte jährliche CO2-Emissionen [kg CO2]"
+                 
     with ui.card():
 
         @render_plotly
@@ -575,7 +521,7 @@ with ui.nav_panel("home"):
                 "Temperatur 4. Knoten Aussenwand Nord"
             ]
 
-            node_cols_rev = node_cols[::-1]  # reverse for better visualization (innenseite unten)
+            # node_cols_rev = node_cols[::-1]  # reverse for better visualization (innenseite unten)
 
             # x as time in ms, format ticks as datetime later
             X_num = ts_ms(df["datetime"]).to_numpy()  # Zeit in ms
@@ -617,7 +563,7 @@ with ui.nav_panel("home"):
                         title="Knoten",
                         tickmode="array",
                         tickvals=Y_idx,
-                        ticktext=node_cols_rev,
+                        ticktext=node_cols,
                         showspikes=False,
                     ),
                     zaxis=dict(
@@ -681,6 +627,61 @@ with ui.nav_panel("home"):
                     yaxis_title="Leistung [W]",
                 )
             return fig    
+        
+        with ui.layout_column_wrap():
+            with ui.value_box(
+                id="value_box_total_electricity",
+                value="8901",
+                width=4,
+            ):
+                "Jährlicher Stromverbrauch [kWh]"
+
+            with ui.value_box(
+                id_="value_box_energy_costs_electricity",
+                value="123.45",
+                width=4,
+            ):
+                "Jährliche Stromkosten Beleuchtung und Geräte [CHF]"
+            with ui.value_box(
+                id="value_box_energy_costs_heating_cooling",
+                value="67.89",
+                width=4,
+            ):
+                "Jährliche Stromkosten Heizung und Kühlung [CHF]"
+                
+    with ui.card():
+        ui.card_header("CO2-Emissionen")
+        with ui.layout_column_wrap():
+            with ui.value_box(
+                id="value_box_co2_emissions_heating",
+                value="234.56",
+                width=6,
+            ):
+                "Jährliche CO2-Emissionen Heizung [kg CO2]"
+            with ui.value_box(
+                id="value_box_co2_emissions_cooling",
+                value="345.67",
+                width=6,
+            ):
+                "Jährliche CO2-Emissionen Kühlung [kg CO2]"
+            with ui.value_box(
+                id="value_box_elektricity_light_co2",
+                value="456.78",
+                width=6,
+            ):
+                "Jährliche CO2-Emissionen Stromverbrauch(Beleuchtung) [kg CO2]"
+            with ui.value_box(
+                id="value_box_elektricity_equip_co2",
+                value="567.89",
+                width=6,
+            ):
+                "Jährliche CO2-Emissionen Stromverbrauch(Geräte) [kg CO2]"
+            with ui.value_box(
+                id="value_box_total_co2_emissions",
+                value="1604.90",
+                width=6,
+            ):
+                "Gesamte jährliche CO2-Emissionen [kg CO2]"
 
 
 with ui.nav_panel("Einstellungen"):
