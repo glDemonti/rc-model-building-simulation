@@ -10,9 +10,15 @@ from shiny.express import input, render, ui
 from shiny.ui import page_navbar, nav_panel, navset_pill_list
 from shinywidgets import render_widget, render_plotly
  
-
-from adapters import sim_io_mock  # mock simulation I/O for testing
-
+# Import sim_io_mock from adapters, adjusting sys.path if necessary
+try:
+    from adapters import sim_io_mock
+except ModuleNotFoundError:
+    import sys, pathlib
+    ROOT = pathlib.Path(__file__).resolve().parents[1]  # repo root (one above /ui)
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    from adapters import sim_io_mock
 
 # Example of a calculated default value for an input field
 
