@@ -614,6 +614,18 @@ with ui.nav_panel("home"):
                 width=4,
             ):
                 "Spezifische Kühllast [W/m²]"
+            with ui.value_box(
+                id="value_box_total_energy_costs_heating",
+                value="234.56",
+                width=4,
+            ):
+                "Jährliche Stromkosten Heizung [CHF]"
+            with ui.value_box(
+                id="value_box_total_energy_costs_cooling",
+                value="345.67",
+                width=4,
+            ):
+                "Jährliche Stromkosten Kühlung [CHF]"
 
     with ui.card():
         @render_widget
@@ -900,7 +912,32 @@ with ui.nav_panel("Einstellungen"):
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
-     
+                with ui.card():
+                    with ui.layout_column_wrap():
+                        with ui.value_box(
+                            id="value_box_total_outerwall_area",
+                            value="1234",
+                            width=6,
+                        ):
+                            "Gesammte Aussenwandfläche (Verglasung) [m²]"
+                        with ui.value_box(
+                            id="value_box_total_glazing_area",
+                            value="567",
+                            width=6,
+                        ):
+                            "Gesammte Verglasungsfläche [m²]"
+                        with ui.value_box(
+                            id="value_box_window_to_wall_ratio",
+                            value="89",
+                            width=6,
+                        ):
+                            "Fenster-zu-Wand-Verhältnis [%]"
+                        with ui.value_box(
+                            id="value_box_window_shadowing_ratio",
+                            value="90",
+                            width=6,
+                        ):
+                            "Fenster-Beschattungsverhältnis [%]"
 
             # input fields for thermal properties
             with ui.card():
