@@ -12,8 +12,9 @@ from shinywidgets import render_widget, render_plotly
 
 from core.bootstrap import create_facade # imports the connection to the midlayer
 
-facade = create_facade("demo-haus-a")
-cfg = facade.load("demo-haus-a") 
+PROJECT_ID = "demo-haus-a"
+facade = create_facade(PROJECT_ID)
+cfg = facade.load(PROJECT_ID) 
 # Import sim_io_mock from adapters, adjusting sys.path if necessary
 try:
     from adapters import sim_io_mock
