@@ -1,3 +1,4 @@
+from pathlib import Path
 from core.facade import ConfigFacade
 from core.repository import ConfigRepository
 from core.validator import ConfigValidator
@@ -16,11 +17,15 @@ add this to the ui:
 """
 
 def create_facade(project_id: str) ->ConfigFacade:
-    repo = ConfigRepository(f"config/projects/{project_id}/config.1.0.0.json")
+    Root = Path(__file__).resolve().parent[1]
+    cfg_file = Root / "config" / "projects" / project_id / "config.1.0.0.json"
+    schema = Root / "config" / "schema" / "config.1.0.0.schema.json"
+
+    repo = ConfigRepository(str(cfg_file))
     return ConfigFacade(
         repo=repo,
         engine=RcEngineMock(),
         evaluator=ExpressionEvaluator(),
-        validator=ConfigValidator(schema_path="config/schema/config.1.0.0.schema.json"),
+        validator=ConfigValidator(schema_path=str(schema)),
         mapper=ModelMapper(),
     )
