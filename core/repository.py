@@ -10,6 +10,15 @@ class ConfigRepository:
             parameters_raw = json.load(f)
             return parameters_raw
 
+    def write_raw(self,cfg: dict) -> SafeReport:
+        tmp = f"{self._path}.tmp" # create temp file path
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(cfg, f, indent=2, ensure_ascii=False, sort_keys=True)  # write to temp file
+            f.flush() # flush internal buffer
+            os.fsync(f.fileno())  # ensure data is written
+        os.replace(tmp, self._path)  # replace original file
+        return SafeReport(ok=True, written_to=self._path, fingerprint=compute_hash(cfg))
+
     # def write_raw(self, cfg: dict) -> SafeReport:
     #     tmp = f"{self._path}.tmp" # create temp file path
     #     with open(tmp, "w", encoding="utf-8") as f:
