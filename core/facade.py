@@ -17,7 +17,12 @@ class ConfigFacade:
         
     # def validate(self, cfg):
 
-    # def save(self, project_id, cfg):
+    def save(self, project_id, cfg):
+        try:
+            self._repo.write_raw(cfg)
+            return True, "Gespeichert"
+        except Exception as e:
+            return False, f"Speichern fehlgeschlagen: {e}"
 
     # def to_model_inputs(self, cfg):
 
