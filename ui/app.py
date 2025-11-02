@@ -288,7 +288,7 @@ ui.page_opts(
     page_fn=partial(page_navbar, id="page"),
 )
 
-with ui.nav_panel("home"):
+with ui.nav_panel("Simulationsresultate"):
     with ui.card():
         ui.input_action_button(
             id="button_start_simulation",
@@ -703,7 +703,14 @@ with ui.nav_panel("home"):
                 width=6,
             ):
                 "Gesamte jährliche CO2-Emissionen [kg CO2]"
-
+with ui.nav_panel("Vergleich mit Messdaten"):
+    with ui.card():
+        ui.card_header("Einlesen von Messtdaten")
+        ui.input_file(
+            id="file_input_measured_data",
+            label="Wählen Sie eine Datei mit Messtdaten aus",
+            accept=[".csv"],
+        )
 
 with ui.nav_panel("Einstellungen"):
     ui.input_action_button(
