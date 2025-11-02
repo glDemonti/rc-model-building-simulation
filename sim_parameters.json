@@ -94,7 +94,7 @@
                 }
             }
         },
-        "walls": {
+        "enclosure": {
             "outside_wall_areas": {
                 "north": {
                     "expression": "2.5 * 3 * (32.6 + 1.6 - 6.0)",
@@ -196,6 +196,11 @@
                     "unit": "m"
                 }
             }
+        },
+        "building_height": {
+            "expression": "2.5 * 3",
+            "value": 7.5,
+            "unit": "m"
         }
     },
     "thermal_properties": {
@@ -221,7 +226,7 @@
                 "unit": "-"
             }
         },
-        "walls": {
+        "enclosure": {
             "u_value_wall_against_unheated": {
                 "expression": "1 / (2 / 8.0 + 0.17 / 0.79)",
                 "value": 1.2,
@@ -323,6 +328,11 @@
             "expression": "0.278 * 0.001 * 3.0",
             "value": 0.5,
             "unit": "1/(h*m2)"
+        },
+        "heat_exchanger_efficiency": {
+            "expression": "0.0",
+            "value": 0.0,
+            "unit": "-"
         },
         "thermal_bridges": {
             "expression": "123.4",

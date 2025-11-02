@@ -29,157 +29,125 @@ except ModuleNotFoundError:
 
 # Example of a calculated default value for an input field
 
-unshaded_glazing_area_n = "0.825 * (2.3 * 12 + 1.2 * 6 + 3 * 2.07)"  # North facade  [m²]
-unshaded_glazing_area_e = "0.825 * (3.45 * 3 + 2.3 * 3 + 1.98 * 1)"   # East facade   [m²]
-unshaded_glazing_area_s = "0.825 * (1.73 * 2 + 5.18 * 2 + 1.98 * 4 + 1.2 * 6 + 2.07 * 1)"  # South facade  [m²]
-unshaded_glazing_area_w = "0.825 * (3.45 * 3 + 2.3 * 3 + 2.07 * 1)"  # West facade   [m²]
-shaded_glazing_area_n = "0.0" # North facade  [m²]
-shaded_glazing_area_e = "0.825 * (1.98 * 2)" # East facade   [m²]
-shaded_glazing_area_s = "0.825 * (1.73 * 4 + 5.18 * 4 + 1.98 * 8 + 2.07 * 2)" # South facade  [m²]
-shaded_glazing_area_w = "0.825 * (2.07 * 2)" # West facade   [m²]
+unshaded_glazing_area_n = cfg['building_geometry']['windows']['north']['unshaded_glazing_area']['expression']  # North facade  [m²]
+unshaded_glazing_area_e = cfg['building_geometry']['windows']['east']['unshaded_glazing_area']['expression']   # East facade   [m²]
+unshaded_glazing_area_s = cfg['building_geometry']['windows']['south']['unshaded_glazing_area']['expression']  # South facade  [m²]
+unshaded_glazing_area_w = cfg['building_geometry']['windows']['west']['unshaded_glazing_area']['expression']  # West facade   [m²]
+shaded_glazing_area_n = cfg['building_geometry']['windows']['north']['shaded_glazing_area']['expression'] # North facade  [m²]
+shaded_glazing_area_e = cfg['building_geometry']['windows']['east']['shaded_glazing_area']['expression'] # East facade   [m²]
+shaded_glazing_area_s = cfg['building_geometry']['windows']['south']['shaded_glazing_area']['expression'] # South facade  [m²]
+shaded_glazing_area_w = cfg['building_geometry']['windows']['west']['shaded_glazing_area']['expression'] # West facade   [m²]
 
-unshaded_frame_area_n = "0.175 * (2.3 * 12 + 1.2 * 6 + 3 * 2.07)"   # North facade  [m²]
-unshaded_frame_area_e = "0.175 * (3.45 * 3 + 2.3 * 3 + 1.98 * 1)"   # East facade   [m²]
-unshaded_frame_area_s = "0.175 * (1.73 * 2 + 5.18 * 2 + 1.98 * 4 + 1.2 * 6 + 2.07 * 1)"  # South facade  [m²]
-unshaded_frame_area_w = "0.175 * (3.45 * 3 + 2.3 * 3 + 2.07 * 1)"  # West facade   [m²]
+unshaded_frame_area_n = cfg['building_geometry']['windows']['north']['unshaded_frame_area']['expression']   # North facade  [m²]
+unshaded_frame_area_e = cfg['building_geometry']['windows']['east']['unshaded_frame_area']['expression']   # East facade   [m²]
+unshaded_frame_area_s = cfg['building_geometry']['windows']['south']['unshaded_frame_area']['expression']  # South facade  [m²]
+unshaded_frame_area_w = cfg['building_geometry']['windows']['west']['unshaded_frame_area']['expression']  # West facade   [m²]
+shaded_frame_area_n = cfg['building_geometry']['windows']['north']['shaded_frame_area']['expression']  # North facade  [m²]
+shaded_frame_area_e = cfg['building_geometry']['windows']['east']['shaded_frame_area']['expression']  # East facade   [m²]
+shaded_frame_area_s = cfg['building_geometry']['windows']['south']['shaded_frame_area']['expression']  # South facade  [m²]
+shaded_frame_area_w = cfg['building_geometry']['windows']['west']['shaded_frame_area']['expression']  # West facade   [m²]
 
-shaded_frame_area_n = "0.0"  # North facade  [m²]
-shaded_frame_area_e = "0.175 * (1.98 * 2)"  # East facade   [m²]
-shaded_frame_area_s = "0.175 * (1.73 * 4 + 5.18 * 4 + 1.98 * 8 + 2.07 * 2)"   # South facade  [m²]
-shaded_frame_area_w = "0.175 * (2.07 * 2)"  # West facade   [m²]
+wall_area_n = cfg['building_geometry']['enclosure']['outside_wall_areas']['north']['expression']  # North facade [m^2], including glazings
+wall_area_e = cfg['building_geometry']['enclosure']['outside_wall_areas']['east']['expression']  # East facade [m^2], including glazings
+wall_area_s = cfg['building_geometry']['enclosure']['outside_wall_areas']['south']['expression']  # South facade [m^2], including glazings
+wall_area_w = cfg['building_geometry']['enclosure']['outside_wall_areas']['west']['expression']  # West facade [m^2], including glazings
 
+roof_area = cfg['building_geometry']['enclosure']['roof_area']['expression']  # Roof area [m^2]
+floor_area = cfg['building_geometry']['enclosure']['floor_area']['expression']  # Floor area [m^2]
 
-wall_area_n = "2.5 * 3 * (32.6 + 1.6 - 6.0)"  # North facade [m^2], including glazings
-wall_area_e = "2.5 * 3 * 14.0"    # East facade [m^2], including glazings
-wall_area_s = "2.5 * 3 * (32.6 + 1.6)"  # South facade [m^2], including glazings
-wall_area_w = "2.5 * 3 * 14.0"    # West facade [m^2], including glazings
+int_wall_area = cfg["building_geometry"]['enclosure']['int_wall_area']['expression']  # Internal wall area [m²] (both sides should be present)
+int_ceiling_area = cfg["building_geometry"]["enclosure"]["int_ceiling_area"]["expression"]  # Internal ceiling area [m²] (both sides should be present)
+wall_against_unheated_area = cfg["building_geometry"]["enclosure"]["wall_to_unheated_area"]["expression"]  # Wall area against unheated zones [m²]
 
-roof_area = "313.8"  # Roof area [m^2]
-floor_area = "313.8"  # Floor area [m^2]
-
-int_wall_area =  "(72.975 + 91.9 + 2.0 *19.75) * 3.0"     # Internal wall area [m²] (both sides should be present)
-int_ceiling_area = "313.8 * 2.0 * 2.0"     # Internal ceiling area [m²] (both sides should be present)
-wall_against_unheated_area = "(21.5 + 12.5 + 5.3) * 3.0"  # Wall area against unheated zones [m²]
-
-building_height = "2.5 * 3"  # Height of the building [m]
+building_height = cfg['building_geometry']['building_height']['expression']  # Height of the building [m]
 
 # Thermal Properties of window components
-glazing_u_value = 0.7       # U-value of glazing [W/m²K]
-glazing_g_value = 0.45      # g-value of glazing (fraction of solar radiation transmitted into the building) []
-shading_g_value_reduction_factor = 0.14  # Reduction factor of g-value due to shading (e.g. balconies) []
-frame_u_value = 2.0         # U-value of window frame [W/m²K]
+glazing_u_value = cfg['thermal_properties']['windows']['u_value_glazing']['expression']  # U-value of glazing [W/m²K]
+glazing_g_value = cfg['thermal_properties']['windows']['g_value_glazing']['expression']  # g-value of glazing (fraction of solar radiation transmitted into the building) []
+shading_g_value_reduction_factor = cfg['thermal_properties']['windows']['shading_g_value_reduction_factor']['expression']     # Reduction factor of g-value due to shading (e.g. balconies) []
+frame_u_value = cfg['thermal_properties']['windows']['u_value_frame']['expression']  # U-value of window frame [W/m²K]
 
 # Thermal properties of opaque building components
-wall_against_unheated_u_value = "1 / (2 / 8.0 + 0.17 / 0.79)" # u-value of Wall against unheated zones [W/m²K]
+wall_against_unheated_u_value = cfg['thermal_properties']['enclosure']['u_value_wall_against_unheated']['expression']  # u-value of Wall against unheated zones [W/m²K]
 
 # Thermal properties of inside layers of building components
-wall_inside_lambda = 1.8 
-roof_inside_lambda = 1.8
-floor_inside_lambda = 1.8
+wall_inside_lambda = cfg['thermal_properties']['enclosure']['inside_layer']['lambda_wall_inside']['expression']  # lambda value of inside wall layer [W/mK]
+roof_inside_lambda = cfg['thermal_properties']['enclosure']['inside_layer']['lambda_roof_inside']['expression']  # lambda value of inside roof layer [W/mK]
+floor_inside_lambda = cfg['thermal_properties']['enclosure']['inside_layer']['lambda_floor_inside']['expression']  # lambda value of inside floor layer [W/mK]
 
 # capacity density of inside layers of building components. (rho * c) [J/m³K]
-wall_inside_capacity_density = "2400 * 1100"
-roof_inside_capacity_density = "2400 * 1100"
-floor_inside_capacity_density = "2400 * 1100"
+wall_inside_capacity_density = cfg['thermal_properties']['enclosure']['inside_layer']['capacity_density_wall_inside']['expression']
+roof_inside_capacity_density = cfg['thermal_properties']['enclosure']['inside_layer']['capacity_density_roof_inside']['expression']
+floor_inside_capacity_density = cfg['thermal_properties']['enclosure']['inside_layer']['capacity_density_floor_inside']['expression']
 
 # thermal properties of outside layers of building components 
-wall_outside_lambda = 0.031
-roof_outside_lambda = 0.02
-floor_outside_lambda = 0.03
+wall_outside_lambda = cfg['thermal_properties']['enclosure']['outside_layer']['lambda_wall_outside']['expression']  # lambda value of outside wall layer [W/mK]
+roof_outside_lambda = cfg['thermal_properties']['enclosure']['outside_layer']['lambda_roof_outside']['expression']  # lambda value of outside roof layer [W/mK]
+floor_outside_lambda = cfg['thermal_properties']['enclosure']['outside_layer']['lambda_floor_outside']['expression']  # lambda value of outside floor layer [W/mK]
 
 # capacity density of outside layers of building components. (rho * c) [J/m³K]
-wall_outside_capacity_density = "16 * 1400"
-roof_outside_capacity_density = "30 * 1400"
-floor_outside_capacity_density = "18 * 1400"
+wall_outside_capacity_density = cfg['thermal_properties']['enclosure']['outside_layer']['capacity_density_wall_outside']['expression']
+roof_outside_capacity_density = cfg['thermal_properties']['enclosure']['outside_layer']['capacity_density_roof_outside']['expression']
+floor_outside_capacity_density = cfg['thermal_properties']['enclosure']['outside_layer']['capacity_density_floor_outside']['expression']
 
 # thermal properties of internal building components
-int_wall_lambda = 0.79
-int_ceiling_lambda = 1.8
+int_wall_lambda = cfg['thermal_properties']['enclosure']['internal_walls_ceiling']['lambda_internal_wall']['expression']
+int_ceiling_lambda = cfg['thermal_properties']['enclosure']['internal_walls_ceiling']['lambda_internal_ceiling']['expression']
 
 # capacity density of internal building components. (rho * c) [J/m³K]
-int_wall_capacity_density = "1070.0 * 850.0"
-int_ceiling_capacity_density = "2400.0 * 1100.0"
-
-# Thermal properties of opaque building components
-wall_against_unheated_u_value = 1 / (2 / 8.0 + 0.17 / 0.79) # u-value of Wall against unheated zones [W/m²K]
-
-# Thermal properties of inside layers of building components
-wall_inside_lambda = 1.8 
-roof_inside_lambda = 1.8
-floor_inside_lambda = 1.8
-
-# capacity density of inside layers of building components. (rho * c) [J/m³K]
-wall_inside_capacity_density = 2400 * 1100
-roof_inside_capacity_density = 2400 * 1100
-floor_inside_capacity_density = 2400 * 1100
-
-# thermal properties of outside layers of building components 
-wall_outside_lambda = 0.031
-roof_outside_lambda = 0.02
-floor_outside_lambda = 0.03
-
-# capacity density of outside layers of building components. (rho * c) [J/m³K]
-wall_outside_capacity_density = 16 * 1400
-roof_outside_capacity_density = 30 * 1400
-floor_outside_capacity_density = 18 * 1400
-
-# thermal properties of internal building components
-int_wall_lambda = 0.79
-int_ceiling_lambda = 1.8
-
-# capacity density of internal building components. (rho * c) [J/m³K]
-int_wall_capacity_density = 1070.0 * 850.0
-int_ceiling_capacity_density = 2400.0 * 1100.0
+int_wall_capacity_density = cfg['thermal_properties']['enclosure']['internal_walls_ceiling']['capacity_density_internal_wall']['expression']
+int_ceiling_capacity_density = cfg['thermal_properties']['enclosure']['internal_walls_ceiling']['capacity_density_internal_ceiling']['expression']
 
 # thickness of layers of outside walls
-wall_inside_thickness = 0.2  # thickness of inside layer of walls (brick) [m]
-wall_outside_thickness = 0.1  # thickness of outside layer of walls (insulation) [m]
+wall_inside_thickness = cfg["building_geometry"]['enclosure']['outside_wall_areas']['thickness']['inside_layer']['expression']  # thickness of inside layer of walls (brick) [m]
+wall_outside_thickness = cfg["building_geometry"]['enclosure']['outside_wall_areas']['thickness']['outside_layer']['expression']  # thickness of outside layer of walls (insulation) [m]
 
 # thickness of layers of outside roof
-roof_inside_thickness = 0.25  # thickness of inside layer of roof (concrete) [m]
-roof_outside_thickness = 0.1   # thickness of outside layer of roof (insulation) [m]
+roof_inside_thickness = cfg["building_geometry"]['enclosure']['roof_area']['thickness']['inside_layer']['expression']  # thickness of inside layer of roof (concrete) [m]
+roof_outside_thickness = cfg["building_geometry"]['enclosure']['roof_area']['thickness']['outside_layer']['expression']  # thickness of outside layer of roof (insulation) [m]
 
 # thickness of layers of floor against unheated zones or ground
-floor_inside_thickness = 0.3   # thickness of inside layer of floor (concrete) [m]
-floor_outside_thickness = 0.08  # thickness of outside layer of floor (insulation) [m]
+floor_inside_thickness = cfg["building_geometry"]['enclosure']['floor_area']['thickness']['inside_layer']['expression']  # thickness of inside layer of floor (concrete) [m]
+floor_outside_thickness = cfg["building_geometry"]['enclosure']['floor_area']['thickness']['outside_layer']['expression']  # thickness of outside layer of floor (insulation) [m]
 
 # thickness of layers of internal walls
-int_wall_thickness = 0.17       # thickness of internal walls (drywall) [m]
-int_ceiling_thickness = 0.3654  # thickness of internal ceiling (drywall) [m]
+int_wall_thickness = cfg["building_geometry"]['enclosure']['int_wall_area']['thickness']['expression']       # thickness of internal walls (drywall) [m]
+int_ceiling_thickness = cfg["building_geometry"]['enclosure']['int_ceiling_area']['thickness']['expression']  # thickness of internal ceiling (drywall) [m]
 
-infiltration_rate = "0.194444 * 0.001 * floor_area * 3.0"
+# spez infiltration rate
+infiltration_rate = cfg["thermal_properties"]['infiltration_rate_specific']['expression']  # specific infiltration rate [m³/(m²h)]
 
 # ventilation rate of the building (assumed to be always on)
-air_ventilation_rate = "0.278 * 0.001 * floor_area * 3.0"  # [m³/s]
-heat_exchanger_efficiency = 0.0  # efficiency of heat exchanger in ventilation system []
+air_ventilation_rate = cfg["thermal_properties"]['air_ventilation_rate_specific']['expression']  # [m³/s]
+heat_exchanger_efficiency = cfg["thermal_properties"]['heat_exchanger_efficiency']['expression']  # efficiency of heat exchanger in ventilation system []
 
 # thermal bridges
-thermal_bridges = 123.4 # thermal bridges [W/K]
+thermal_bridges = cfg["thermal_properties"]['thermal_bridges']['expression']  # thermal bridges [W/K]
 
 # difference power input [W] 
-occupancy_power = "70.0 * 0.033 * floor_area * 3.0"
-lighting_power = "2.7 * floor_area * 3.0"
-equipment_power = "8.0 * floor_area * 3.0"
+occupancy_power = cfg['thermal_properties']['power_input']['occupancy_power_per_area']['expression']  # per floor area [W/m²]
+lighting_power = cfg['thermal_properties']['power_input']['lighting_power_per_area']['expression']  # per floor area [W/m²]
+equipment_power = cfg['thermal_properties']['power_input']['equipment_power_per_area']['expression']  # per floor area [W/m²]
 
 # sheduled parameters
 df_schedule_occupancy = pd.DataFrame(
     columns=[f'{i:02d}:00' for i in range(24)],
     index=['Occupancy'],
-    data=[[1, 1, 1, 1, 1, 1, 0.6, 0.4, 0, 0, 0, 0, 0.8, 0.4, 0, 0, 0, 0.4, 0.8, 0.8, 0.8, 1, 1, 1]],
+    data=cfg['thermal_properties']['schedules']['occupancy_schedule'],
     dtype=float
     )
 
 df_schedule_lighting = pd.DataFrame(
     columns=[f'{i:02d}:00' for i in range(24)],
     index=['Lighting'],
-    data=[[0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0]],
+    data=cfg['thermal_properties']['schedules']['lighting_schedule'],
     dtype=float
     )
 
 df_schedule_equipment = pd.DataFrame(
     columns=[f'{i:02d}:00' for i in range(24)],
     index=['Equipment'],
-    data=[[0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.8, 0.2, 0.1, 0.1, 0.1, 0.1, 0.8, 0.2, 0.1, 0.1, 0.1, 0.2, 0.8, 1.0, 0.2, 0.2, 0.2, 0.1]],
+    data=cfg['thermal_properties']['schedules']['equipment_schedule'],
     dtype=float
     )
 
