@@ -15,8 +15,7 @@ from core.bootstrap import create_facade # imports the connection to the midlaye
 PROJECT_ID = "demo-haus-a"
 facade = create_facade(PROJECT_ID)
 cfg = facade.load(PROJECT_ID) 
-save = facade.save(PROJECT_ID, cfg)  # test save functionality
-save
+
 
 # Import sim_io_mock from adapters, adjusting sys.path if necessary
 try:
