@@ -9,7 +9,14 @@ from shiny import reactive
 from shiny.express import input, render, ui
 from shiny.ui import page_navbar, nav_panel, navset_pill_list
 from shinywidgets import render_widget, render_plotly
- 
+
+from core.bootstrap import create_facade # imports the connection to the midlayer
+
+PROJECT_ID = "demo-haus-a"
+facade = create_facade(PROJECT_ID)
+cfg = facade.load(PROJECT_ID) 
+
+
 # Import sim_io_mock from adapters, adjusting sys.path if necessary
 try:
     from adapters import sim_io_mock
@@ -718,6 +725,7 @@ with ui.nav_panel("Einstellungen"):
         label=" Speichern",
         disabled=False,
     )
+
     # Basic Settings tab
     with ui.navset_pill_list(id="tab"):
         with ui.nav_panel("Grundeinstellungen"):
