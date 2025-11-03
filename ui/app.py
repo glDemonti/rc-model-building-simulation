@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
+import copy
 
 from shiny import reactive
 from shiny.express import input, render, ui
@@ -27,107 +28,182 @@ except ModuleNotFoundError:
         sys.path.insert(0, str(ROOT))
     from adapters import sim_io_mock
 
-# Example of a calculated default value for an input field
+# reactive work config 
+cfg_state = reactive.Value(copy.deepcopy(cfg))
+# Helper function to deeply set a value in a nested dictionary given a dot-separated path
+def _deep_set(d, path, value):
+    out = copy.deepcopy(d)
+    cur = out
+    parts = path.split(".")
+    for k in parts[:-1]:
+        cur = cur[k]
+    cur[parts[-1]] = value
+    return out
 
+BINDINGS = {
+    "unshaded_glazing_area_n": ("building_geometry.windows.north.unshaded_glazing_area.expression", str),
+    "unshaded_glazing_area_e": ("building_geometry.windows.east.unshaded_glazing_area.expression", str),
+    "unshaded_glazing_area_s": ("building_geometry.windows.south.unshaded_glazing_area.expression", str),
+    "unshaded_glazing_area_w": ("building_geometry.windows.west.unshaded_glazing_area.expression", str),
+    "shaded_glazing_area_n": ("building_geometry.windows.north.shaded_glazing_area.expression", str),
+    "shaded_glazing_area_e": ("building_geometry.windows.east.shaded_glazing_area.expression", str),
+    "shaded_glazing_area_s": ("building_geometry.windows.south.shaded_glazing_area.expression", str),
+    "shaded_glazing_area_w": ("building_geometry.windows.west.shaded_glazing_area.expression", str),
+    "unshaded_frame_area_n": ("building_geometry.windows.north.unshaded_frame_area.expression", str),
+    "unshaded_frame_area_e": ("building_geometry.windows.east.unshaded_frame_area.expression", str),
+    "unshaded_frame_area_s": ("building_geometry.windows.south.unshaded_frame_area.expression", str),
+    "unshaded_frame_area_w": ("building_geometry.windows.west.unshaded_frame_area.expression", str),
+    "shaded_frame_area_n": ("building_geometry.windows.north.shaded_frame_area.expression", str),
+    "shaded_frame_area_e": ("building_geometry.windows.east.shaded_frame_area.expression", str),
+    "shaded_frame_area_s": ("building_geometry.windows.south.shaded_frame_area.expression", str),
+    "shaded_frame_area_w": ("building_geometry.windows.west.shaded_frame_area.expression", str),
+    "wall_area_n": ("building_geometry.enclosure.outside_wall_areas.north.expression", str),
+    "wall_area_e": ("building_geometry.enclosure.outside_wall_areas.east.expression", str),
+    "wall_area_s": ("building_geometry.enclosure.outside_wall_areas.south.expression", str),
+    "wall_area_w": ("building_geometry.enclosure.outside_wall_areas.west.expression", str),
+    "roof_area": ("building_geometry.enclosure.roof_area.expression", str),
+    "floor_area": ("building_geometry.enclosure.floor_area.expression", str),
+    "int_wall_area": ("building_geometry.enclosure.int_wall_area.expression", str),
+    "int_ceiling_area": ("building_geometry.enclosure.int_ceiling_area.expression", str),
+    "wall_against_unheated_area": ("building_geometry.enclosure.wall_to_unheated_area.expression", str),
+    "building_height": ("building_geometry.building_height.expression", str),
+    "glazing_u_value": ("thermal_properties.windows.u_value_glazing.expression", str),
+    "glazing_g_value": ("thermal_properties.windows.g_value_glazing.expression", str),
+    "shading_g_value_reduction_factor": ("thermal_properties.windows.shading_g_value_reduction_factor.expression", str),
+    "frame_u_value": ("thermal_properties.windows.u_value_frame.expression", str),
+    "wall_against_unheated_u_value": ("thermal_properties.enclosure.u_value_wall_against_unheated.expression", str),
+    "wall_inside_lambda": ("thermal_properties.enclosure.inside_layer.lambda_wall_inside.expression", str),
+    "roof_inside_lambda": ("thermal_properties.enclosure.inside_layer.lambda_roof_inside.expression", str),
+    "floor_inside_lambda": ("thermal_properties.enclosure.inside_layer.lambda_floor_inside.expression", str),
+    "wall_inside_capacity_density": ("thermal_properties.enclosure.inside_layer.capacity_density_wall_inside.expression", str),
+    "roof_inside_capacity_density": ("thermal_properties.enclosure.inside_layer.capacity_density_roof_inside.expression", str),
+    "floor_inside_capacity_density": ("thermal_properties.enclosure.inside_layer.capacity_density_floor_inside.expression", str),
+    "wall_outside_lambda": ("thermal_properties.enclosure.outside_layer.lambda_wall_outside.expression", str),
+    "roof_outside_lambda": ("thermal_properties.enclosure.outside_layer.lambda_roof_outside.expression", str),
+    "floor_outside_lambda": ("thermal_properties.enclosure.outside_layer.lambda_floor_outside.expression", str),
+    "wall_outside_capacity_density": ("thermal_properties.enclosure.outside_layer.capacity_density_wall_outside.expression", str),
+    "roof_outside_capacity_density": ("thermal_properties.enclosure.outside_layer.capacity_density_roof_outside.expression", str),
+    "floor_outside_capacity_density": ("thermal_properties.enclosure.outside_layer.capacity_density_floor_outside.expression", str),
+    "int_wall_lambda": ("thermal_properties.enclosure.internal_walls_ceiling.lambda_internal_wall.expression", str),
+    "int_ceiling_lambda": ("thermal_properties.enclosure.internal_walls_ceiling.lambda_internal_ceiling.expression", str),
+    "int_wall_capacity_density": ("thermal_properties.enclosure.internal_walls_ceiling.capacity_density_internal_wall.expression", str),
+    "int_ceiling_capacity_density": ("thermal_properties.enclosure.internal_walls_ceiling.capacity_density_internal_ceiling.expression", str),
+    "wall_inside_thickness": ("building_geometry.enclosure.outside_wall_areas.thickness.inside_layer.expression", str),
+    "wall_outside_thickness": ("building_geometry.enclosure.outside_wall_areas.thickness.outside_layer.expression", str),
+    "roof_inside_thickness": ("building_geometry.enclosure.roof_area.thickness.inside_layer.expression", str),
+    "roof_outside_thickness": ("building_geometry.enclosure.roof_area.thickness.outside_layer.expression", str),
+    "floor_inside_thickness": ("building_geometry.enclosure.floor_area.thickness.inside_layer.expression", str),
+    "floor_outside_thickness": ("building_geometry.enclosure.floor_area.thickness.outside_layer.expression", str),
+    "int_wall_thickness": ("building_geometry.enclosure.int_wall_area.thickness.expression", str),
+    "int_ceiling_thickness": ("building_geometry.enclosure.int_ceiling_area.thickness.expression", str),
+    "infiltration_rate": ("thermal_properties.infiltration_rate_specific.expression", str),
+    "air_ventilation_rate": ("thermal_properties.air_ventilation_rate_specific.expression", str),
+    "heat_exchanger_efficiency": ("thermal_properties.heat_exchanger_efficiency.expression", str),
+    "thermal_bridges": ("thermal_properties.thermal_bridges.expression", str),
+    "occupancy_power": ("thermal_properties.power_input.occupancy_power_per_area.expression", str),
+    "lighting_power": ("thermal_properties.power_input.lighting_power_per_area.expression", str),
+    "equipment_power": ("thermal_properties.power_input.equipment_power_per_area.expression", str),
+
+}
 # unshaded_glazing_area_n = cfg['building_geometry']['windows']['north']['unshaded_glazing_area']['expression']  # North facade  [m²]
-unshaded_glazing_area_e = cfg['building_geometry']['windows']['east']['unshaded_glazing_area']['expression']   # East facade   [m²]
-unshaded_glazing_area_s = cfg['building_geometry']['windows']['south']['unshaded_glazing_area']['expression']  # South facade  [m²]
-unshaded_glazing_area_w = cfg['building_geometry']['windows']['west']['unshaded_glazing_area']['expression']  # West facade   [m²]
-shaded_glazing_area_n = cfg['building_geometry']['windows']['north']['shaded_glazing_area']['expression'] # North facade  [m²]
-shaded_glazing_area_e = cfg['building_geometry']['windows']['east']['shaded_glazing_area']['expression'] # East facade   [m²]
-shaded_glazing_area_s = cfg['building_geometry']['windows']['south']['shaded_glazing_area']['expression'] # South facade  [m²]
-shaded_glazing_area_w = cfg['building_geometry']['windows']['west']['shaded_glazing_area']['expression'] # West facade   [m²]
+# unshaded_glazing_area_e = cfg['building_geometry']['windows']['east']['unshaded_glazing_area']['expression']   # East facade   [m²]
+# unshaded_glazing_area_s = cfg['building_geometry']['windows']['south']['unshaded_glazing_area']['expression']  # South facade  [m²]
+# unshaded_glazing_area_w = cfg['building_geometry']['windows']['west']['unshaded_glazing_area']['expression']  # West facade   [m²]
+# shaded_glazing_area_n = cfg['building_geometry']['windows']['north']['shaded_glazing_area']['expression'] # North facade  [m²]
+# shaded_glazing_area_e = cfg['building_geometry']['windows']['east']['shaded_glazing_area']['expression'] # East facade   [m²]
+# shaded_glazing_area_s = cfg['building_geometry']['windows']['south']['shaded_glazing_area']['expression'] # South facade  [m²]
+# shaded_glazing_area_w = cfg['building_geometry']['windows']['west']['shaded_glazing_area']['expression'] # West facade   [m²]
 
-unshaded_frame_area_n = cfg['building_geometry']['windows']['north']['unshaded_frame_area']['expression']   # North facade  [m²]
-unshaded_frame_area_e = cfg['building_geometry']['windows']['east']['unshaded_frame_area']['expression']   # East facade   [m²]
-unshaded_frame_area_s = cfg['building_geometry']['windows']['south']['unshaded_frame_area']['expression']  # South facade  [m²]
-unshaded_frame_area_w = cfg['building_geometry']['windows']['west']['unshaded_frame_area']['expression']  # West facade   [m²]
-shaded_frame_area_n = cfg['building_geometry']['windows']['north']['shaded_frame_area']['expression']  # North facade  [m²]
-shaded_frame_area_e = cfg['building_geometry']['windows']['east']['shaded_frame_area']['expression']  # East facade   [m²]
-shaded_frame_area_s = cfg['building_geometry']['windows']['south']['shaded_frame_area']['expression']  # South facade  [m²]
-shaded_frame_area_w = cfg['building_geometry']['windows']['west']['shaded_frame_area']['expression']  # West facade   [m²]
+# unshaded_frame_area_n = cfg['building_geometry']['windows']['north']['unshaded_frame_area']['expression']   # North facade  [m²]
+# unshaded_frame_area_e = cfg['building_geometry']['windows']['east']['unshaded_frame_area']['expression']   # East facade   [m²]
+# unshaded_frame_area_s = cfg['building_geometry']['windows']['south']['unshaded_frame_area']['expression']  # South facade  [m²]
+# unshaded_frame_area_w = cfg['building_geometry']['windows']['west']['unshaded_frame_area']['expression']  # West facade   [m²]
+# shaded_frame_area_n = cfg['building_geometry']['windows']['north']['shaded_frame_area']['expression']  # North facade  [m²]
+# shaded_frame_area_e = cfg['building_geometry']['windows']['east']['shaded_frame_area']['expression']  # East facade   [m²]
+# shaded_frame_area_s = cfg['building_geometry']['windows']['south']['shaded_frame_area']['expression']  # South facade  [m²]
+# shaded_frame_area_w = cfg['building_geometry']['windows']['west']['shaded_frame_area']['expression']  # West facade   [m²]
 
-wall_area_n = cfg['building_geometry']['enclosure']['outside_wall_areas']['north']['expression']  # North facade [m^2], including glazings
-wall_area_e = cfg['building_geometry']['enclosure']['outside_wall_areas']['east']['expression']  # East facade [m^2], including glazings
-wall_area_s = cfg['building_geometry']['enclosure']['outside_wall_areas']['south']['expression']  # South facade [m^2], including glazings
-wall_area_w = cfg['building_geometry']['enclosure']['outside_wall_areas']['west']['expression']  # West facade [m^2], including glazings
+# wall_area_n = cfg['building_geometry']['enclosure']['outside_wall_areas']['north']['expression']  # North facade [m^2], including glazings
+# wall_area_e = cfg['building_geometry']['enclosure']['outside_wall_areas']['east']['expression']  # East facade [m^2], including glazings
+# wall_area_s = cfg['building_geometry']['enclosure']['outside_wall_areas']['south']['expression']  # South facade [m^2], including glazings
+# wall_area_w = cfg['building_geometry']['enclosure']['outside_wall_areas']['west']['expression']  # West facade [m^2], including glazings
 
-roof_area = cfg['building_geometry']['enclosure']['roof_area']['expression']  # Roof area [m^2]
-floor_area = cfg['building_geometry']['enclosure']['floor_area']['expression']  # Floor area [m^2]
+# roof_area = cfg['building_geometry']['enclosure']['roof_area']['expression']  # Roof area [m^2]
+# floor_area = cfg['building_geometry']['enclosure']['floor_area']['expression']  # Floor area [m^2]
 
-int_wall_area = cfg["building_geometry"]['enclosure']['int_wall_area']['expression']  # Internal wall area [m²] (both sides should be present)
-int_ceiling_area = cfg["building_geometry"]["enclosure"]["int_ceiling_area"]["expression"]  # Internal ceiling area [m²] (both sides should be present)
-wall_against_unheated_area = cfg["building_geometry"]["enclosure"]["wall_to_unheated_area"]["expression"]  # Wall area against unheated zones [m²]
+# int_wall_area = cfg["building_geometry"]['enclosure']['int_wall_area']['expression']  # Internal wall area [m²] (both sides should be present)
+# int_ceiling_area = cfg["building_geometry"]["enclosure"]["int_ceiling_area"]["expression"]  # Internal ceiling area [m²] (both sides should be present)
+# wall_against_unheated_area = cfg["building_geometry"]["enclosure"]["wall_to_unheated_area"]["expression"]  # Wall area against unheated zones [m²]
 
-building_height = cfg['building_geometry']['building_height']['expression']  # Height of the building [m]
+# building_height = cfg['building_geometry']['building_height']['expression']  # Height of the building [m]
 
-# Thermal Properties of window components
-glazing_u_value = cfg['thermal_properties']['windows']['u_value_glazing']['expression']  # U-value of glazing [W/m²K]
-glazing_g_value = cfg['thermal_properties']['windows']['g_value_glazing']['expression']  # g-value of glazing (fraction of solar radiation transmitted into the building) []
-shading_g_value_reduction_factor = cfg['thermal_properties']['windows']['shading_g_value_reduction_factor']['expression']     # Reduction factor of g-value due to shading (e.g. balconies) []
-frame_u_value = cfg['thermal_properties']['windows']['u_value_frame']['expression']  # U-value of window frame [W/m²K]
+# # Thermal Properties of window components
+# glazing_u_value = cfg['thermal_properties']['windows']['u_value_glazing']['expression']  # U-value of glazing [W/m²K]
+# glazing_g_value = cfg['thermal_properties']['windows']['g_value_glazing']['expression']  # g-value of glazing (fraction of solar radiation transmitted into the building) []
+# shading_g_value_reduction_factor = cfg['thermal_properties']['windows']['shading_g_value_reduction_factor']['expression']     # Reduction factor of g-value due to shading (e.g. balconies) []
+# frame_u_value = cfg['thermal_properties']['windows']['u_value_frame']['expression']  # U-value of window frame [W/m²K]
 
-# Thermal properties of opaque building components
-wall_against_unheated_u_value = cfg['thermal_properties']['enclosure']['u_value_wall_against_unheated']['expression']  # u-value of Wall against unheated zones [W/m²K]
+# # Thermal properties of opaque building components
+# wall_against_unheated_u_value = cfg['thermal_properties']['enclosure']['u_value_wall_against_unheated']['expression']  # u-value of Wall against unheated zones [W/m²K]
 
-# Thermal properties of inside layers of building components
-wall_inside_lambda = cfg['thermal_properties']['enclosure']['inside_layer']['lambda_wall_inside']['expression']  # lambda value of inside wall layer [W/mK]
-roof_inside_lambda = cfg['thermal_properties']['enclosure']['inside_layer']['lambda_roof_inside']['expression']  # lambda value of inside roof layer [W/mK]
-floor_inside_lambda = cfg['thermal_properties']['enclosure']['inside_layer']['lambda_floor_inside']['expression']  # lambda value of inside floor layer [W/mK]
+# # Thermal properties of inside layers of building components
+# wall_inside_lambda = cfg['thermal_properties']['enclosure']['inside_layer']['lambda_wall_inside']['expression']  # lambda value of inside wall layer [W/mK]
+# roof_inside_lambda = cfg['thermal_properties']['enclosure']['inside_layer']['lambda_roof_inside']['expression']  # lambda value of inside roof layer [W/mK]
+# floor_inside_lambda = cfg['thermal_properties']['enclosure']['inside_layer']['lambda_floor_inside']['expression']  # lambda value of inside floor layer [W/mK]
 
-# capacity density of inside layers of building components. (rho * c) [J/m³K]
-wall_inside_capacity_density = cfg['thermal_properties']['enclosure']['inside_layer']['capacity_density_wall_inside']['expression']
-roof_inside_capacity_density = cfg['thermal_properties']['enclosure']['inside_layer']['capacity_density_roof_inside']['expression']
-floor_inside_capacity_density = cfg['thermal_properties']['enclosure']['inside_layer']['capacity_density_floor_inside']['expression']
+# # capacity density of inside layers of building components. (rho * c) [J/m³K]
+# wall_inside_capacity_density = cfg['thermal_properties']['enclosure']['inside_layer']['capacity_density_wall_inside']['expression']
+# roof_inside_capacity_density = cfg['thermal_properties']['enclosure']['inside_layer']['capacity_density_roof_inside']['expression']
+# floor_inside_capacity_density = cfg['thermal_properties']['enclosure']['inside_layer']['capacity_density_floor_inside']['expression']
 
-# thermal properties of outside layers of building components 
-wall_outside_lambda = cfg['thermal_properties']['enclosure']['outside_layer']['lambda_wall_outside']['expression']  # lambda value of outside wall layer [W/mK]
-roof_outside_lambda = cfg['thermal_properties']['enclosure']['outside_layer']['lambda_roof_outside']['expression']  # lambda value of outside roof layer [W/mK]
-floor_outside_lambda = cfg['thermal_properties']['enclosure']['outside_layer']['lambda_floor_outside']['expression']  # lambda value of outside floor layer [W/mK]
+# # thermal properties of outside layers of building components 
+# wall_outside_lambda = cfg['thermal_properties']['enclosure']['outside_layer']['lambda_wall_outside']['expression']  # lambda value of outside wall layer [W/mK]
+# roof_outside_lambda = cfg['thermal_properties']['enclosure']['outside_layer']['lambda_roof_outside']['expression']  # lambda value of outside roof layer [W/mK]
+# floor_outside_lambda = cfg['thermal_properties']['enclosure']['outside_layer']['lambda_floor_outside']['expression']  # lambda value of outside floor layer [W/mK]
 
-# capacity density of outside layers of building components. (rho * c) [J/m³K]
-wall_outside_capacity_density = cfg['thermal_properties']['enclosure']['outside_layer']['capacity_density_wall_outside']['expression']
-roof_outside_capacity_density = cfg['thermal_properties']['enclosure']['outside_layer']['capacity_density_roof_outside']['expression']
-floor_outside_capacity_density = cfg['thermal_properties']['enclosure']['outside_layer']['capacity_density_floor_outside']['expression']
+# # capacity density of outside layers of building components. (rho * c) [J/m³K]
+# wall_outside_capacity_density = cfg['thermal_properties']['enclosure']['outside_layer']['capacity_density_wall_outside']['expression']
+# roof_outside_capacity_density = cfg['thermal_properties']['enclosure']['outside_layer']['capacity_density_roof_outside']['expression']
+# floor_outside_capacity_density = cfg['thermal_properties']['enclosure']['outside_layer']['capacity_density_floor_outside']['expression']
 
-# thermal properties of internal building components
-int_wall_lambda = cfg['thermal_properties']['enclosure']['internal_walls_ceiling']['lambda_internal_wall']['expression']
-int_ceiling_lambda = cfg['thermal_properties']['enclosure']['internal_walls_ceiling']['lambda_internal_ceiling']['expression']
+# # thermal properties of internal building components
+# int_wall_lambda = cfg['thermal_properties']['enclosure']['internal_walls_ceiling']['lambda_internal_wall']['expression']
+# int_ceiling_lambda = cfg['thermal_properties']['enclosure']['internal_walls_ceiling']['lambda_internal_ceiling']['expression']
 
-# capacity density of internal building components. (rho * c) [J/m³K]
-int_wall_capacity_density = cfg['thermal_properties']['enclosure']['internal_walls_ceiling']['capacity_density_internal_wall']['expression']
-int_ceiling_capacity_density = cfg['thermal_properties']['enclosure']['internal_walls_ceiling']['capacity_density_internal_ceiling']['expression']
+# # capacity density of internal building components. (rho * c) [J/m³K]
+# int_wall_capacity_density = cfg['thermal_properties']['enclosure']['internal_walls_ceiling']['capacity_density_internal_wall']['expression']
+# int_ceiling_capacity_density = cfg['thermal_properties']['enclosure']['internal_walls_ceiling']['capacity_density_internal_ceiling']['expression']
 
-# thickness of layers of outside walls
-wall_inside_thickness = cfg["building_geometry"]['enclosure']['outside_wall_areas']['thickness']['inside_layer']['expression']  # thickness of inside layer of walls (brick) [m]
-wall_outside_thickness = cfg["building_geometry"]['enclosure']['outside_wall_areas']['thickness']['outside_layer']['expression']  # thickness of outside layer of walls (insulation) [m]
+# # thickness of layers of outside walls
+# wall_inside_thickness = cfg["building_geometry"]['enclosure']['outside_wall_areas']['thickness']['inside_layer']['expression']  # thickness of inside layer of walls (brick) [m]
+# wall_outside_thickness = cfg["building_geometry"]['enclosure']['outside_wall_areas']['thickness']['outside_layer']['expression']  # thickness of outside layer of walls (insulation) [m]
 
-# thickness of layers of outside roof
-roof_inside_thickness = cfg["building_geometry"]['enclosure']['roof_area']['thickness']['inside_layer']['expression']  # thickness of inside layer of roof (concrete) [m]
-roof_outside_thickness = cfg["building_geometry"]['enclosure']['roof_area']['thickness']['outside_layer']['expression']  # thickness of outside layer of roof (insulation) [m]
+# # thickness of layers of outside roof
+# roof_inside_thickness = cfg["building_geometry"]['enclosure']['roof_area']['thickness']['inside_layer']['expression']  # thickness of inside layer of roof (concrete) [m]
+# roof_outside_thickness = cfg["building_geometry"]['enclosure']['roof_area']['thickness']['outside_layer']['expression']  # thickness of outside layer of roof (insulation) [m]
 
-# thickness of layers of floor against unheated zones or ground
-floor_inside_thickness = cfg["building_geometry"]['enclosure']['floor_area']['thickness']['inside_layer']['expression']  # thickness of inside layer of floor (concrete) [m]
-floor_outside_thickness = cfg["building_geometry"]['enclosure']['floor_area']['thickness']['outside_layer']['expression']  # thickness of outside layer of floor (insulation) [m]
+# # thickness of layers of floor against unheated zones or ground
+# floor_inside_thickness = cfg["building_geometry"]['enclosure']['floor_area']['thickness']['inside_layer']['expression']  # thickness of inside layer of floor (concrete) [m]
+# floor_outside_thickness = cfg["building_geometry"]['enclosure']['floor_area']['thickness']['outside_layer']['expression']  # thickness of outside layer of floor (insulation) [m]
 
-# thickness of layers of internal walls
-int_wall_thickness = cfg["building_geometry"]['enclosure']['int_wall_area']['thickness']['expression']       # thickness of internal walls (drywall) [m]
-int_ceiling_thickness = cfg["building_geometry"]['enclosure']['int_ceiling_area']['thickness']['expression']  # thickness of internal ceiling (drywall) [m]
+# # thickness of layers of internal walls
+# int_wall_thickness = cfg["building_geometry"]['enclosure']['int_wall_area']['thickness']['expression']       # thickness of internal walls (drywall) [m]
+# int_ceiling_thickness = cfg["building_geometry"]['enclosure']['int_ceiling_area']['thickness']['expression']  # thickness of internal ceiling (drywall) [m]
 
-# spez infiltration rate
-infiltration_rate = cfg["thermal_properties"]['infiltration_rate_specific']['expression']  # specific infiltration rate [m³/(m²h)]
+# # spez infiltration rate
+# infiltration_rate = cfg["thermal_properties"]['infiltration_rate_specific']['expression']  # specific infiltration rate [m³/(m²h)]
 
-# ventilation rate of the building (assumed to be always on)
-air_ventilation_rate = cfg["thermal_properties"]['air_ventilation_rate_specific']['expression']  # [m³/s]
-heat_exchanger_efficiency = cfg["thermal_properties"]['heat_exchanger_efficiency']['expression']  # efficiency of heat exchanger in ventilation system []
+# # ventilation rate of the building (assumed to be always on)
+# air_ventilation_rate = cfg["thermal_properties"]['air_ventilation_rate_specific']['expression']  # [m³/s]
+# heat_exchanger_efficiency = cfg["thermal_properties"]['heat_exchanger_efficiency']['expression']  # efficiency of heat exchanger in ventilation system []
 
-# thermal bridges
-thermal_bridges = cfg["thermal_properties"]['thermal_bridges']['expression']  # thermal bridges [W/K]
+# # thermal bridges
+# thermal_bridges = cfg["thermal_properties"]['thermal_bridges']['expression']  # thermal bridges [W/K]
 
-# difference power input [W] 
-occupancy_power = cfg['thermal_properties']['power_input']['occupancy_power_per_area']['expression']  # per floor area [W/m²]
-lighting_power = cfg['thermal_properties']['power_input']['lighting_power_per_area']['expression']  # per floor area [W/m²]
-equipment_power = cfg['thermal_properties']['power_input']['equipment_power_per_area']['expression']  # per floor area [W/m²]
+# # difference power input [W] 
+# occupancy_power = cfg['thermal_properties']['power_input']['occupancy_power_per_area']['expression']  # per floor area [W/m²]
+# lighting_power = cfg['thermal_properties']['power_input']['lighting_power_per_area']['expression']  # per floor area [W/m²]
+# equipment_power = cfg['thermal_properties']['power_input']['equipment_power_per_area']['expression']  # per floor area [W/m²]
 
 # sheduled parameters
 df_schedule_occupancy = pd.DataFrame(
@@ -150,6 +226,23 @@ df_schedule_equipment = pd.DataFrame(
     data=cfg['thermal_properties']['schedules']['equipment_schedule'],
     dtype=float
     )
+
+# Register reactive bindings for input fields to update cfg_state
+def _register_binding(input_id: str, path: str, cast):
+    @reactive.effect
+    @reactive.event(getattr(input, input_id))
+    def _on_change():
+        raw = getattr(input, input_id)()
+        try:
+            val = cast(raw) if cast else raw
+        except Exception:
+            # Optional: Validation/Fehlerfeedback
+            ui.notification_show(f"Ungültiger Wert für {input_id}: {raw}", type="warning", duration=4)
+            return
+        cfg_state.set(_deep_set(cfg_state(), path, val))
+
+for _id, (path, cast) in BINDINGS.items():
+    _register_binding(_id, path, cast)
 
 # Helper function to attach a numeric guard to a DataGrid render
 def attach_numeric_guard(
@@ -697,8 +790,8 @@ with ui.nav_panel("Einstellungen"):
     @reactive.effect
     @reactive.event(input.button_save_settings)
     def save_settings_event():
+        facade.save(PROJECT_ID, cfg_state())
         ui.notification_show("Einstellungen wurden gespeichert.", type="default", duration=4)
-        facade.save(PROJECT_ID, cfg)
 
 
     # Basic Settings tab
@@ -724,7 +817,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_text(
                         id="unshaded_glazing_area_e",
                         label="Unbeschattete Verglasungsfläche (Ost) [m²]",
-                        value=unshaded_glazing_area_e,
+                        value=cfg['building_geometry']['windows']['east']['unshaded_glazing_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
@@ -732,7 +825,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_text(
                         id="unshaded_glazing_area_s",
                         label="Unbeschattete Verglasungsfläche (Süd) [m²]",
-                        value=unshaded_glazing_area_s,
+                        value=cfg['building_geometry']['windows']['south']['unshaded_glazing_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
@@ -740,7 +833,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_text(
                         id="unshaded_glazing_area_w",
                         label="Unbeschattete Verglasungsfläche (West) [m²]",
-                        value=unshaded_glazing_area_w,
+                        value=cfg['building_geometry']['windows']['west']['unshaded_glazing_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
@@ -750,28 +843,28 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_text(
                         id="shaded_glazing_area_n",
                         label="Beschattete Verglasungsfläche (Nord) [m²]",
-                        value=shaded_glazing_area_n,
+                        value=cfg['building_geometry']['windows']['north']['shaded_glazing_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="shaded_glazing_area_e",
                         label="Beschattete Verglasungsfläche (Ost) [m²]",
-                        value=shaded_glazing_area_e,
+                        value=cfg['building_geometry']['windows']['east']['shaded_glazing_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="shaded_glazing_area_s",
                         label="Beschattete Verglasungsfläche (Süd) [m²]",
-                        value=shaded_glazing_area_s,
+                        value=cfg['building_geometry']['windows']['south']['shaded_glazing_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="shaded_glazing_area_w",
                         label="Beschattete Verglasungsfläche (West) [m²]",
-                        value=shaded_glazing_area_w,
+                        value=cfg['building_geometry']['windows']['west']['shaded_glazing_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
@@ -781,28 +874,28 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_text(
                         id="unshaded_frame_area_n",
                         label="Unbeschattete Rahmenfläche (Nord) [m²]",
-                        value=unshaded_frame_area_n,
+                        value=cfg['building_geometry']['windows']['north']['unshaded_frame_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="unshaded_frame_area_e",
                         label="Unbeschattete Rahmenfläche (Ost) [m²]",
-                        value=unshaded_frame_area_e,
+                        value=cfg['building_geometry']['windows']['east']['unshaded_frame_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="unshaded_frame_area_s",
                         label="Unbeschattete Rahmenfläche (Süd) [m²]",
-                        value=unshaded_frame_area_s,
+                        value=cfg['building_geometry']['windows']['south']['unshaded_frame_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="unshaded_frame_area_w",
                         label="Unbeschattete Rahmenfläche (West) [m²]",
-                        value=unshaded_frame_area_w,
+                        value=cfg['building_geometry']['windows']['west']['unshaded_frame_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
@@ -812,28 +905,28 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_text(
                         id="shaded_frame_area_n",
                         label="Beschattete Rahmenfläche (Nord) [m²]",
-                        value=shaded_frame_area_n,
+                        value=cfg['building_geometry']['windows']['north']['shaded_frame_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="shaded_frame_area_e",
                         label="Beschattete Rahmenfläche (Ost) [m²]",
-                        value=shaded_frame_area_e,
+                        value=cfg['building_geometry']['windows']['east']['shaded_frame_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="shaded_frame_area_s",
                         label="Beschattete Rahmenfläche (Süd) [m²]",
-                        value=shaded_frame_area_s,
+                        value=cfg['building_geometry']['windows']['south']['shaded_frame_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="shaded_frame_area_w",
                         label="Beschattete Rahmenfläche (West) [m²]",
-                        value=shaded_frame_area_w,
+                        value=cfg['building_geometry']['windows']['west']['shaded_frame_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
@@ -843,28 +936,28 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_text(
                         id="wall_area_n",
                         label="Wandfläche (Nord) [m²]",
-                        value=wall_area_n,
+                        value=cfg['building_geometry']['enclosure']['outside_wall_areas']['north']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="wall_area_e",
                         label="Wandfläche (Ost) [m²]",
-                        value=wall_area_e,
+                        value=cfg['building_geometry']['enclosure']['outside_wall_areas']['east']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="wall_area_s",
                         label="Wandfläche (Süd) [m²]",
-                        value=wall_area_s,
+                        value=cfg['building_geometry']['enclosure']['outside_wall_areas']['south']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="wall_area_w",
                         label="Wandfläche (West) [m²]",
-                        value=wall_area_w,
+                        value=cfg['building_geometry']['enclosure']['outside_wall_areas']['west']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
@@ -873,42 +966,42 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_text(
                         id="roof_area",
                         label="Dachfläche [m²]",
-                        value=roof_area,
+                        value=cfg['building_geometry']['enclosure']['roof_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="floor_area",
                         label="Bodenfläche [m²]",
-                        value=floor_area,
+                        value=cfg['building_geometry']['enclosure']['floor_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="int_wall_area",
                         label="Innenwandflächen (beide seiten sollen vorhanden sein) [m²]",
-                        value=int_wall_area,
+                        value=cfg["building_geometry"]['enclosure']['int_wall_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="int_ceiling_area",
                         label="Innendeckenfläche (beide seiten sollen vorhanden sein) [m²]",
-                        value=int_ceiling_area,
+                        value=cfg["building_geometry"]["enclosure"]["int_ceiling_area"]["expression"],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="wall_against_unheated_area",
                         label="Wandfläche gegen unbeheizte Zonen [m²]",
-                        value=wall_against_unheated_area,
+                        value=cfg["building_geometry"]["enclosure"]["wall_to_unheated_area"]["expression"],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="building_height",
                         label="Höhe des Gebäudes [m]",
-                        value=building_height,
+                        value=cfg['building_geometry']['building_height']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
@@ -945,7 +1038,7 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_numeric(
                     id="glazing_u_value",
                     label="U-Wert der Verglasung [W/m²K]",
-                    value=glazing_u_value,
+                    value=cfg['thermal_properties']['windows']['u_value_glazing']['expression'],
                     width=None,
                     min=0,
                     max=None,
@@ -954,7 +1047,7 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_numeric(
                     id="glazing_g_value",
                     label="g-Wert der Verglasung (Anteil der solaren Strahlung, welche in das Gebäude gelangt) []",
-                    value=glazing_g_value,
+                    value=cfg['thermal_properties']['windows']['g_value_glazing']['expression'],
                     width=None,
                     min=0,
                     max=1,
@@ -963,7 +1056,7 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_numeric(
                     id="shading_g_value_reduction_factor",
                     label="Reduktionsfaktor des g-Werts aufgrund von Beschattung (z.B. Balkone) []",
-                    value=shading_g_value_reduction_factor,
+                    value=cfg['thermal_properties']['windows']['shading_g_value_reduction_factor']['expression'],
                     width=None,
                     min=0,
                     max=1,
@@ -972,7 +1065,7 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_numeric(
                     id="frame_u_value",
                     label="U-Wert des Fensterrahmens [W/m²K]",
-                    value=frame_u_value,
+                    value=cfg['thermal_properties']['windows']['u_value_frame']['expression'],
                     width=None,
                     min=0,
                     max=None,
@@ -981,14 +1074,14 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_text(
                     id="wall_against_unheated_u_value",
                     label="U-Wert der Wand gegen unbeheizte Zonen [W/m²K]",
-                    value=wall_against_unheated_u_value,
+                    value=cfg['thermal_properties']['enclosure']['u_value_wall_against_unheated']['expression'],
                     width="600px",
                     placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_numeric(
                     id="wall_inside_lambda",
                     label="Wärmeleitfähigkeit der inneren Schicht der Wand [W/mK]",
-                    value=wall_inside_lambda,
+                    value=cfg['thermal_properties']['enclosure']['inside_layer']['lambda_wall_inside']['expression'],
                     width=None,
                     min=0,
                     max=None,
@@ -997,7 +1090,7 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_numeric(
                     id="roof_inside_lambda",
                     label="Wärmeleitfähigkeit der inneren Schicht des Daches [W/mK]",
-                    value=roof_inside_lambda,
+                    value=cfg['thermal_properties']['enclosure']['inside_layer']['lambda_roof_inside']['expression'],
                     width=None,
                     min=0,
                     max=None,
@@ -1006,7 +1099,7 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_numeric(
                     id="floor_inside_lambda",
                     label="Wärmeleitfähigkeit der inneren Schicht des Fußbodens [W/mK]",
-                    value=floor_inside_lambda,
+                    value=cfg['thermal_properties']['enclosure']['inside_layer']['lambda_floor_inside']['expression'],
                     width=None,
                     min=0,
                     max=None,
@@ -1015,28 +1108,28 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_text(
                     id="wall_inside_capacity_density",
                     label="Speicherdichte der inneren Schicht der Wand (rho * c) [J/m³K]",
-                    value=wall_inside_capacity_density,
+                    value=cfg['thermal_properties']['enclosure']['inside_layer']['capacity_density_wall_inside']['expression'],
                     width="600px",
                     placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="roof_inside_capacity_density",
                     label="Speicherdichte der inneren Schicht des Daches (rho * c) [J/m³K]",
-                    value=roof_inside_capacity_density,
+                    value=cfg['thermal_properties']['enclosure']['inside_layer']['capacity_density_roof_inside']['expression'],
                     width="600px",
                     placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="floor_inside_capacity_density",
                     label="Speicherdichte der inneren Schicht des Fußbodens (rho * c) [J/m³K]",
-                    value=floor_inside_capacity_density,
+                    value=cfg['thermal_properties']['enclosure']['inside_layer']['capacity_density_floor_inside']['expression'],
                     width="600px",
                     placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_numeric(
                     id="wall_outside_lambda",
                     label="Wärmeleitfähigkeit der äusseren Schicht der Wand [W/mK]",
-                    value=wall_outside_lambda,
+                    value=cfg['thermal_properties']['enclosure']['outside_layer']['lambda_wall_outside']['expression'],
                     width=None,
                     min=0,
                     max=None,
@@ -1045,7 +1138,7 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_numeric(
                     id="roof_outside_lambda",
                     label="Wärmeleitfähigkeit der äusseren Schicht des Daches [W/mK]",
-                    value=roof_outside_lambda,
+                    value=cfg['thermal_properties']['enclosure']['outside_layer']['lambda_roof_outside']['expression'],
                     width=None,
                     min=0,
                     max=None,
@@ -1054,7 +1147,7 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_numeric(
                     id="floor_outside_lambda",
                     label="Wärmeleitfähigkeit der äusseren Schicht des Fußbodens [W/mK]",
-                    value=floor_outside_lambda,
+                    value=cfg['thermal_properties']['enclosure']['outside_layer']['lambda_floor_outside']['expression'],
                     width=None,
                     min=0,
                     max=None,
@@ -1063,28 +1156,28 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_text(
                     id="wall_outside_capacity_density",
                     label="Kapazitätsdichte der äusseren Schicht der Wand (rho * c) [J/m³K]",
-                    value=wall_outside_capacity_density,
+                    value=cfg['thermal_properties']['enclosure']['outside_layer']['capacity_density_wall_outside']['expression'],
                     width="600px",
                     placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="roof_outside_capacity_density",
                     label="Kapazitätsdichte der äusseren Schicht des Daches (rho * c) [J/m³K]",
-                    value=roof_outside_capacity_density,
+                    value=cfg['thermal_properties']['enclosure']['outside_layer']['capacity_density_roof_outside']['expression'],
                     width="600px",
                     placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="floor_outside_capacity_density",
                     label="Kapazitätsdichte der äusseren Schicht des Fussbodens (rho * c) [J/m³K]",
-                    value=floor_outside_capacity_density,
+                    value=cfg['thermal_properties']['enclosure']['outside_layer']['capacity_density_floor_outside']['expression'],
                     width="600px",
                     placeholder="Enter a number",
                 )
                 ui.input_numeric(
                     id="int_wall_lambda",
                     label="Wärmeleitfähigkeit der Innenwand [W/mK]",
-                    value=int_wall_lambda,
+                    value=cfg['thermal_properties']['enclosure']['internal_walls_ceiling']['lambda_internal_wall']['expression'],
                     width=None,
                     min=0,
                     max=None,
@@ -1093,7 +1186,7 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_numeric(
                     id="int_ceiling_lambda",
                     label="Wärmeleitfähigkeit der Innendecke [W/mK]",
-                    value=int_ceiling_lambda,
+                    value=cfg['thermal_properties']['enclosure']['internal_walls_ceiling']['lambda_internal_ceiling']['expression'],
                     width=None,
                     min=0,
                     max=None,
@@ -1102,14 +1195,14 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_text(
                     id="int_wall_capacity_density",
                     label="Kapazitätsdichte der Innenwand (rho * c) [J/m³K]",
-                    value=int_wall_capacity_density,
+                    value=cfg['thermal_properties']['enclosure']['internal_walls_ceiling']['capacity_density_internal_wall']['expression'],
                     width="600px",
                     placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="int_ceiling_capacity_density",
                     label="Kapazitätsdichte der Innendecke (rho * c) [J/m³K]",
-                    value=int_ceiling_capacity_density,
+                    value=cfg['thermal_properties']['enclosure']['internal_walls_ceiling']['capacity_density_internal_ceiling']['expression'],
                     width="600px",
                     placeholder="Geben Sie eine Zahl ein",
                 )
@@ -1121,7 +1214,7 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_numeric(
                     id="wall_inside_thickness",
                     label="Dicke der inneren Schicht der Wand (Ziegel) [m]",
-                    value=wall_inside_thickness,
+                    value=cfg["building_geometry"]['enclosure']['outside_wall_areas']['thickness']['inside_layer']['expression'],
                     width=None,
                     min=0,
                     max=None,
@@ -1130,7 +1223,7 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_numeric(
                     id="wall_outside_thickness",
                     label="Dicke der äusseren Schicht der Wand (Dämmung) [m]",
-                    value=wall_outside_thickness,
+                    value=cfg["building_geometry"]['enclosure']['outside_wall_areas']['thickness']['outside_layer']['expression'],
                     width=None,
                     min=0,
                     max=None,
@@ -1139,7 +1232,7 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_numeric(
                     id="roof_inside_thickness",
                     label="Dicke der inneren Schicht des Daches (Beton) [m]",
-                    value=roof_inside_thickness,
+                    value=cfg["building_geometry"]['enclosure']['roof_area']['thickness']['inside_layer']['expression'],
                     width=None,
                     min=0,
                     max=None,
@@ -1148,7 +1241,7 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_numeric(
                     id="roof_outside_thickness",
                     label="Dicke der äusseren Schicht des Daches (Dämmung) [m]",
-                    value=roof_outside_thickness,
+                    value=cfg["building_geometry"]['enclosure']['roof_area']['thickness']['outside_layer']['expression'],
                     width=None,
                     min=0,
                     max=None,
@@ -1157,7 +1250,7 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_numeric(
                     id="floor_inside_thickness",
                     label="Dicke der inneren Schicht des Fussbodens (Beton) [m]",
-                    value=floor_inside_thickness,
+                    value=cfg["building_geometry"]['enclosure']['floor_area']['thickness']['inside_layer']['expression'],
                     width=None,
                     min=0,
                     max=None,
@@ -1166,7 +1259,7 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_numeric(
                     id="floor_outside_thickness",
                     label="Dicke der äusseren Schicht des Fussbodens (Dämmung) [m]",
-                    value=floor_outside_thickness,
+                    value=cfg["building_geometry"]['enclosure']['floor_area']['thickness']['outside_layer']['expression'],
                     width=None,
                     min=0,
                     max=None,
@@ -1175,7 +1268,7 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_numeric(
                     id="int_wall_thickness",
                     label="Dicke der Innenwand (Gipskarton) [m]",
-                    value=int_wall_thickness,
+                    value=cfg["building_geometry"]['enclosure']['int_wall_area']['thickness']['expression'],
                     width=None,
                     min=0,
                     max=None,
@@ -1184,7 +1277,7 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_numeric(
                     id="int_ceiling_thickness",
                     label="Dicke der Innendecke (Gipskarton) [m]",
-                    value=int_ceiling_thickness,
+                    value=cfg["building_geometry"]['enclosure']['int_ceiling_area']['thickness']['expression'],
                     width=None,
                     min=0,
                     max=None,
@@ -1197,21 +1290,21 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_text(
                     id="infiltration_rate",
                     label="Infiltrationsrate des Gebäudes [m³/s]",
-                    value=infiltration_rate,
+                    value=cfg["thermal_properties"]['infiltration_rate_specific']['expression'],
                     width="600px",
                     placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="air_ventilation_rate",
                     label="Mechanischer Luftwechselrate des Gebäudes (angenommen, immer eingeschaltet) [m³/s]",
-                    value=air_ventilation_rate,
+                    value=cfg["thermal_properties"]['air_ventilation_rate_specific']['expression'],
                     width="600px",
                     placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_numeric(
                     id="heat_exchanger_efficiency",
                     label="Wirkungsgrad des Wärmetauschers im Belüftungssystem []",
-                    value=heat_exchanger_efficiency,
+                    value=cfg["thermal_properties"]['heat_exchanger_efficiency']['expression'],
                     width=None,
                     min=0,
                     max=1,
@@ -1220,28 +1313,28 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_text(
                     id="thermal_bridges",
                     label="Wärmebrücken [W/K]",
-                    value=thermal_bridges,
+                    value=cfg["thermal_properties"]['thermal_bridges']['expression'],
                     width="600px",
                     placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="occupancy_power",
                     label="Belegungsstromverbrauch [W]",
-                    value=occupancy_power,
+                    value=cfg['thermal_properties']['power_input']['occupancy_power_per_area']['expression'],
                     width="600px",
                     placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="lighting_power",
                     label="Beleuchtungsstromverbrauch [W]",
-                    value=lighting_power,
+                    value=cfg['thermal_properties']['power_input']['lighting_power_per_area']['expression'],
                     width="600px",
                     placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="equipment_power",
                     label="Geräte-Stromverbrauch [W]",
-                    value=equipment_power,
+                    value=cfg['thermal_properties']['power_input']['equipment_power_per_area']['expression'],
                     width="600px",
                     placeholder="Geben Sie eine Zahl ein",
                 )
