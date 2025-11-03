@@ -1,387 +1,360 @@
 {
-  "metadata": {
-    "description": "Simulation parameters for the R-C-Model",
-    "created_at": "2025-10-23T10:00:00+01:00"
-  },
   "building_geometry": {
-    "windows": {
-      "north": {
-        "unshaded_glazing_area": {
-          "expression": "0.825 * (2.3 * 12 + 1.2 * 6 + 3 * 2.07)",
-          "value": 42.3,
-          "unit": "m2"
-        },
-        "shaded_glazing_area": {
-          "expression": "0.0",
-          "value": 0.0,
-          "unit": "m2"
-        },
-        "unshaded_frame_area": {
-          "expression": "0.175 * (2.3 * 12 + 1.2 * 6 + 3 * 2.07)",
-          "value": 9.0,
-          "unit": "m2"
-        },
-        "shaded_frame_area": {
-          "expression": "0.0",
-          "value": 0.0,
-          "unit": "m2"
-        }
-      },
-      "east": {
-        "unshaded_glazing_area": {
-          "expression": "0.825 * (3.45 * 3 + 2.3 * 3 + 1.98 * 1)",
-          "value": 14.1,
-          "unit": "m2"
-        },
-        "shaded_glazing_area": {
-          "expression": "0.825 * (1.98 * 2)",
-          "value": 3.3,
-          "unit": "m2"
-        },
-        "unshaded_frame_area": {
-          "expression": "0.175 * (3.45 * 3 + 2.3 * 3 + 1.98 * 1)",
-          "value": 3.0,
-          "unit": "m2"
-        },
-        "shaded_frame_area": {
-          "expression": "0.175 * (1.98 * 2)",
-          "value": 0.7,
-          "unit": "m2"
-        }
-      },
-      "south": {
-        "unshaded_glazing_area": {
-          "expression": "0.825 * (1.73 * 2 + 5.18 * 2 + 1.98 * 4 + 1.2 * 6 + 2.07 * 1)",
-          "value": 45.6,
-          "unit": "m2"
-        },
-        "shaded_glazing_area": {
-          "expression": "0.825 * (1.73 * 4 + 5.18 * 4 + 1.98 * 8 + 2.07 * 2)",
-          "value": 61.2,
-          "unit": "m2"
-        },
-        "unshaded_frame_area": {
-          "expression": "0.175 * (1.73 * 2 + 5.18 * 2 + 1.98 * 4 + 1.2 * 6 + 2.07 * 1)",
-          "value": 9.6,
-          "unit": "m2"
-        },
-        "shaded_frame_area": {
-          "expression": "0.175 * (1.73 * 4 + 5.18 * 4 + 1.98 * 8 + 2.07 * 2)",
-          "value": 13.0,
-          "unit": "m2"
-        }
-      },
-      "west": {
-        "unshaded_glazing_area": {
-          "expression": "0.825 * (3.45 * 3 + 2.3 * 3 + 2.07 * 1)",
-          "value": 14.4,
-          "unit": "m2"
-        },
-        "shaded_glazing_area": {
-          "expression": "0.825 * (2.07 * 2)",
-          "value": 3.4,
-          "unit": "m2"
-        },
-        "unshaded_frame_area": {
-          "expression": "0.175 * (3.45 * 3 + 2.3 * 3 + 2.07 * 1)",
-          "value": 3.1,
-          "unit": "m2"
-        },
-        "shaded_frame_area": {
-          "expression": "0.175 * (2.07 * 2)",
-          "value": 0.7,
-          "unit": "m2"
-        }
-      }
+    "building_height": {
+      "expression": "2.5 * 3",
+      "unit": "m",
+      "value": 7.5
     },
     "enclosure": {
-      "outside_wall_areas": {
-        "north": {
-          "expression": "2.5 * 3 * (32.6 + 1.6 - 6.0)",
-          "value": 82.5,
-          "unit": "m2"
+      "floor_area": {
+        "expression": "313.8",
+        "thickness": {
+          "inside_layer": {
+            "explenation": "concrete floor",
+            "expression": "0.3",
+            "unit": "m",
+            "value": 0.3
+          },
+          "outside_layer": {
+            "explenation": "insulation layer",
+            "expression": "0.08",
+            "unit": "m",
+            "value": 0.08
+          }
         },
+        "unit": "m2",
+        "value": 313.8
+      },
+      "int_ceiling_area": {
+        "expression": "313.8 * 2.0 * 2.0",
+        "thickness": {
+          "explenation": "drywall ceiling",
+          "expression": "0.3654",
+          "unit": "m",
+          "value": 0.3654
+        },
+        "unit": "m2",
+        "value": 1255.2
+      },
+      "int_wall_area": {
+        "expression": "(72.975 + 91.9 + 2.0 *19.75) * 3.0",
+        "thickness": {
+          "explenation": "drywall",
+          "expression": "0.17",
+          "unit": "m",
+          "value": 0.17
+        },
+        "unit": "m2",
+        "value": 549.6
+      },
+      "outside_wall_areas": {
         "east": {
           "expression": "2.5 * 3 * 14.0",
-          "value": 105.0,
-          "unit": "m2"
+          "unit": "m2",
+          "value": 105.0
+        },
+        "north": {
+          "expression": "2.5 * 3 * (32.6 + 1.6 - 6.0)",
+          "unit": "m2",
+          "value": 82.5
         },
         "south": {
           "expression": "2.5 * 3 * (32.6 + 1.6)",
-          "value": 107.5,
-          "unit": "m2"
-        },
-        "west": {
-          "expression": "2.5 * 3 * (32.6 + 1.6 - 6.0)",
-          "value": 82.5,
-          "unit": "m2"
+          "unit": "m2",
+          "value": 107.5
         },
         "thickness": {
           "inside_layer": {
             "explenation": "brock or concrete wall",
             "expression": "0.2",
-            "value": 0.2,
-            "unit": "m"
+            "unit": "m",
+            "value": 0.2
           },
           "outside_layer": {
             "explenation": "insulation layer",
             "expression": "0.1",
-            "value": 0.1,
-            "unit": "m"
+            "unit": "m",
+            "value": 0.1
           }
+        },
+        "west": {
+          "expression": "2.5 * 3 * (32.6 + 1.6 - 6.0)",
+          "unit": "m2",
+          "value": 82.5
         }
       },
       "roof_area": {
         "expression": "313.8",
-        "value": 313.8,
-        "unit": "m2",
         "thickness": {
           "inside_layer": {
             "explenation": "concrete ceiling",
             "expression": "0.25",
-            "value": 0.25,
-            "unit": "m"
+            "unit": "m",
+            "value": 0.25
           },
           "outside_layer": {
             "explenation": "insulation layer",
             "expression": "0.1",
-            "value": 0.1,
-            "unit": "m"
+            "unit": "m",
+            "value": 0.1
           }
-        }
-      },
-      "floor_area": {
-        "expression": "313.8",
-        "value": 313.8,
+        },
         "unit": "m2",
-        "thickness": {
-          "inside_layer": {
-            "explenation": "concrete floor",
-            "expression": "0.3",
-            "value": 0.3,
-            "unit": "m"
-          },
-          "outside_layer": {
-            "explenation": "insulation layer",
-            "expression": "0.08",
-            "value": 0.08,
-            "unit": "m"
-          }
-        }
+        "value": 313.8
       },
       "wall_to_unheated_area": {
         "expression": "(21.5 + 12.5 + 5.3) * 3.0",
-        "value": 135.6,
-        "unit": "m2"
-      },
-      "int_wall_area": {
-        "expression": "(72.975 + 91.9 + 2.0 *19.75) * 3.0",
-        "value": 549.6,
         "unit": "m2",
-        "thickness": {
-          "explenation": "drywall",
-          "expression": "0.17",
-          "value": 0.17,
-          "unit": "m"
-        }
-      },
-      "int_ceiling_area": {
-        "expression": "313.8 * 2.0 * 2.0",
-        "value": 1255.2,
-        "unit": "m2",
-        "thickness": {
-          "explenation": "drywall ceiling",
-          "expression": "0.3654",
-          "value": 0.3654,
-          "unit": "m"
-        }
+        "value": 135.6
       }
     },
-    "building_height": {
-      "expression": "2.5 * 3",
-      "value": 7.5,
-      "unit": "m"
+    "windows": {
+      "east": {
+        "shaded_frame_area": {
+          "expression": "0.175 * (1.98 * 2)",
+          "unit": "m2",
+          "value": 0.7
+        },
+        "shaded_glazing_area": {
+          "expression": "0.825 * (1.98 * 2)",
+          "unit": "m2",
+          "value": 3.3
+        },
+        "unshaded_frame_area": {
+          "expression": "0.175 * (3.45 * 3 + 2.3 * 3 + 1.98 * 1)",
+          "unit": "m2",
+          "value": 3.0
+        },
+        "unshaded_glazing_area": {
+          "expression": "0.825 * (3.45 * 3 + 2.3 * 3 + 1.98 * 1)",
+          "unit": "m2",
+          "value": 14.1
+        }
+      },
+      "north": {
+        "shaded_frame_area": {
+          "expression": "0.0",
+          "unit": "m2",
+          "value": 0.0
+        },
+        "shaded_glazing_area": {
+          "expression": "0.0",
+          "unit": "m2",
+          "value": 0.0
+        },
+        "unshaded_frame_area": {
+          "expression": "0.175 * (2.3 * 12 + 1.2 * 6 + 3 * 2.07)",
+          "unit": "m2",
+          "value": 9.0
+        },
+        "unshaded_glazing_area": {
+          "expression": "0.825 * (2.3 * 12 + 1.2 * 6 + 3 * 2.07)",
+          "unit": "m2",
+          "value": 42.3
+        }
+      },
+      "south": {
+        "shaded_frame_area": {
+          "expression": "0.175 * (1.73 * 4 + 5.18 * 4 + 1.98 * 8 + 2.07 * 2)",
+          "unit": "m2",
+          "value": 13.0
+        },
+        "shaded_glazing_area": {
+          "expression": "0.825 * (1.73 * 4 + 5.18 * 4 + 1.98 * 8 + 2.07 * 2)",
+          "unit": "m2",
+          "value": 61.2
+        },
+        "unshaded_frame_area": {
+          "expression": "0.175 * (1.73 * 2 + 5.18 * 2 + 1.98 * 4 + 1.2 * 6 + 2.07 * 1)",
+          "unit": "m2",
+          "value": 9.6
+        },
+        "unshaded_glazing_area": {
+          "expression": "0.825 * (1.73 * 2 + 5.18 * 2 + 1.98 * 4 + 1.2 * 6 + 2.07 * 1)",
+          "unit": "m2",
+          "value": 45.6
+        }
+      },
+      "west": {
+        "shaded_frame_area": {
+          "expression": "0.175 * (2.07 * 2)",
+          "unit": "m2",
+          "value": 0.7
+        },
+        "shaded_glazing_area": {
+          "expression": "0.825 * (2.07 * 2)",
+          "unit": "m2",
+          "value": 3.4
+        },
+        "unshaded_frame_area": {
+          "expression": "0.175 * (3.45 * 3 + 2.3 * 3 + 2.07 * 1)",
+          "unit": "m2",
+          "value": 3.1
+        },
+        "unshaded_glazing_area": {
+          "expression": "0.825 * (3.45 * 3 + 2.3 * 3 + 2.07 * 1)",
+          "unit": "m2",
+          "value": 14.4
+        }
+      }
     }
   },
+  "metadata": {
+    "created_at": "2025-10-23T10:00:00+01:00",
+    "description": "Simulation parameters for the R-C-Model"
+  },
   "thermal_properties": {
-    "windows": {
-      "u_value_glazing": {
-        "expression": "0.7",
-        "value": 0.7,
-        "unit": "W/m2K"
-      },
-      "u_value_frame": {
-        "expression": "2.0",
-        "value": 2.0,
-        "unit": "W/m2K"
-      },
-      "g_value_glazing": {
-        "expression": "0.45",
-        "value": 0.45,
-        "unit": "-"
-      },
-      "shading_g_value_reduction_factor": {
-        "expression": "0.14",
-        "value": 0.14,
-        "unit": "-"
-      }
+    "air_ventilation_rate_specific": {
+      "expression": "0.278 * 0.001 * 3.0",
+      "unit": "1/(h*m2)",
+      "value": 0.5
     },
     "enclosure": {
-      "u_value_wall_against_unheated": {
-        "expression": "1 / (2 / 8.0 + 0.17 / 0.79)",
-        "value": 1.2,
-        "unit": "W/m2K"
-      },
       "inside_layer": {
-        "lambda_wall_inside": {
-          "expression": "1.8",
-          "value": 1.8,
-          "unit": "W/mK"
-        },
-        "lambda_roof_inside": {
-          "expression": "1.8",
-          "value": 1.8,
-          "unit": "W/mK"
-        },
-        "lambda_floor_inside": {
-          "expression": "1.8",
-          "value": 1.8,
-          "unit": "W/mK"
-        },
-        "capacity_density_wall_inside": {
+        "capacity_density_floor_inside": {
           "expression": "2400 * 1000",
-          "value": 2400000,
-          "unit": "J/m3K"
+          "unit": "J/m3K",
+          "value": 2400000
         },
         "capacity_density_roof_inside": {
           "expression": "2400 * 1000",
-          "value": 2400000,
-          "unit": "J/m3K"
+          "unit": "J/m3K",
+          "value": 2400000
         },
-        "capacity_density_floor_inside": {
+        "capacity_density_wall_inside": {
           "expression": "2400 * 1000",
-          "value": 2400000,
-          "unit": "J/m3K"
-        }
-      },
-      "outside_layer": {
-        "lambda_wall_outside": {
-          "expression": "0.04",
-          "value": 0.04,
-          "unit": "W/mK"
+          "unit": "J/m3K",
+          "value": 2400000
         },
-        "lambda_roof_outside": {
-          "expression": "0.04",
-          "value": 0.04,
-          "unit": "W/mK"
+        "lambda_floor_inside": {
+          "expression": "1.8",
+          "unit": "W/mK",
+          "value": 1.8
         },
-        "lambda_floor_outside": {
-          "expression": "0.04",
-          "value": 0.04,
-          "unit": "W/mK"
+        "lambda_roof_inside": {
+          "expression": "1.8",
+          "unit": "W/mK",
+          "value": 1.8
         },
-        "capacity_density_wall_outside": {
-          "expression": "2400 * 1000",
-          "value": 2400000,
-          "unit": "J/m3K"
-        },
-        "capacity_density_roof_outside": {
-          "expression": "2400 * 1000",
-          "value": 2400000,
-          "unit": "J/m3K"
-        },
-        "capacity_density_floor_outside": {
-          "expression": "2400 * 1000",
-          "value": 2400000,
-          "unit": "J/m3K"
+        "lambda_wall_inside": {
+          "expression": "1.8",
+          "unit": "W/mK",
+          "value": 1.8
         }
       },
       "internal_walls_ceiling": {
-        "lambda_internal_wall": {
-          "expression": "0.2",
-          "value": 0.2,
-          "unit": "W/mK"
+        "capacity_density_internal_ceiling": {
+          "expression": "840 * 1000",
+          "unit": "J/m3K",
+          "value": 840000
         },
         "capacity_density_internal_wall": {
           "expression": "840 * 1000",
-          "value": 840000,
-          "unit": "J/m3K"
+          "unit": "J/m3K",
+          "value": 840000
         },
         "lambda_internal_ceiling": {
           "expression": "0.2",
-          "value": 0.2,
-          "unit": "W/mK"
+          "unit": "W/mK",
+          "value": 0.2
         },
-        "capacity_density_internal_ceiling": {
-          "expression": "840 * 1000",
-          "value": 840000,
-          "unit": "J/m3K"
+        "lambda_internal_wall": {
+          "expression": "0.2",
+          "unit": "W/mK",
+          "value": 0.2
         }
+      },
+      "outside_layer": {
+        "capacity_density_floor_outside": {
+          "expression": "2400 * 1000",
+          "unit": "J/m3K",
+          "value": 2400000
+        },
+        "capacity_density_roof_outside": {
+          "expression": "2400 * 1000",
+          "unit": "J/m3K",
+          "value": 2400000
+        },
+        "capacity_density_wall_outside": {
+          "expression": "2400 * 1000",
+          "unit": "J/m3K",
+          "value": 2400000
+        },
+        "lambda_floor_outside": {
+          "expression": "0.04",
+          "unit": "W/mK",
+          "value": 0.04
+        },
+        "lambda_roof_outside": {
+          "expression": "0.04",
+          "unit": "W/mK",
+          "value": 0.04
+        },
+        "lambda_wall_outside": {
+          "expression": "0.04",
+          "unit": "W/mK",
+          "value": 0.04
+        }
+      },
+      "u_value_wall_against_unheated": {
+        "expression": "1 / (2 / 8.0 + 0.17 / 0.79)",
+        "unit": "W/m2K",
+        "value": 1.2
       }
-    },
-    "infiltration_rate_specific": {
-      "expression": " 0.194444 * 0.001 * 3.0",
-      "value": 1.83,
-      "unit": "1/(h*m2)"
-    },
-    "air_ventilation_rate_specific": {
-      "expression": "0.278 * 0.001 * 3.0",
-      "value": 0.5,
-      "unit": "1/(h*m2)"
     },
     "heat_exchanger_efficiency": {
       "expression": "0.0",
-      "value": 0.0,
-      "unit": "-"
+      "unit": "-",
+      "value": 0.0
     },
-    "thermal_bridges": {
-      "expression": "123.4",
-      "value": 123.4,
-      "unit": "W/m2K"
+    "infiltration_rate_specific": {
+      "expression": " 0.194444 * 0.001 * 3.0",
+      "unit": "1/(h*m2)",
+      "value": 1.83
     },
     "power_input": {
-      "occupancy_power_per_area": {
-        "expression": "70.0 * 0.033 * 3.0",
-        "value": 6.93,
-        "unit": "W/m2"
+      "equipment_power_per_area": {
+        "expression": "8.0 * 3.0",
+        "unit": "W/m2",
+        "value": 24.0
       },
       "lighting_power_per_area": {
         "expression": "30.2.7 * 3.0",
-        "value": 81.0,
-        "unit": "W/m2"
+        "unit": "W/m2",
+        "value": 81.0
       },
-      "equipment_power_per_area": {
-        "expression": "8.0 * 3.0",
-        "value": 24.0,
-        "unit": "W/m2"
+      "occupancy_power_per_area": {
+        "expression": "70.0 * 0.033 * 3.0",
+        "unit": "W/m2",
+        "value": 6.93
       }
     },
     "schedules": {
-      "occupancy_schedule": {
-        "00:00": 1,
-        "01:00": 1,
-        "02:00": 1,
-        "03:00": 1,
-        "04:00": 1,
-        "05:00": 1,
-        "06:00": 0.6,
-        "07:00": 0.4,
-        "08:00": 0,
-        "09:00": 0,
-        "10:00": 0,
-        "11:00": 0,
+      "equipment_schedule": {
+        "00:00": 0.1,
+        "01:00": 0.1,
+        "02:00": 0.1,
+        "03:00": 0.1,
+        "04:00": 0.1,
+        "05:00": 0.2,
+        "06:00": 0.8,
+        "07:00": 0.2,
+        "08:00": 0.1,
+        "09:00": 0.1,
+        "10:00": 0.1,
+        "11:00": 0.1,
         "12:00": 0.8,
-        "13:00": 0.4,
-        "14:00": 0.0,
-        "15:00": 0.0,
-        "16:00": 0.0,
-        "17:00": 0.4,
+        "13:00": 0.2,
+        "14:00": 0.1,
+        "15:00": 0.2,
+        "16:00": 0.2,
+        "17:00": 0.2,
         "18:00": 0.8,
-        "19:00": 0.8,
-        "20:00": 0.8,
-        "21:00": 1,
-        "22:00": 1,
-        "23:00": 1
+        "19:00": 0.1,
+        "20:00": 0.2,
+        "21:00": 0.2,
+        "22:00": 0.2,
+        "23:00": 0.1
       },
       "lighting_schedule": {
         "00:00": 0,
@@ -409,31 +382,58 @@
         "22:00": 0,
         "23:00": 0
       },
-      "equipment_schedule": {
-        "00:00": 0.1,
-        "01:00": 0.1,
-        "02:00": 0.1,
-        "03:00": 0.1,
-        "04:00": 0.1,
-        "05:00": 0.2,
-        "06:00": 0.8,
-        "07:00": 0.2,
-        "08:00": 0.1,
-        "09:00": 0.1,
-        "10:00": 0.1,
-        "11:00": 0.1,
+      "occupancy_schedule": {
+        "00:00": 1,
+        "01:00": 1,
+        "02:00": 1,
+        "03:00": 1,
+        "04:00": 1,
+        "05:00": 1,
+        "06:00": 0.6,
+        "07:00": 0.4,
+        "08:00": 0,
+        "09:00": 0,
+        "10:00": 0,
+        "11:00": 0,
         "12:00": 0.8,
-        "13:00": 0.2,
-        "14:00": 0.1,
-        "15:00": 0.2,
-        "16:00": 0.2,
-        "17:00": 0.2,
+        "13:00": 0.4,
+        "14:00": 0.0,
+        "15:00": 0.0,
+        "16:00": 0.0,
+        "17:00": 0.4,
         "18:00": 0.8,
-        "19:00": 0.1,
-        "20:00": 0.2,
-        "21:00": 0.2,
-        "22:00": 0.2,
-        "23:00": 0.1
+        "19:00": 0.8,
+        "20:00": 0.8,
+        "21:00": 1,
+        "22:00": 1,
+        "23:00": 1
+      }
+    },
+    "thermal_bridges": {
+      "expression": "123.4",
+      "unit": "W/m2K",
+      "value": 123.4
+    },
+    "windows": {
+      "g_value_glazing": {
+        "expression": "0.45",
+        "unit": "-",
+        "value": 0.45
+      },
+      "shading_g_value_reduction_factor": {
+        "expression": "0.14",
+        "unit": "-",
+        "value": 0.14
+      },
+      "u_value_frame": {
+        "expression": "2.0",
+        "unit": "W/m2K",
+        "value": 2.0
+      },
+      "u_value_glazing": {
+        "expression": "0.7",
+        "unit": "W/m2K",
+        "value": 0.7
       }
     }
   }

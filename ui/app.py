@@ -694,6 +694,13 @@ with ui.nav_panel("Einstellungen"):
         disabled=False,
     )
 
+    @reactive.effect
+    @reactive.event(input.button_save_settings)
+    def save_settings_event():
+        ui.notification_show("Einstellungen wurden gespeichert.", type="default", duration=4)
+        facade.save(PROJECT_ID, cfg)
+
+
     # Basic Settings tab
     with ui.navset_pill_list(id="tab"):
         with ui.nav_panel("Grundeinstellungen"):
