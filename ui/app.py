@@ -29,7 +29,7 @@ except ModuleNotFoundError:
 
 # Example of a calculated default value for an input field
 
-unshaded_glazing_area_n = cfg['building_geometry']['windows']['north']['unshaded_glazing_area']['expression']  # North facade  [m²]
+# unshaded_glazing_area_n = cfg['building_geometry']['windows']['north']['unshaded_glazing_area']['expression']  # North facade  [m²]
 unshaded_glazing_area_e = cfg['building_geometry']['windows']['east']['unshaded_glazing_area']['expression']   # East facade   [m²]
 unshaded_glazing_area_s = cfg['building_geometry']['windows']['south']['unshaded_glazing_area']['expression']  # South facade  [m²]
 unshaded_glazing_area_w = cfg['building_geometry']['windows']['west']['unshaded_glazing_area']['expression']  # West facade   [m²]
@@ -715,7 +715,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_text(
                         id="unshaded_glazing_area_n",
                         label="Unbeschattete Verglasungsfläche (Nord) [m²]",
-                        value=unshaded_glazing_area_n,
+                        value=cfg['building_geometry']['windows']['north']['unshaded_glazing_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
