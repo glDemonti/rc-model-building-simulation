@@ -24,7 +24,7 @@ class ConfigRepository:
     def write_raw(self,cfg: dict):
         tmp = f"{self._path}.tmp" # create temp file path
         with open(tmp, "w", encoding="utf-8") as f:
-            json.dump(cfg, f, indent=2, ensure_ascii=False, sort_keys=True)  # write to temp file
+            json.dump(cfg, f, indent=4, ensure_ascii=False, sort_keys=True)  # write to temp file
             f.flush() # flush internal buffer
             os.fsync(f.fileno())  # ensure data is written
         os.replace(tmp, self._path)  # replace original file

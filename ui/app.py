@@ -718,6 +718,7 @@ with ui.nav_panel("Einstellungen"):
                         value=cfg['building_geometry']['windows']['north']['unshaded_glazing_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
+                        update_on="blur",
                     )
 
                     ui.input_text(
