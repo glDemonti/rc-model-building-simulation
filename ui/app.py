@@ -483,161 +483,160 @@ with ui.nav_panel("Simulationsresultate"):
         #     return fig
         
         
-        @render_plotly
-        def plot_temperature_wall_over_nodes():
-            df = sim_io_mock.make_df_temperatures().copy()
+        # @render_plotly
+        # def plot_temperature_wall_over_nodes():
+        #     df = sim_io_mock.make_df_temperatures().copy()
 
-            # x-axis: time in ms
-            df["ts_ms"] = ts_ms(df["datetime"])
+        #     # x-axis: time in ms
+        #     df["ts_ms"] = ts_ms(df["datetime"])
 
-            # y-axis: wall nodes
-            node_cols = [
-                "Temperatur 1. Knoten Aussenwand Nord",
-                "Temperatur 2. Knoten Aussenwand Nord",
-                "Temperatur 3. Knoten Aussenwand Nord",
-                "Temperatur 4. Knoten Aussenwand Nord"
-            ]
+        #     # y-axis: wall nodes
+        #     node_cols = [
+        #         "Temperatur 1. Knoten Aussenwand Nord",
+        #         "Temperatur 2. Knoten Aussenwand Nord",
+        #         "Temperatur 3. Knoten Aussenwand Nord",
+        #         "Temperatur 4. Knoten Aussenwand Nord"
+        #     ]
 
-            # z-values: temperatures matrix (nodes × time)
-            Z = df[node_cols].to_numpy().T
-            X = df["ts_ms"].to_numpy()
-            Y = node_cols
+        #     # z-values: temperatures matrix (nodes × time)
+        #     Z = df[node_cols].to_numpy().T
+        #     X = df["ts_ms"].to_numpy()
+        #     Y = node_cols
 
-            fig = go.Figure(
-                data=go.Heatmap(
-                    x=X,
-                    y=Y,
-                    z=Z,
-                    colorbar=dict(title="Temperatur [°C]"),
-                    zsmooth=False, # True = smoothed, False = original values
-                )
-            )
+        #     fig = go.Figure(
+        #         data=go.Heatmap(
+        #             x=X,
+        #             y=Y,
+        #             z=Z,
+        #             colorbar=dict(title="Temperatur [°C]"),
+        #             zsmooth=False, # True = smoothed, False = original values
+        #         )
+        #     )
 
-            fig.update_xaxes(
-                type="date",
-                tickformat="%d-%m %H:%M",
-                tickangle=45,
-                showgrid=False,
-                title_text="Zeit",
-            )
+        #     fig.update_xaxes(
+        #         type="date",
+        #         tickformat="%d-%m %H:%M",
+        #         tickangle=45,
+        #         showgrid=False,
+        #         title_text="Zeit",
+        #     )
 
-            fig.update_yaxes(
-                categoryorder="array",
-                categoryarray=Y,
-                title_text="Knoten",
-            )
-            fig.update_layout(
-                title="Temperaturverlauf in den Wandknoten (Zeit x Knoten)",
-                margin=dict(l=0, r=0, b=0, t=40),
-            )
-            fig.update_traces(
-                hovertemplate="Zeit: %{x|%d-%m %H:%M}<br>Knoten: %{y}<br>Temperatur: %{z} °C<extra></extra>"
-            )
-            return fig
+        #     fig.update_yaxes(
+        #         categoryorder="array",
+        #         categoryarray=Y,
+        #         title_text="Knoten",
+        #     )
+        #     fig.update_layout(
+        #         title="Temperaturverlauf in den Wandknoten (Zeit x Knoten)",
+        #         margin=dict(l=0, r=0, b=0, t=40),
+        #     )
+        #     fig.update_traces(
+        #         hovertemplate="Zeit: %{x|%d-%m %H:%M}<br>Knoten: %{y}<br>Temperatur: %{z} °C<extra></extra>"
+        #     )
+        #     return fig
 
-        @render_plotly
-        def plot_wall_3d_surface():
-            df = sim_io_mock.make_df_temperatures().copy()
-            df["datetime"] = pd.to_datetime(df["datetime"], errors="raise").dt.tz_localize(None)
-            df = df.sort_values("datetime")
+        # @render_plotly
+        # def plot_wall_3d_surface():
+        #     df = sim_io_mock.make_df_temperatures().copy()
+        #     df["datetime"] = pd.to_datetime(df["datetime"], errors="raise").dt.tz_localize(None)
+        #     df = df.sort_values("datetime")
 
-            node_cols = [
-                "Temperatur 1. Knoten Aussenwand Nord",
-                "Temperatur 2. Knoten Aussenwand Nord",
-                "Temperatur 3. Knoten Aussenwand Nord",
-                "Temperatur 4. Knoten Aussenwand Nord"
-            ]
+        #     node_cols = [
+        #         "Temperatur 1. Knoten Aussenwand Nord",
+        #         "Temperatur 2. Knoten Aussenwand Nord",
+        #         "Temperatur 3. Knoten Aussenwand Nord",
+        #         "Temperatur 4. Knoten Aussenwand Nord"
+        #     ]
 
-            # node_cols_rev = node_cols[::-1]  # reverse for better visualization (innenseite unten)
+        #     # node_cols_rev = node_cols[::-1]  # reverse for better visualization (innenseite unten)
 
-            # x as time in ms, format ticks as datetime later
-            X_num = ts_ms(df["datetime"]).to_numpy()  # Zeit in ms
-            Y_idx = np.arange(len(node_cols))    # Knotenindex [0, 1, 2, 3]
-            Z = df[node_cols].to_numpy()         # shape: (n_time × n_knoten)
+        #     # x as time in ms, format ticks as datetime later
+        #     X_num = ts_ms(df["datetime"]).to_numpy()  # Zeit in ms
+        #     Y_idx = np.arange(len(node_cols))    # Knotenindex [0, 1, 2, 3]
+        #     Z = df[node_cols].to_numpy()         # shape: (n_time × n_knoten)
 
-            # make meshgrid for surface
-            Xgrid, Ygrid = np.meshgrid(X_num, Y_idx, indexing="ij")  # shape: (n_time × n_knoten)
-            Zgrid = Z                                     # shape: (n_time × n_knoten)
+        #     # make meshgrid for surface
+        #     Xgrid, Ygrid = np.meshgrid(X_num, Y_idx, indexing="ij")  # shape: (n_time × n_knoten)
+        #     Zgrid = Z                                     # shape: (n_time × n_knoten)
 
-            start = pd.Timestamp(df["datetime"].dt.year.min(), 1, 1)
-            end = pd.Timestamp(df["datetime"].dt.year.max(), 12, 31, 23, 59, 59)
+        #     start = pd.Timestamp(df["datetime"].dt.year.min(), 1, 1)
+        #     end = pd.Timestamp(df["datetime"].dt.year.max(), 12, 31, 23, 59, 59)
             
-            x_ticks_dt = pd.date_range(start, end, freq="MS")
-            x_ticksvals =(x_ticks_dt.view("int64") // 1_000_000).astype("int64")
-            x_ticktext = [d.strftime("%b") for d in x_ticks_dt]
+        #     x_ticks_dt = pd.date_range(start, end, freq="MS")
+        #     x_ticksvals =(x_ticks_dt.view("int64") // 1_000_000).astype("int64")
+        #     x_ticktext = [d.strftime("%b") for d in x_ticks_dt]
 
-            fig = go.Figure(data=[
-                go.Surface(
-                    x=Xgrid,
-                    y=Ygrid,
-                    z=Zgrid,
-                    colorscale="RdYlBu_r",
-                    colorbar=dict(title="Temperatur [°C]"),
-                    showscale=True,
-                )
-            ])
-            fig.update_layout(
-                title="3D-Temperaturfeld in der Wand (Zeit × Knoten × Temperatur)",
-                scene=dict(
-                    xaxis=dict(
-                        title="Zeit",
-                        tickmode="array",
-                        tickvals=x_ticksvals,
-                        ticktext=x_ticktext,
-                        showspikes=False,
-                    ),
-                    yaxis=dict(
-                        title="Knoten",
-                        tickmode="array",
-                        tickvals=Y_idx,
-                        ticktext=node_cols,
-                        showspikes=False,
-                    ),
-                    zaxis=dict(
-                        title="Temperatur [°C]",
-                        showspikes=False,
-                    ),
-                ),
-                margin=dict(l=0, r=0, b=0, t=40),
-            )
-            return fig
+        #     fig = go.Figure(data=[
+        #         go.Surface(
+        #             x=Xgrid,
+        #             y=Ygrid,
+        #             z=Zgrid,
+        #             colorscale="RdYlBu_r",
+        #             colorbar=dict(title="Temperatur [°C]"),
+        #             showscale=True,
+        #         )
+        #     ])
+        #     fig.update_layout(
+        #         title="3D-Temperaturfeld in der Wand (Zeit × Knoten × Temperatur)",
+        #         scene=dict(
+        #             xaxis=dict(
+        #                 title="Zeit",
+        #                 tickmode="array",
+        #                 tickvals=x_ticksvals,
+        #                 ticktext=x_ticktext,
+        #                 showspikes=False,
+        #             ),
+        #             yaxis=dict(
+        #                 title="Knoten",
+        #                 tickmode="array",
+        #                 tickvals=Y_idx,
+        #                 ticktext=node_cols,
+        #                 showspikes=False,
+        #             ),
+        #             zaxis=dict(
+        #                 title="Temperatur [°C]",
+        #                 showspikes=False,
+        #             ),
+        #         ),
+        #         margin=dict(l=0, r=0, b=0, t=40),
+        #     )
+        #     return fig
         
 
 
-
-    with ui.card():
-        @render_widget
-        def plot_electricity_consumption():
-            fig = px.line(
-                df_results[['lighting_electricity', 'equipment_electricity']],
-                color_discrete_sequence=["orange", "red"]
-                ).update_layout(
-                    title="Stromverbrauch",
-                    xaxis_title="Zeit [h]",
-                    yaxis_title="Leistung [W]",
-                )
-            return fig    
+    # with ui.card():
+    #     @render_widget
+    #     def plot_electricity_consumption():
+    #         fig = px.line(
+    #             df_results[['lighting_electricity', 'equipment_electricity']],
+    #             color_discrete_sequence=["orange", "red"]
+    #             ).update_layout(
+    #                 title="Stromverbrauch",
+    #                 xaxis_title="Zeit [h]",
+    #                 yaxis_title="Leistung [W]",
+    #             )
+    #         return fig    
         
-        with ui.layout_column_wrap():
-            with ui.value_box(
-                id="value_box_total_electricity",
-                value="8901",
-                width=4,
-            ):
-                "Jährlicher Stromverbrauch [kWh]"
+    #     with ui.layout_column_wrap():
+    #         with ui.value_box(
+    #             id="value_box_total_electricity",
+    #             value="8901",
+    #             width=4,
+    #         ):
+    #             "Jährlicher Stromverbrauch [kWh]"
 
-            with ui.value_box(
-                id_="value_box_energy_costs_electricity",
-                value="123.45",
-                width=4,
-            ):
-                "Jährliche Stromkosten Beleuchtung und Geräte [CHF]"
-            with ui.value_box(
-                id="value_box_energy_costs_heating_cooling",
-                value="67.89",
-                width=4,
-            ):
-                "Jährliche Stromkosten Heizung und Kühlung [CHF]"
+    #         with ui.value_box(
+    #             id_="value_box_energy_costs_electricity",
+    #             value="123.45",
+    #             width=4,
+    #         ):
+    #             "Jährliche Stromkosten Beleuchtung und Geräte [CHF]"
+    #         with ui.value_box(
+    #             id="value_box_energy_costs_heating_cooling",
+    #             value="67.89",
+    #             width=4,
+    #         ):
+    #             "Jährliche Stromkosten Heizung und Kühlung [CHF]"
                 
     with ui.card():
         ui.card_header("CO2-Emissionen")
@@ -680,7 +679,9 @@ with ui.nav_panel("Vergleich mit Messdaten"):
             label="Wählen Sie eine Datei mit Messtdaten aus",
             accept=[".csv"],
         )
-
+# ===================================================================
+# region: Settings Panel
+# ===================================================================
 with ui.nav_panel("Einstellungen"):
     ui.input_action_button(
         id="button_save_settings",
@@ -694,10 +695,33 @@ with ui.nav_panel("Einstellungen"):
         facade.save(PROJECT_ID, cfg_state())
         ui.notification_show("Einstellungen wurden gespeichert.", type="default", duration=4)
 
+    ui.input_radio_buttons(
+        id="radio_variant_selection",
+        label="Variante auswählen",
+        choices={
+            "variant_a": "Variante A",
+            "variant_b": "Variante B"
+        }
+    )
+    @render.text
+    def variant_description():
+        return input.radio_variant_selection()
 
     # Basic Settings tab
     with ui.navset_pill_list(id="tab"):
         with ui.nav_panel("Grundeinstellungen"):
+            with ui.card():
+                ui.card_header("Setpoints")
+            with ui.card():
+                ui.card_header("Primärenergiefaktoren")
+
+            with ui.card():
+                ui.card_header("Co2-Emissionsfaktoren")
+
+            with ui.card():
+                ui.card_header("Ecopoints Faktoren")
+
+        with ui.nav_panel("Grundeinstellungen_alt"):
 
             # Input fields for building geometry
             with ui.card():
@@ -1240,232 +1264,233 @@ with ui.nav_panel("Einstellungen"):
                     placeholder="Geben Sie eine Zahl ein",
                 )
 
-            
-        # Settings for scheduled parameters
-        with ui.nav_panel("Zeitpläne"):
-                
-            with ui.card():
-                ui.card_header("Belegungszeitplan")
+        with ui.nav_menu("erweiterte Einstellungen"):    
+            # Settings for scheduled parameters
+            with ui.nav_panel("Zeitpläne"):
+                    
+                with ui.card():
+                    ui.card_header("Belegungszeitplan")
 
-                @render.data_frame
-                def table_occupancy():
-                    return render.DataGrid(
-                        df_schedule_occupancy,
-                        editable=True,
-                        )
-                occ_last_error, occ_error_log = attach_numeric_guard(
-                    table_occupancy,
-                    schedule_name="Belegung",
-                    min_value=0.0,
-                    max_value=1.0,
-                    decimals=2
-                )
+                    @render.data_frame
+                    def table_occupancy():
+                        return render.DataGrid(
+                            df_schedule_occupancy,
+                            editable=True,
+                            )
+                    occ_last_error, occ_error_log = attach_numeric_guard(
+                        table_occupancy,
+                        schedule_name="Belegung",
+                        min_value=0.0,
+                        max_value=1.0,
+                        decimals=2
+                    )
 
-                # @render.ui
-                # def occ_last_error_msg():
-                #     msg = occ_last_error.get()
-                #     if not msg:
-                #         return ui.div()
-                #     return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
-                # @render.ui
-                # def occ_error_list():
-                #     items = occ_error_log.get() or []
-                #     if not items:
-                #         return ui.div()
-                #     return ui.div(
-                #         {"style":"margin-top:6px;font-size:0.9rem;"},
-                #         ui.tags.ul(*[ui.tags.li(it) for it in items])
-                #     )
-                
-                @render.plot(alt="Plot of occupancy schedule")
-                def plot_occupancy():
-                    df = table_occupancy.data_patched().astype(float)
-                    y = df.loc['Occupancy'].tolist()
-                    x = list(df.columns)
-                    plt.figure(figsize=(10, 5))
-                    plt.bar(x, y, color='skyblue')
-                    plt.title('Belegungszeitplan')
-                    plt.xlabel('Stunde')
-                    plt.ylabel('Belegung []')
-                    plt.xticks(rotation=45)
-                    plt.grid()
-                    plt.tight_layout()
-                    return plt.gcf()
+                    # @render.ui
+                    # def occ_last_error_msg():
+                    #     msg = occ_last_error.get()
+                    #     if not msg:
+                    #         return ui.div()
+                    #     return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
+                    # @render.ui
+                    # def occ_error_list():
+                    #     items = occ_error_log.get() or []
+                    #     if not items:
+                    #         return ui.div()
+                    #     return ui.div(
+                    #         {"style":"margin-top:6px;font-size:0.9rem;"},
+                    #         ui.tags.ul(*[ui.tags.li(it) for it in items])
+                    #     )
+                    
+                    @render.plot(alt="Plot of occupancy schedule")
+                    def plot_occupancy():
+                        df = table_occupancy.data_patched().astype(float)
+                        y = df.loc['Occupancy'].tolist()
+                        x = list(df.columns)
+                        plt.figure(figsize=(10, 5))
+                        plt.bar(x, y, color='skyblue')
+                        plt.title('Belegungszeitplan')
+                        plt.xlabel('Stunde')
+                        plt.ylabel('Belegung []')
+                        plt.xticks(rotation=45)
+                        plt.grid()
+                        plt.tight_layout()
+                        return plt.gcf()
 
-            with ui.card():
-                ui.card_header("Beleuchtungszeitplan")
-                @render.data_frame
-                def table_lighting():
-                    return render.DataGrid(
-                        df_schedule_lighting,
-                        editable=True,
-                        )
-                light_last_error, light_error_log = attach_numeric_guard(
-                    table_lighting,
-                    schedule_name="Beleuchtung",
-                    min_value=0.0,
-                    max_value=1.0,
-                    decimals=2
-                )
+                with ui.card():
+                    ui.card_header("Beleuchtungszeitplan")
+                    @render.data_frame
+                    def table_lighting():
+                        return render.DataGrid(
+                            df_schedule_lighting,
+                            editable=True,
+                            )
+                    light_last_error, light_error_log = attach_numeric_guard(
+                        table_lighting,
+                        schedule_name="Beleuchtung",
+                        min_value=0.0,
+                        max_value=1.0,
+                        decimals=2
+                    )
 
-                # @render.ui
-                # def light_last_error_msg():
-                #     msg = light_last_error.get()
-                #     if not msg:
-                #         return ui.div()
-                #     return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
+                    # @render.ui
+                    # def light_last_error_msg():
+                    #     msg = light_last_error.get()
+                    #     if not msg:
+                    #         return ui.div()
+                    #     return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
 
-                # @render.ui
-                # def light_error_list():
-                #     items = light_error_log.get() or []
-                #     if not items:
-                #         return ui.div()
-                #     return ui.div(
-                #         {"style":"margin-top:6px;font-size:0.9rem;"},
-                #         ui.tags.ul(*[ui.tags.li(it) for it in items])
-                #     )
+                    # @render.ui
+                    # def light_error_list():
+                    #     items = light_error_log.get() or []
+                    #     if not items:
+                    #         return ui.div()
+                    #     return ui.div(
+                    #         {"style":"margin-top:6px;font-size:0.9rem;"},
+                    #         ui.tags.ul(*[ui.tags.li(it) for it in items])
+                    #     )
 
-                
-                @render.plot(alt="Plot of lighting schedule")
-                def plot_lighting():
-                    df = table_lighting.data_patched().astype(float)
-                    y = df.loc['Lighting'].tolist()
-                    x = list(df.columns)
-                    plt.figure(figsize=(10, 5))
-                    plt.bar(x, y, color='orange')
-                    plt.title('Beleuchtungszeitplan')
-                    plt.xlabel('Stunde')
-                    plt.ylabel('Beleuchtung []')
-                    plt.xticks(rotation=45)
-                    plt.grid()
-                    plt.tight_layout()
-                    return plt.gcf()
+                    
+                    @render.plot(alt="Plot of lighting schedule")
+                    def plot_lighting():
+                        df = table_lighting.data_patched().astype(float)
+                        y = df.loc['Lighting'].tolist()
+                        x = list(df.columns)
+                        plt.figure(figsize=(10, 5))
+                        plt.bar(x, y, color='orange')
+                        plt.title('Beleuchtungszeitplan')
+                        plt.xlabel('Stunde')
+                        plt.ylabel('Beleuchtung []')
+                        plt.xticks(rotation=45)
+                        plt.grid()
+                        plt.tight_layout()
+                        return plt.gcf()
 
-            with ui.card():
-                ui.card_header("Geräte-Zeitplan")
-                @render.data_frame
-                def table_equipment():
-                    return render.DataGrid(
-                        df_schedule_equipment,
-                        editable=True,
-                        )
-                
-                equip_error, equip_error_log = attach_numeric_guard(
-                    table_equipment,
-                    schedule_name="Geräte",
-                    min_value=0.0,
-                    max_value=1.0,
-                    decimals=2
-                )
+                with ui.card():
+                    ui.card_header("Geräte-Zeitplan")
+                    @render.data_frame
+                    def table_equipment():
+                        return render.DataGrid(
+                            df_schedule_equipment,
+                            editable=True,
+                            )
+                    
+                    equip_error, equip_error_log = attach_numeric_guard(
+                        table_equipment,
+                        schedule_name="Geräte",
+                        min_value=0.0,
+                        max_value=1.0,
+                        decimals=2
+                    )
 
-                # @render.ui
-                # def equip_last_error_msg():
-                #     msg = equip_error.get()
-                #     if not msg:
-                #         return ui.div()
-                #     return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
+                    # @render.ui
+                    # def equip_last_error_msg():
+                    #     msg = equip_error.get()
+                    #     if not msg:
+                    #         return ui.div()
+                    #     return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
 
-                # @render.ui
-                # def equip_error_list():
-                #     items = equip_error_log.get() or []
-                #     if not items:
-                #         return ui.div()
-                #     return ui.div(
-                #         {"style":"margin-top:6px;font-size:0.9rem;"},
-                #         ui.tags.ul(*[ui.tags.li(it) for it in items])
-                #     )     
+                    # @render.ui
+                    # def equip_error_list():
+                    #     items = equip_error_log.get() or []
+                    #     if not items:
+                    #         return ui.div()
+                    #     return ui.div(
+                    #         {"style":"margin-top:6px;font-size:0.9rem;"},
+                    #         ui.tags.ul(*[ui.tags.li(it) for it in items])
+                    #     )     
 
-                @render.plot(alt="Plot of equipment schedule")
-                def plot_equipment():
-                    df = table_equipment.data_patched().astype(float)
-                    y = df.loc['Equipment'].tolist()
-                    x = list(df.columns)
-                    plt.figure(figsize=(10, 5))
-                    plt.bar(x, y, color='green')
-                    plt.title('Geräte-Zeitplan')
-                    plt.xlabel('Stunde')
-                    plt.ylabel('Geräte []')
-                    plt.xticks(rotation=45)
-                    plt.grid()
-                    plt.tight_layout()
-                    return plt.gcf()
- 
-        # settings for weather data input       
-        with ui.nav_panel("Wetterdaten"):
-            with ui.card():
-                ui.card_header("Wetterdaten-Datei (.mat)")
-                ui.input_file(
-                    "weather_file",
-                    "Laden Sie die .mat Wetterdatei hoch",
-                    accept=".mat",
-                    width="600px",
-                    multiple=False
-                )
+                    @render.plot(alt="Plot of equipment schedule")
+                    def plot_equipment():
+                        df = table_equipment.data_patched().astype(float)
+                        y = df.loc['Equipment'].tolist()
+                        x = list(df.columns)
+                        plt.figure(figsize=(10, 5))
+                        plt.bar(x, y, color='green')
+                        plt.title('Geräte-Zeitplan')
+                        plt.xlabel('Stunde')
+                        plt.ylabel('Geräte []')
+                        plt.xticks(rotation=45)
+                        plt.grid()
+                        plt.tight_layout()
+                        return plt.gcf()
+    
+            # settings for weather data input       
+            with ui.nav_panel("Wetterdaten"):
+                with ui.card():
+                    ui.card_header("Wetterdaten-Datei (.mat)")
+                    ui.input_file(
+                        "weather_file",
+                        "Laden Sie die .mat Wetterdatei hoch",
+                        accept=".mat",
+                        width="600px",
+                        multiple=False
+                    )
 
-        with ui.nav_panel("Erweiterte Einstellungen"):
+            with ui.nav_panel("Erweiterte Einstellungen"):
 
-            with ui.card():
-                ui.card_header("Anfangsbedingungen")
-                ui.input_text(
-                    id="initial_temperature",
-                    label="Anfangstemperatur [°C]",
-                    value="20.0",
-                    width="600px",
-                    placeholder="Geben Sie eine Zahl ein",
-                )
-            with ui.card():
-                ui.card_header("Energiekosten")
-                ui.input_text(
-                    id="electricity_price_nt",
-                    label="Strompreis Niedertarif [CHF/kWh]",
-                    value="0.15",
-                    width="600px",
-                    placeholder="Geben Sie eine Zahl ein",
-                )
-                ui.input_text(
-                    id="electricity_price_ht",
-                    label="Strompreis Hochtarif [CHF/kWh]",
-                    value="0.20",
-                    width="600px",
-                    placeholder="Geben Sie eine Zahl ein",
-                )
-            with ui.card():
-                ui.card_header("Wärmepumpe und Kühlmaschine Einstellungen")
-                ui.input_text(
-                    id="cop_heating",
-                    label="COP der Wärmepumpe []",
-                    value="3.0",
-                    width="600px",
-                    placeholder="Geben Sie eine Zahl ein",
-                )
-                ui.input_text(
-                    id="cop_cooling",
-                    label="COP der Kühlmaschine []",
-                    value="3.0",
-                    width="600px",
-                    placeholder="Geben Sie eine Zahl ein",
-                )
-                ui.input_text(
-                    id="Co2_emission_factor",
-                    label="CO2-Emissionsfaktor des Strommixes [kg CO2/kWh]",
-                    value="0.2",
-                    width="600px",
-                    placeholder="Geben Sie eine Zahl ein",
-                )
-                ui.input_text(
-                    id="Co2_emission_factor_heating",
-                    label="CO2-Emissionsfaktor für Heizenergie [kg CO2/kWh]",
-                    value="0.2",
-                    width="600px",
-                    placeholder="Geben Sie eine Zahl ein",
-                )
-                ui.input_text(
-                    id="Co2_emission_factor_cooling",
-                    label="CO2-Emissionsfaktor für Kühlenergie [kg CO2/kWh]",
-                    value="0.2",
-                    width="600px",
-                    placeholder="Geben Sie eine Zahl ein",
-                )
+                with ui.card():
+                    ui.card_header("Anfangsbedingungen")
+                    ui.input_text(
+                        id="initial_temperature",
+                        label="Anfangstemperatur [°C]",
+                        value="20.0",
+                        width="600px",
+                        placeholder="Geben Sie eine Zahl ein",
+                    )
+                with ui.card():
+                    ui.card_header("Energiekosten")
+                    ui.input_text(
+                        id="electricity_price_nt",
+                        label="Strompreis Niedertarif [CHF/kWh]",
+                        value="0.15",
+                        width="600px",
+                        placeholder="Geben Sie eine Zahl ein",
+                    )
+                    ui.input_text(
+                        id="electricity_price_ht",
+                        label="Strompreis Hochtarif [CHF/kWh]",
+                        value="0.20",
+                        width="600px",
+                        placeholder="Geben Sie eine Zahl ein",
+                    )
+                with ui.card():
+                    ui.card_header("Wärmepumpe und Kühlmaschine Einstellungen")
+                    ui.input_text(
+                        id="cop_heating",
+                        label="COP der Wärmepumpe []",
+                        value="3.0",
+                        width="600px",
+                        placeholder="Geben Sie eine Zahl ein",
+                    )
+                    ui.input_text(
+                        id="cop_cooling",
+                        label="COP der Kühlmaschine []",
+                        value="3.0",
+                        width="600px",
+                        placeholder="Geben Sie eine Zahl ein",
+                    )
+                    ui.input_text(
+                        id="Co2_emission_factor",
+                        label="CO2-Emissionsfaktor des Strommixes [kg CO2/kWh]",
+                        value="0.2",
+                        width="600px",
+                        placeholder="Geben Sie eine Zahl ein",
+                    )
+                    ui.input_text(
+                        id="Co2_emission_factor_heating",
+                        label="CO2-Emissionsfaktor für Heizenergie [kg CO2/kWh]",
+                        value="0.2",
+                        width="600px",
+                        placeholder="Geben Sie eine Zahl ein",
+                    )
+                    ui.input_text(
+                        id="Co2_emission_factor_cooling",
+                        label="CO2-Emissionsfaktor für Kühlenergie [kg CO2/kWh]",
+                        value="0.2",
+                        width="600px",
+                        placeholder="Geben Sie eine Zahl ein",
+                    )
+# endregion
 
 with ui.nav_panel("über"):
     "über diese App"
