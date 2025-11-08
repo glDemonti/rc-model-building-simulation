@@ -103,7 +103,11 @@ BINDINGS = {
     "occupancy_power": ("thermal_properties.power_input.occupancy_power_per_area.expression", str),
     "lighting_power": ("thermal_properties.power_input.lighting_power_per_area.expression", str),
     "equipment_power": ("thermal_properties.power_input.equipment_power_per_area.expression", str),
-
+    "heating_setpoint": ("simulation_parameters.heating_setpoint.expression", str),
+    "cooling_setpoint": ("simulation_parameters.cooling_setpoint.expression", str),
+    "sim_timestep": ("simulation_parameters.time_step.expression", str),
+    "surface_heat_transfer_in" : ("simulation_parameters.surface_heat_transfer_internal.expression", str),
+    "surface_heat_transfer_out" : ("simulation_parameters.surface_heat_transfer_external.expression", str)
 }
 
 # sheduled parameters
@@ -733,6 +737,20 @@ with ui.nav_panel("Einstellungen"):
         with ui.nav_panel("Grundeinstellungen"):
             with ui.card():
                 ui.card_header("Setpoints")
+                ui.input_text(
+                    id="heating_setpoint",
+                    label="Heizsollwert [°C]",
+                    value=cfg['simulation_parameters']['heating_setpoint']['expression'],
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="cooling_setpoint",
+                    label="Kühlsollwert [°C]",
+                    value=cfg['simulation_parameters']['cooling_setpoint']['expression'],
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
             with ui.card():
                 ui.card_header("Primärenergiefaktoren")
 

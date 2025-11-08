@@ -437,7 +437,7 @@
             }
         }
     },
-    "simulation parameters": {
+    "simulation_parameters": {
         "time_step": {
             "expression": "5*60",
             "value": 300,
