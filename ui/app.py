@@ -748,9 +748,24 @@ with ui.nav_panel("Einstellungen"):
 
     @reactive.effect
     @reactive.event(input.button_save_settings)
-    def save_settings_event():
-        facade_A.save(PROJECT_ID_VAR_A, cfg_state())
-        ui.notification_show("Einstellungen wurden gespeichert.", type="default", duration=4)
+    def on_save_clicked():
+        current_variant = active_variant()
+        current_cfg = cfg_state()
+
+        if current_variant == "A":
+            facade_A.save(PROJECT_ID_VAR_A, current_cfg)
+            global cfg_A
+            cfg_A = copy.deepcopy(current_cfg)
+        else:
+            facade_B.save(PROJECT_ID_VAR_B, current_cfg)
+            global cfg_B
+            cfg_B = copy.deepcopy(current_cfg)
+
+        unsaved_changes.set(False)
+        ui.notification_show("Einstellungen  gespeichert (Variante {}).".format(current_variant),
+                            type="message",
+                            duration=4
+                            )
 
     ui.input_radio_buttons(
         id="radio_variant_selection",
