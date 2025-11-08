@@ -227,7 +227,7 @@
             "value": 28.0
         },
         "heating_setpoint": {
-            "expression": "20.0",
+            "expression": "24.0",
             "unit": "°C",
             "value": 20.0
         },

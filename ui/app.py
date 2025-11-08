@@ -48,6 +48,28 @@ def _deep_set(d, path, value):
     cur[parts[-1]] = value
     return out
 
+def _deep_get(d, path):
+    cur = d
+    parts = path.split(".")
+    for k in parts:
+        cur = cur[k]
+    return cur
+
+def _push_inputs_from_cfg():
+    # Push current cfg_state values to input fields
+    cur = cfg_state()
+    for _id, (path, cast) in BINDINGS.items():
+        try:
+            ui.update_text(_id, value=str(_deep_get(cur, path)))
+        except Exception:
+            # if a field cannot be updated, skip it
+            pass
+def _refresh_schedules_from_cfg():
+    sch = cfg_state()['thermal_properties']['schedules']
+    df_schedule_occupancy.loc['Occupancy', :] = sch['occupancy_schedule']
+    df_schedule_lighting.loc['Lighting', :] = sch['lighting_schedule']
+    df_schedule_equipment.loc['Equipment', :] = sch['equipment_schedule']
+
 BINDINGS = {
     "unshaded_glazing_area_n": ("building_geometry.windows.north.unshaded_glazing_area.expression", str),
     "unshaded_glazing_area_e": ("building_geometry.windows.east.unshaded_glazing_area.expression", str),
@@ -771,7 +793,7 @@ with ui.nav_panel("Einstellungen"):
             "A": "Variante A",
             "B": "Variante B",
         },
-        # selected="A"
+        selected="A"
     )
     @reactive.effect
     @reactive.event(input.radio_variant_selection)
@@ -792,6 +814,9 @@ with ui.nav_panel("Einstellungen"):
             cfg_state.set(copy.deepcopy(cfg_B))
         active_variant.set(new_variant)
         unsaved_changes.set(False)  # reset unsaved changes flag
+        _push_inputs_from_cfg()
+        _refresh_schedules_from_cfg()
+
     @render.text
     def variant_description():
         return input.radio_variant_selection()
@@ -1092,41 +1117,33 @@ with ui.nav_panel("Einstellungen"):
                 # input fields for thermal properties
                 with ui.card():
                     ui.card_header("Thermische Eigenschaften")
-                    ui.input_numeric(
+                    ui.input_text(
                         id="glazing_u_value",
                         label="U-Wert der Verglasung [W/m²K]",
                         value=cfg0['thermal_properties']['windows']['u_value_glazing']['expression'],
                         width=None,
-                        min=0,
-                        max=None,
-                        step=0.1,
+                        placeholder="Geben Sie eine Zahl ein",
                     )
-                    ui.input_numeric(
+                    ui.input_text(
                         id="glazing_g_value",
                         label="g-Wert der Verglasung (Anteil der solaren Strahlung, welche in das Gebäude gelangt) []",
                         value=cfg0['thermal_properties']['windows']['g_value_glazing']['expression'],
                         width=None,
-                        min=0,
-                        max=1,
-                        step=0.01,
+                        placeholder="Geben Sie eine Zahl ein",
                     )
-                    ui.input_numeric(
+                    ui.input_text(
                         id="shading_g_value_reduction_factor",
                         label="Reduktionsfaktor des g-Werts aufgrund von Beschattung (z.B. Balkone) []",
                         value=cfg0['thermal_properties']['windows']['shading_g_value_reduction_factor']['expression'],
                         width=None,
-                        min=0,
-                        max=1,
-                        step=0.01,
+                        placeholder="Geben Sie eine Zahl ein",
                     )
-                    ui.input_numeric(
+                    ui.input_text(
                         id="frame_u_value",
                         label="U-Wert des Fensterrahmens [W/m²K]",
                         value=cfg0['thermal_properties']['windows']['u_value_frame']['expression'],
                         width=None,
-                        min=0,
-                        max=None,
-                        step=0.1,
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="wall_against_unheated_u_value",
@@ -1135,32 +1152,26 @@ with ui.nav_panel("Einstellungen"):
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
-                    ui.input_numeric(
+                    ui.input_text(
                         id="wall_inside_lambda",
                         label="Wärmeleitfähigkeit der inneren Schicht der Wand [W/mK]",
                         value=cfg0['thermal_properties']['enclosure']['inside_layer']['lambda_wall_inside']['expression'],
                         width=None,
-                        min=0,
-                        max=None,
-                        step=0.1,
+                        placeholder="Geben Sie eine Zahl ein",
                     )
-                    ui.input_numeric(
+                    ui.input_text(
                         id="roof_inside_lambda",
                         label="Wärmeleitfähigkeit der inneren Schicht des Daches [W/mK]",
                         value=cfg0['thermal_properties']['enclosure']['inside_layer']['lambda_roof_inside']['expression'],
                         width=None,
-                        min=0,
-                        max=None,
-                        step=0.1,
+                        placeholder="Geben Sie eine Zahl ein",
                     )
-                    ui.input_numeric(
+                    ui.input_text(
                         id="floor_inside_lambda",
                         label="Wärmeleitfähigkeit der inneren Schicht des Fußbodens [W/mK]",
                         value=cfg0['thermal_properties']['enclosure']['inside_layer']['lambda_floor_inside']['expression'],
                         width=None,
-                        min=0,
-                        max=None,
-                        step=0.1,
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="wall_inside_capacity_density",
@@ -1183,32 +1194,26 @@ with ui.nav_panel("Einstellungen"):
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
-                    ui.input_numeric(
+                    ui.input_text(
                         id="wall_outside_lambda",
                         label="Wärmeleitfähigkeit der äusseren Schicht der Wand [W/mK]",
                         value=cfg0['thermal_properties']['enclosure']['outside_layer']['lambda_wall_outside']['expression'],
                         width=None,
-                        min=0,
-                        max=None,
-                        step=0.001,
+                        placeholder="Geben Sie eine Zahl ein",
                     )
-                    ui.input_numeric(
+                    ui.input_text(
                         id="roof_outside_lambda",
                         label="Wärmeleitfähigkeit der äusseren Schicht des Daches [W/mK]",
                         value=cfg0['thermal_properties']['enclosure']['outside_layer']['lambda_roof_outside']['expression'],
                         width=None,
-                        min=0,
-                        max=None,
-                        step=0.001,
+                        placeholder="Geben Sie eine Zahl ein",
                     )
-                    ui.input_numeric(
+                    ui.input_text(
                         id="floor_outside_lambda",
                         label="Wärmeleitfähigkeit der äusseren Schicht des Fußbodens [W/mK]",
                         value=cfg0['thermal_properties']['enclosure']['outside_layer']['lambda_floor_outside']['expression'],
                         width=None,
-                        min=0,
-                        max=None,
-                        step=0.001,
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="wall_outside_capacity_density",
@@ -1229,25 +1234,21 @@ with ui.nav_panel("Einstellungen"):
                         label="Kapazitätsdichte der äusseren Schicht des Fussbodens (rho * c) [J/m³K]",
                         value=cfg0['thermal_properties']['enclosure']['outside_layer']['capacity_density_floor_outside']['expression'],
                         width="600px",
-                        placeholder="Enter a number",
+                        placeholder="Geben Sie eine Zahl ein",
                     )
-                    ui.input_numeric(
+                    ui.input_text(
                         id="int_wall_lambda",
                         label="Wärmeleitfähigkeit der Innenwand [W/mK]",
                         value=cfg0['thermal_properties']['enclosure']['internal_walls_ceiling']['lambda_internal_wall']['expression'],
                         width=None,
-                        min=0,
-                        max=None,
-                        step=0.1,
+                        placeholder="Geben Sie eine Zahl ein",
                     )
-                    ui.input_numeric(
+                    ui.input_text(
                         id="int_ceiling_lambda",
                         label="Wärmeleitfähigkeit der Innendecke [W/mK]",
                         value=cfg0['thermal_properties']['enclosure']['internal_walls_ceiling']['lambda_internal_ceiling']['expression'],
                         width=None,
-                        min=0,
-                        max=None,
-                        step=0.1,
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="int_wall_capacity_density",
@@ -1268,77 +1269,61 @@ with ui.nav_panel("Einstellungen"):
                 # input fields for thicknesses of building components
                 with ui.card():
                     ui.card_header("Dicken der Bauteilschichten")
-                    ui.input_numeric(
+                    ui.input_text(
                         id="wall_inside_thickness",
                         label="Dicke der inneren Schicht der Wand (Ziegel) [m]",
                         value=cfg0["building_geometry"]['enclosure']['outside_wall_areas']['thickness']['inside_layer']['expression'],
                         width=None,
-                        min=0,
-                        max=None,
-                        step=0.01,
+                        placeholder="Geben Sie eine Zahl ein",
                     )
-                    ui.input_numeric(
+                    ui.input_text(
                         id="wall_outside_thickness",
                         label="Dicke der äusseren Schicht der Wand (Dämmung) [m]",
                         value=cfg0["building_geometry"]['enclosure']['outside_wall_areas']['thickness']['outside_layer']['expression'],
                         width=None,
-                        min=0,
-                        max=None,
-                        step=0.01,
+                        placeholder="Geben Sie eine Zahl ein",
                     )
-                    ui.input_numeric(
+                    ui.input_text(
                         id="roof_inside_thickness",
                         label="Dicke der inneren Schicht des Daches (Beton) [m]",
                         value=cfg0["building_geometry"]['enclosure']['roof_area']['thickness']['inside_layer']['expression'],
                         width=None,
-                        min=0,
-                        max=None,
-                        step=0.01,
+                        placeholder="Geben Sie eine Zahl ein",
                     )
-                    ui.input_numeric(
+                    ui.input_text(
                         id="roof_outside_thickness",
                         label="Dicke der äusseren Schicht des Daches (Dämmung) [m]",
                         value=cfg0["building_geometry"]['enclosure']['roof_area']['thickness']['outside_layer']['expression'],
                         width=None,
-                        min=0,
-                        max=None,
-                        step=0.01,
+                        placeholder="Geben Sie eine Zahl ein",
                     )
-                    ui.input_numeric(
+                    ui.input_text(
                         id="floor_inside_thickness",
                         label="Dicke der inneren Schicht des Fussbodens (Beton) [m]",
                         value=cfg0["building_geometry"]['enclosure']['floor_area']['thickness']['inside_layer']['expression'],
                         width=None,
-                        min=0,
-                        max=None,
-                        step=0.01,
+                        placeholder="Geben Sie eine Zahl ein",
                     )
-                    ui.input_numeric(
+                    ui.input_text(
                         id="floor_outside_thickness",
                         label="Dicke der äusseren Schicht des Fussbodens (Dämmung) [m]",
                         value=cfg0["building_geometry"]['enclosure']['floor_area']['thickness']['outside_layer']['expression'],
                         width=None,
-                        min=0,
-                        max=None,
-                        step=0.01,
+                        placeholder="Geben Sie eine Zahl ein",
                     )
-                    ui.input_numeric(
+                    ui.input_text(
                         id="int_wall_thickness",
                         label="Dicke der Innenwand (Gipskarton) [m]",
                         value=cfg0["building_geometry"]['enclosure']['int_wall_area']['thickness']['expression'],
                         width=None,
-                        min=0,
-                        max=None,
-                        step=0.01,
+                        placeholder="Geben Sie eine Zahl ein",
                     )
-                    ui.input_numeric(
+                    ui.input_text(
                         id="int_ceiling_thickness",
                         label="Dicke der Innendecke (Gipskarton) [m]",
                         value=cfg0["building_geometry"]['enclosure']['int_ceiling_area']['thickness']['expression'],
                         width=None,
-                        min=0,
-                        max=None,
-                        step=0.01,
+                        placeholder="Geben Sie eine Zahl ein",
                     )
 
                 #input fields for building thermal parameters
@@ -1358,26 +1343,17 @@ with ui.nav_panel("Einstellungen"):
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
-                    ui.input_numeric(
+                    ui.input_text(
                         id="heat_exchanger_efficiency",
                         label="Wirkungsgrad des Wärmetauschers im Belüftungssystem []",
                         value=cfg0["thermal_properties"]['heat_exchanger_efficiency']['expression'],
                         width=None,
-                        min=0,
-                        max=1,
-                        step=0.01,
+                        placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="thermal_bridges",
                         label="Wärmebrücken [W/K]",
                         value=cfg0["thermal_properties"]['thermal_bridges']['expression'],
-                        width="600px",
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="occupancy_power",
-                        label="Belegungsstromverbrauch [W]",
-                        value=cfg0['thermal_properties']['power_input']['occupancy_power_per_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
