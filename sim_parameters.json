@@ -436,5 +436,32 @@
                 "23:00": 0.1
             }
         }
+    },
+    "simulation parameters": {
+        "time_step": {
+            "expression": "5*60",
+            "value": 300,
+            "unit": "s"
+        },
+        "surface_heat_transfer_internal_": {
+            "expression": "4.5",
+            "value": 4.5,
+            "unit": "W/m2K"
+        },
+        "surface_heat_transfer_external_": {
+            "expression": "23.0",
+            "value": 23.0,
+            "unit": "W/m2K"
+        },
+        "heating_setpoint": {
+            "expression": "21.0",
+            "value": 21.0,
+            "unit": "°C"
+        },
+        "cooling_setpoint": {
+            "expression": "26.0",
+            "value": 26.0,
+            "unit": "°C"
+        }
     }
 }

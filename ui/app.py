@@ -408,24 +408,44 @@ with ui.nav_panel("Simulationsresultate"):
                 width=4,
             ):
                 "Jährlicher Kühlbedarf [kWh]"
+
+            with ui.value_box(
+                id="value_box_max_heating_power",
+                width=4,
+            ):
+                "Maximale Heizleistung [W]"
+                1234
+                "am 15.01.2023 14:00"
+
+            with ui.value_box(
+                id="value_box_max_cooling_power",
+                width=4,
+            ):
+                "Maximale Kühlleistung [W]"
+                567
+                "am 15.01.2023 14:00"
+
             with ui.value_box(
                 id="value_box_spec_heating_load",
                 value="45.6",
                 width=4,
             ):
                 "Spezifische Heizlast [W/m²]"
+
             with ui.value_box(
                 id="value_box_spec_cooling_load",
                 value="78.9",
                 width=4,
             ):
                 "Spezifische Kühllast [W/m²]"
+
             with ui.value_box(
                 id="value_box_total_energy_costs_heating",
                 value="234.56",
                 width=4,
             ):
                 "Jährliche Stromkosten Heizung [CHF]"
+
             with ui.value_box(
                 id="value_box_total_energy_costs_cooling",
                 value="345.67",
@@ -434,30 +454,31 @@ with ui.nav_panel("Simulationsresultate"):
                 "Jährliche Stromkosten Kühlung [CHF]"
 
 
-    with ui.card():
 
-        @render_plotly
-        def plot_wall_nodes_over_year():
-            df = sim_io_mock.make_df_temperatures().copy()
-            df["ts_ms"] = ts_ms(df["datetime"])
+    # with ui.card():
 
-            node_cols = ["Temperatur 1. Knoten Aussenwand Nord", "Temperatur 2. Knoten Aussenwand Nord", "Temperatur 3. Knoten Aussenwand Nord", "Temperatur 4. Knoten Aussenwand Nord"]  # anpassen, falls nötig
-            df_long = df.melt(id_vars=["ts_ms"], value_vars=node_cols,
-                            var_name="Knoten", value_name="Temperatur [°C]")
+    #     @render_plotly
+    #     def plot_wall_nodes_over_year():
+    #         df = sim_io_mock.make_df_temperatures().copy()
+    #         df["ts_ms"] = ts_ms(df["datetime"])
 
-            fig = (
-                px.line(
-                    df_long, x="ts_ms", y="Temperatur [°C]", color="Knoten",
-                    labels={"ts_ms": "Zeit", "Knoten": "Knoten"}
-                )
-                .update_xaxes(type="date", tickformat="%d.%m.%Y %H:%M", tickangle=45, showgrid=True)
-                .update_layout(
-                    title="Temperaturverlauf in den 4 Wandknoten (Jahresverlauf)",
-                    xaxis_title="Zeit", yaxis_title="Temperatur [°C]",
-                    hovermode="x unified"
-                )
-            )
-            return fig
+    #         node_cols = ["Temperatur 1. Knoten Aussenwand Nord", "Temperatur 2. Knoten Aussenwand Nord", "Temperatur 3. Knoten Aussenwand Nord", "Temperatur 4. Knoten Aussenwand Nord"]  # anpassen, falls nötig
+    #         df_long = df.melt(id_vars=["ts_ms"], value_vars=node_cols,
+    #                         var_name="Knoten", value_name="Temperatur [°C]")
+
+    #         fig = (
+    #             px.line(
+    #                 df_long, x="ts_ms", y="Temperatur [°C]", color="Knoten",
+    #                 labels={"ts_ms": "Zeit", "Knoten": "Knoten"}
+    #             )
+    #             .update_xaxes(type="date", tickformat="%d.%m.%Y %H:%M", tickangle=45, showgrid=True)
+    #             .update_layout(
+    #                 title="Temperaturverlauf in den 4 Wandknoten (Jahresverlauf)",
+    #                 xaxis_title="Zeit", yaxis_title="Temperatur [°C]",
+    #                 hovermode="x unified"
+    #             )
+    #         )
+    #         return fig
         
         # # === 2) Temperatur durch die Wand (Zeit × Knoten) als Heatmap ===
         # @render_plotly
