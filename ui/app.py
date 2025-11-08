@@ -107,7 +107,10 @@ BINDINGS = {
     "cooling_setpoint": ("simulation_parameters.cooling_setpoint.expression", str),
     "sim_timestep": ("simulation_parameters.time_step.expression", str),
     "surface_heat_transfer_in" : ("simulation_parameters.surface_heat_transfer_internal.expression", str),
-    "surface_heat_transfer_out" : ("simulation_parameters.surface_heat_transfer_external.expression", str)
+    "surface_heat_transfer_out" : ("simulation_parameters.surface_heat_transfer_external.expression", str),
+    "electricity_price": ("economic_parameters.electricity_price.expression", str),
+    "heating_price": ("economic_parameters.heating_price.expression", str),
+    "cooling_price": ("economic_parameters.cooling_price.expression", str),
 }
 
 # sheduled parameters
@@ -759,6 +762,31 @@ with ui.nav_panel("Einstellungen"):
 
             with ui.card():
                 ui.card_header("Ecopoints Faktoren")
+            
+            with ui.card():
+                ui.card_header("Energiekosten")
+                ui.input_text(
+                    id="electricity_price",
+                    label="Strompreis [CHF/kWh]",
+                    value=cfg['economic_parameters']['electricity_price']['expression'],
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="heating_price",
+                    label="Preis Heizen [CHF/kWh]",
+                    value=cfg['economic_parameters']['heating_price']['expression'],
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="cooling_price",
+                    label="Preis Kühlen [CHF/kWh]",
+                    value=cfg['economic_parameters']['cooling_price']['expression'],
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+
 
         with ui.nav_panel("Grundeinstellungen_alt"):
 
@@ -1473,22 +1501,6 @@ with ui.nav_panel("Einstellungen"):
                         id="initial_temperature",
                         label="Anfangstemperatur [°C]",
                         value="20.0",
-                        width="600px",
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                with ui.card():
-                    ui.card_header("Energiekosten")
-                    ui.input_text(
-                        id="electricity_price_nt",
-                        label="Strompreis Niedertarif [CHF/kWh]",
-                        value="0.15",
-                        width="600px",
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="electricity_price_ht",
-                        label="Strompreis Hochtarif [CHF/kWh]",
-                        value="0.20",
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )

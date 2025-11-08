@@ -463,5 +463,22 @@
             "value": 26.0,
             "unit": "°C"
         }
+    },
+    "economic_parameters": {
+        "electricity_price": {
+            "expression": "0.30",
+            "value": 0.30,
+            "unit": "CHF/kWh"
+        },
+        "heating_price": {
+            "expression": "0.10",
+            "value": 0.10,
+            "unit": "CHF/kWh"
+        },
+        "cooling_price": {
+            "expression": "0.10",
+            "value": 0.10,
+            "unit": "CHF/kWh"
+        }
     }
 }
