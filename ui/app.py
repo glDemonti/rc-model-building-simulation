@@ -1546,20 +1546,20 @@ with ui.nav_panel("Einstellungen"):
                     )
                 with ui.card():
                     ui.card_header("Wärmepumpe und Kühlmaschine Einstellungen")
-                    ui.input_text(
-                        id="cop_heating",
-                        label="COP der Wärmepumpe []",
-                        value="3.0",
-                        width="600px",
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="cop_cooling",
-                        label="COP der Kühlmaschine []",
-                        value="3.0",
-                        width="600px",
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
+                    # ui.input_text(
+                    #     id="cop_heating",
+                    #     label="COP der Wärmepumpe []",
+                    #     value="3.0",
+                    #     width="600px",
+                    #     placeholder="Geben Sie eine Zahl ein",
+                    # )
+                    # ui.input_text(
+                    #     id="cop_cooling",
+                    #     label="COP der Kühlmaschine []",
+                    #     value="3.0",
+                    #     width="600px",
+                    #     placeholder="Geben Sie eine Zahl ein",
+                    # )
                     ui.input_text(
                         id="Co2_emission_factor",
                         label="CO2-Emissionsfaktor des Strommixes [kg CO2/kWh]",
