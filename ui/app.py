@@ -11,7 +11,6 @@ from shiny.express import input, render, ui
 from shiny.ui import page_navbar, nav_panel, navset_pill_list
 from shinywidgets import render_widget, render_plotly
 
-from core import facade
 from core.bootstrap import create_facade # imports the connection to the midlayer
 
 PROJECT_ID_VAR_A = "simulation-variant-A"
@@ -23,8 +22,7 @@ facade_B = create_facade(PROJECT_ID_VAR_B)
 cfg_A = facade_A.load(PROJECT_ID_VAR_A)
 cfg_B = facade_B.load(PROJECT_ID_VAR_B)
 
-cfg_state = copy.deepcopy(cfg_A)
-# active config state
+cfg0 = copy.deepcopy(cfg_A) # static snapshot for UI initial values
 cfg_state = reactive.Value(copy.deepcopy(cfg_A))    # initialize with variant A
 active_variant = reactive.Value("A")                # "A" or "B"
 unsaved_changes = reactive.Value(False)            # track unsaved changes
@@ -40,8 +38,6 @@ except ModuleNotFoundError:
     from adapters import sim_io_mock
 
 
-# reactive work config 
-cfg_state_s = reactive.Value(copy.deepcopy(cfg_state))
 # Helper function to deeply set a value in a nested dictionary given a dot-separated path
 def _deep_set(d, path, value):
     out = copy.deepcopy(d)
@@ -129,21 +125,21 @@ BINDINGS = {
 df_schedule_occupancy = pd.DataFrame(
     columns=[f'{i:02d}:00' for i in range(24)],
     index=['Occupancy'],
-    data=cfg_state['thermal_properties']['schedules']['occupancy_schedule'],
+    data=[cfg0['thermal_properties']['schedules']['occupancy_schedule']],
     dtype=float
     )
 
 df_schedule_lighting = pd.DataFrame(
     columns=[f'{i:02d}:00' for i in range(24)],
     index=['Lighting'],
-    data=cfg_state['thermal_properties']['schedules']['lighting_schedule'],
+    data=[cfg0['thermal_properties']['schedules']['lighting_schedule']],
     dtype=float
     )
 
 df_schedule_equipment = pd.DataFrame(
     columns=[f'{i:02d}:00' for i in range(24)],
     index=['Equipment'],
-    data=cfg_state['thermal_properties']['schedules']['equipment_schedule'],
+    data=[cfg0['thermal_properties']['schedules']['equipment_schedule']],
     dtype=float
     )
 
@@ -159,7 +155,8 @@ def _register_binding(input_id: str, path: str, cast):
             # Optional: Validation/Fehlerfeedback
             ui.notification_show(f"Ungültiger Wert für {input_id}: {raw}", type="warning", duration=4)
             return
-        cfg_state_s.set(_deep_set(cfg_state_s(), path, val))
+        cfg_state.set(_deep_set(cfg_state(), path, val))
+        unsaved_changes.set(True)
 
 for _id, (path, cast) in BINDINGS.items():
     _register_binding(_id, path, cast)
@@ -199,10 +196,10 @@ def attach_numeric_guard(
                 or p.get("col")         # fallback
             )
             # inidices as further fallback (if only index is given)
-            if col is None and "colmn_index" in p:
+            if col is None and "column_index" in p:
                 try:
                     # read the current column name from the grid
-                    col_idx = int(p["colmn_index"])
+                    col_idx = int(p["column_index"])
                     col = list(table_render.data_patched().columns)[col_idx]
                 except Exception:
                     col = "unknown"
@@ -237,7 +234,7 @@ def attach_numeric_guard(
             # keep a log of the last errors
             log = error_log.get() or []
             error_log.set(([msg] + log)[:keep_last]) # keep only the last n errors
-        if toast:
+        if msg and toast:
             ui.notification_show(msg, type="error", duration=4)
             
         return accepted
@@ -774,7 +771,7 @@ with ui.nav_panel("Einstellungen"):
             "A": "Variante A",
             "B": "Variante B",
         },
-        selected="A"
+        # selected="A"
     )
     @reactive.effect
     @reactive.event(input.radio_variant_selection)
@@ -787,13 +784,14 @@ with ui.nav_panel("Einstellungen"):
                 type="warning",
                 duration=6
             )
-            # Set working state from saved source
-            if new_variant == "A":
-               cfg_state.set(copy.deepcopy(cfg_A))
-            else:
-               cfg_state.set(copy.deepcopy(cfg_B))
-            active_variant.set(new_variant)
-            unsaved_changes.set(False)  # reset unsaved changes flag
+
+        # Set working state from saved source
+        if new_variant == "A":
+            cfg_state.set(copy.deepcopy(cfg_A))
+        else:
+            cfg_state.set(copy.deepcopy(cfg_B))
+        active_variant.set(new_variant)
+        unsaved_changes.set(False)  # reset unsaved changes flag
     @render.text
     def variant_description():
         return input.radio_variant_selection()
@@ -807,14 +805,14 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_text(
                     id="heating_setpoint",
                     label="Heizsollwert [°C]",
-                    value=cfg_state['simulation_parameters']['heating_setpoint']['expression'],
+                    value=cfg0['simulation_parameters']['heating_setpoint']['expression'],
                     width="600px",
                     placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="cooling_setpoint",
                     label="Kühlsollwert [°C]",
-                    value=cfg_state['simulation_parameters']['cooling_setpoint']['expression'],
+                    value=cfg0['simulation_parameters']['cooling_setpoint']['expression'],
                     width="600px",
                     placeholder="Geben Sie eine Zahl ein",
                 )
@@ -832,21 +830,21 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_text(
                     id="electricity_price",
                     label="Strompreis [CHF/kWh]",
-                    value=cfg_state['economic_parameters']['electricity_price']['expression'],
+                    value=cfg0['economic_parameters']['electricity_price']['expression'],
                     width="600px",
                     placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="heating_price",
                     label="Preis Heizen [CHF/kWh]",
-                    value=cfg_state['economic_parameters']['heating_price']['expression'],
+                    value=cfg0['economic_parameters']['heating_price']['expression'],
                     width="600px",
                     placeholder="Geben Sie eine Zahl ein",
                 )
                 ui.input_text(
                     id="cooling_price",
                     label="Preis Kühlen [CHF/kWh]",
-                    value=cfg_state['economic_parameters']['cooling_price']['expression'],
+                    value=cfg0['economic_parameters']['cooling_price']['expression'],
                     width="600px",
                     placeholder="Geben Sie eine Zahl ein",
                 )
@@ -867,7 +865,7 @@ with ui.nav_panel("Einstellungen"):
                         ui.input_text(
                             id="unshaded_glazing_area_n",
                             label="Unbeschattete Verglasungsfläche (Nord) [m²]",
-                            value=cfg_state['building_geometry']['windows']['north']['unshaded_glazing_area']['expression'],
+                            value=cfg0['building_geometry']['windows']['north']['unshaded_glazing_area']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                             update_on="blur",
@@ -876,7 +874,7 @@ with ui.nav_panel("Einstellungen"):
                         ui.input_text(
                             id="unshaded_glazing_area_e",
                             label="Unbeschattete Verglasungsfläche (Ost) [m²]",
-                            value=cfg_state['building_geometry']['windows']['east']['unshaded_glazing_area']['expression'],
+                            value=cfg0['building_geometry']['windows']['east']['unshaded_glazing_area']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
@@ -884,7 +882,7 @@ with ui.nav_panel("Einstellungen"):
                         ui.input_text(
                             id="unshaded_glazing_area_s",
                             label="Unbeschattete Verglasungsfläche (Süd) [m²]",
-                            value=cfg_state['building_geometry']['windows']['south']['unshaded_glazing_area']['expression'],
+                            value=cfg0['building_geometry']['windows']['south']['unshaded_glazing_area']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
@@ -892,7 +890,7 @@ with ui.nav_panel("Einstellungen"):
                         ui.input_text(
                             id="unshaded_glazing_area_w",
                             label="Unbeschattete Verglasungsfläche (West) [m²]",
-                            value=cfg_state['building_geometry']['windows']['west']['unshaded_glazing_area']['expression'],
+                            value=cfg0['building_geometry']['windows']['west']['unshaded_glazing_area']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
@@ -902,28 +900,28 @@ with ui.nav_panel("Einstellungen"):
                         ui.input_text(
                             id="shaded_glazing_area_n",
                             label="Beschattete Verglasungsfläche (Nord) [m²]",
-                            value=cfg_state['building_geometry']['windows']['north']['shaded_glazing_area']['expression'],
+                            value=cfg0['building_geometry']['windows']['north']['shaded_glazing_area']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
                         ui.input_text(
                             id="shaded_glazing_area_e",
                             label="Beschattete Verglasungsfläche (Ost) [m²]",
-                            value=cfg_state['building_geometry']['windows']['east']['shaded_glazing_area']['expression'],
+                            value=cfg0['building_geometry']['windows']['east']['shaded_glazing_area']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
                         ui.input_text(
                             id="shaded_glazing_area_s",
                             label="Beschattete Verglasungsfläche (Süd) [m²]",
-                            value=cfg_state['building_geometry']['windows']['south']['shaded_glazing_area']['expression'],
+                            value=cfg0['building_geometry']['windows']['south']['shaded_glazing_area']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
                         ui.input_text(
                             id="shaded_glazing_area_w",
                             label="Beschattete Verglasungsfläche (West) [m²]",
-                            value=cfg_state['building_geometry']['windows']['west']['shaded_glazing_area']['expression'],
+                            value=cfg0['building_geometry']['windows']['west']['shaded_glazing_area']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
@@ -933,28 +931,28 @@ with ui.nav_panel("Einstellungen"):
                         ui.input_text(
                             id="unshaded_frame_area_n",
                             label="Unbeschattete Rahmenfläche (Nord) [m²]",
-                            value=cfg_state['building_geometry']['windows']['north']['unshaded_frame_area']['expression'],
+                            value=cfg0['building_geometry']['windows']['north']['unshaded_frame_area']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
                         ui.input_text(
                             id="unshaded_frame_area_e",
                             label="Unbeschattete Rahmenfläche (Ost) [m²]",
-                            value=cfg_state['building_geometry']['windows']['east']['unshaded_frame_area']['expression'],
+                            value=cfg0['building_geometry']['windows']['east']['unshaded_frame_area']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
                         ui.input_text(
                             id="unshaded_frame_area_s",
                             label="Unbeschattete Rahmenfläche (Süd) [m²]",
-                            value=cfg_state['building_geometry']['windows']['south']['unshaded_frame_area']['expression'],
+                            value=cfg0['building_geometry']['windows']['south']['unshaded_frame_area']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
                         ui.input_text(
                             id="unshaded_frame_area_w",
                             label="Unbeschattete Rahmenfläche (West) [m²]",
-                            value=cfg_state['building_geometry']['windows']['west']['unshaded_frame_area']['expression'],
+                            value=cfg0['building_geometry']['windows']['west']['unshaded_frame_area']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
@@ -964,28 +962,28 @@ with ui.nav_panel("Einstellungen"):
                         ui.input_text(
                             id="shaded_frame_area_n",
                             label="Beschattete Rahmenfläche (Nord) [m²]",
-                            value=cfg_state['building_geometry']['windows']['north']['shaded_frame_area']['expression'],
+                            value=cfg0['building_geometry']['windows']['north']['shaded_frame_area']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
                         ui.input_text(
                             id="shaded_frame_area_e",
                             label="Beschattete Rahmenfläche (Ost) [m²]",
-                            value=cfg_state['building_geometry']['windows']['east']['shaded_frame_area']['expression'],
+                            value=cfg0['building_geometry']['windows']['east']['shaded_frame_area']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
                         ui.input_text(
                             id="shaded_frame_area_s",
                             label="Beschattete Rahmenfläche (Süd) [m²]",
-                            value=cfg_state['building_geometry']['windows']['south']['shaded_frame_area']['expression'],
+                            value=cfg0['building_geometry']['windows']['south']['shaded_frame_area']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
                         ui.input_text(
                             id="shaded_frame_area_w",
                             label="Beschattete Rahmenfläche (West) [m²]",
-                            value=cfg_state['building_geometry']['windows']['west']['shaded_frame_area']['expression'],
+                            value=cfg0['building_geometry']['windows']['west']['shaded_frame_area']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
@@ -995,28 +993,28 @@ with ui.nav_panel("Einstellungen"):
                         ui.input_text(
                             id="wall_area_n",
                             label="Wandfläche (Nord) [m²]",
-                            value=cfg_state['building_geometry']['enclosure']['outside_wall_areas']['north']['expression'],
+                            value=cfg0['building_geometry']['enclosure']['outside_wall_areas']['north']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
                         ui.input_text(
                             id="wall_area_e",
                             label="Wandfläche (Ost) [m²]",
-                            value=cfg_state['building_geometry']['enclosure']['outside_wall_areas']['east']['expression'],
+                            value=cfg0['building_geometry']['enclosure']['outside_wall_areas']['east']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
                         ui.input_text(
                             id="wall_area_s",
                             label="Wandfläche (Süd) [m²]",
-                            value=cfg_state['building_geometry']['enclosure']['outside_wall_areas']['south']['expression'],
+                            value=cfg0['building_geometry']['enclosure']['outside_wall_areas']['south']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
                         ui.input_text(
                             id="wall_area_w",
                             label="Wandfläche (West) [m²]",
-                            value=cfg_state['building_geometry']['enclosure']['outside_wall_areas']['west']['expression'],
+                            value=cfg0['building_geometry']['enclosure']['outside_wall_areas']['west']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
@@ -1025,42 +1023,42 @@ with ui.nav_panel("Einstellungen"):
                         ui.input_text(
                             id="roof_area",
                             label="Dachfläche [m²]",
-                            value=cfg_state['building_geometry']['enclosure']['roof_area']['expression'],
+                            value=cfg0['building_geometry']['enclosure']['roof_area']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
                         ui.input_text(
                             id="floor_area",
                             label="Bodenfläche [m²]",
-                            value=cfg_state['building_geometry']['enclosure']['floor_area']['expression'],
+                            value=cfg0['building_geometry']['enclosure']['floor_area']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
                         ui.input_text(
                             id="int_wall_area",
                             label="Innenwandflächen (beide seiten sollen vorhanden sein) [m²]",
-                            value=cfg_state["building_geometry"]['enclosure']['int_wall_area']['expression'],
+                            value=cfg0["building_geometry"]['enclosure']['int_wall_area']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
                         ui.input_text(
                             id="int_ceiling_area",
                             label="Innendeckenfläche (beide seiten sollen vorhanden sein) [m²]",
-                            value=cfg_state["building_geometry"]["enclosure"]["int_ceiling_area"]["expression"],
+                            value=cfg0["building_geometry"]["enclosure"]["int_ceiling_area"]["expression"],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
                         ui.input_text(
                             id="wall_against_unheated_area",
                             label="Wandfläche gegen unbeheizte Zonen [m²]",
-                            value=cfg_state["building_geometry"]["enclosure"]["wall_to_unheated_area"]["expression"],
+                            value=cfg0["building_geometry"]["enclosure"]["wall_to_unheated_area"]["expression"],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
                         ui.input_text(
                             id="building_height",
                             label="Höhe des Gebäudes [m]",
-                            value=cfg_state['building_geometry']['building_height']['expression'],
+                            value=cfg0['building_geometry']['building_height']['expression'],
                             width="600px",
                             placeholder="Geben Sie eine Zahl ein",
                         )
@@ -1097,7 +1095,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_numeric(
                         id="glazing_u_value",
                         label="U-Wert der Verglasung [W/m²K]",
-                        value=cfg_state['thermal_properties']['windows']['u_value_glazing']['expression'],
+                        value=cfg0['thermal_properties']['windows']['u_value_glazing']['expression'],
                         width=None,
                         min=0,
                         max=None,
@@ -1106,7 +1104,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_numeric(
                         id="glazing_g_value",
                         label="g-Wert der Verglasung (Anteil der solaren Strahlung, welche in das Gebäude gelangt) []",
-                        value=cfg_state['thermal_properties']['windows']['g_value_glazing']['expression'],
+                        value=cfg0['thermal_properties']['windows']['g_value_glazing']['expression'],
                         width=None,
                         min=0,
                         max=1,
@@ -1115,7 +1113,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_numeric(
                         id="shading_g_value_reduction_factor",
                         label="Reduktionsfaktor des g-Werts aufgrund von Beschattung (z.B. Balkone) []",
-                        value=cfg_state['thermal_properties']['windows']['shading_g_value_reduction_factor']['expression'],
+                        value=cfg0['thermal_properties']['windows']['shading_g_value_reduction_factor']['expression'],
                         width=None,
                         min=0,
                         max=1,
@@ -1124,7 +1122,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_numeric(
                         id="frame_u_value",
                         label="U-Wert des Fensterrahmens [W/m²K]",
-                        value=cfg_state['thermal_properties']['windows']['u_value_frame']['expression'],
+                        value=cfg0['thermal_properties']['windows']['u_value_frame']['expression'],
                         width=None,
                         min=0,
                         max=None,
@@ -1133,14 +1131,14 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_text(
                         id="wall_against_unheated_u_value",
                         label="U-Wert der Wand gegen unbeheizte Zonen [W/m²K]",
-                        value=cfg_state['thermal_properties']['enclosure']['u_value_wall_against_unheated']['expression'],
+                        value=cfg0['thermal_properties']['enclosure']['u_value_wall_against_unheated']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_numeric(
                         id="wall_inside_lambda",
                         label="Wärmeleitfähigkeit der inneren Schicht der Wand [W/mK]",
-                        value=cfg_state['thermal_properties']['enclosure']['inside_layer']['lambda_wall_inside']['expression'],
+                        value=cfg0['thermal_properties']['enclosure']['inside_layer']['lambda_wall_inside']['expression'],
                         width=None,
                         min=0,
                         max=None,
@@ -1149,7 +1147,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_numeric(
                         id="roof_inside_lambda",
                         label="Wärmeleitfähigkeit der inneren Schicht des Daches [W/mK]",
-                        value=cfg_state['thermal_properties']['enclosure']['inside_layer']['lambda_roof_inside']['expression'],
+                        value=cfg0['thermal_properties']['enclosure']['inside_layer']['lambda_roof_inside']['expression'],
                         width=None,
                         min=0,
                         max=None,
@@ -1158,7 +1156,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_numeric(
                         id="floor_inside_lambda",
                         label="Wärmeleitfähigkeit der inneren Schicht des Fußbodens [W/mK]",
-                        value=cfg_state['thermal_properties']['enclosure']['inside_layer']['lambda_floor_inside']['expression'],
+                        value=cfg0['thermal_properties']['enclosure']['inside_layer']['lambda_floor_inside']['expression'],
                         width=None,
                         min=0,
                         max=None,
@@ -1167,28 +1165,28 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_text(
                         id="wall_inside_capacity_density",
                         label="Speicherdichte der inneren Schicht der Wand (rho * c) [J/m³K]",
-                        value=cfg_state['thermal_properties']['enclosure']['inside_layer']['capacity_density_wall_inside']['expression'],
+                        value=cfg0['thermal_properties']['enclosure']['inside_layer']['capacity_density_wall_inside']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="roof_inside_capacity_density",
                         label="Speicherdichte der inneren Schicht des Daches (rho * c) [J/m³K]",
-                        value=cfg_state['thermal_properties']['enclosure']['inside_layer']['capacity_density_roof_inside']['expression'],
+                        value=cfg0['thermal_properties']['enclosure']['inside_layer']['capacity_density_roof_inside']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="floor_inside_capacity_density",
                         label="Speicherdichte der inneren Schicht des Fußbodens (rho * c) [J/m³K]",
-                        value=cfg_state['thermal_properties']['enclosure']['inside_layer']['capacity_density_floor_inside']['expression'],
+                        value=cfg0['thermal_properties']['enclosure']['inside_layer']['capacity_density_floor_inside']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_numeric(
                         id="wall_outside_lambda",
                         label="Wärmeleitfähigkeit der äusseren Schicht der Wand [W/mK]",
-                        value=cfg_state['thermal_properties']['enclosure']['outside_layer']['lambda_wall_outside']['expression'],
+                        value=cfg0['thermal_properties']['enclosure']['outside_layer']['lambda_wall_outside']['expression'],
                         width=None,
                         min=0,
                         max=None,
@@ -1197,7 +1195,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_numeric(
                         id="roof_outside_lambda",
                         label="Wärmeleitfähigkeit der äusseren Schicht des Daches [W/mK]",
-                        value=cfg_state['thermal_properties']['enclosure']['outside_layer']['lambda_roof_outside']['expression'],
+                        value=cfg0['thermal_properties']['enclosure']['outside_layer']['lambda_roof_outside']['expression'],
                         width=None,
                         min=0,
                         max=None,
@@ -1206,7 +1204,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_numeric(
                         id="floor_outside_lambda",
                         label="Wärmeleitfähigkeit der äusseren Schicht des Fußbodens [W/mK]",
-                        value=cfg_state['thermal_properties']['enclosure']['outside_layer']['lambda_floor_outside']['expression'],
+                        value=cfg0['thermal_properties']['enclosure']['outside_layer']['lambda_floor_outside']['expression'],
                         width=None,
                         min=0,
                         max=None,
@@ -1215,28 +1213,28 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_text(
                         id="wall_outside_capacity_density",
                         label="Kapazitätsdichte der äusseren Schicht der Wand (rho * c) [J/m³K]",
-                        value=cfg_state['thermal_properties']['enclosure']['outside_layer']['capacity_density_wall_outside']['expression'],
+                        value=cfg0['thermal_properties']['enclosure']['outside_layer']['capacity_density_wall_outside']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="roof_outside_capacity_density",
                         label="Kapazitätsdichte der äusseren Schicht des Daches (rho * c) [J/m³K]",
-                        value=cfg_state['thermal_properties']['enclosure']['outside_layer']['capacity_density_roof_outside']['expression'],
+                        value=cfg0['thermal_properties']['enclosure']['outside_layer']['capacity_density_roof_outside']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="floor_outside_capacity_density",
                         label="Kapazitätsdichte der äusseren Schicht des Fussbodens (rho * c) [J/m³K]",
-                        value=cfg_state['thermal_properties']['enclosure']['outside_layer']['capacity_density_floor_outside']['expression'],
+                        value=cfg0['thermal_properties']['enclosure']['outside_layer']['capacity_density_floor_outside']['expression'],
                         width="600px",
                         placeholder="Enter a number",
                     )
                     ui.input_numeric(
                         id="int_wall_lambda",
                         label="Wärmeleitfähigkeit der Innenwand [W/mK]",
-                        value=cfg_state['thermal_properties']['enclosure']['internal_walls_ceiling']['lambda_internal_wall']['expression'],
+                        value=cfg0['thermal_properties']['enclosure']['internal_walls_ceiling']['lambda_internal_wall']['expression'],
                         width=None,
                         min=0,
                         max=None,
@@ -1245,7 +1243,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_numeric(
                         id="int_ceiling_lambda",
                         label="Wärmeleitfähigkeit der Innendecke [W/mK]",
-                        value=cfg_state['thermal_properties']['enclosure']['internal_walls_ceiling']['lambda_internal_ceiling']['expression'],
+                        value=cfg0['thermal_properties']['enclosure']['internal_walls_ceiling']['lambda_internal_ceiling']['expression'],
                         width=None,
                         min=0,
                         max=None,
@@ -1254,14 +1252,14 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_text(
                         id="int_wall_capacity_density",
                         label="Kapazitätsdichte der Innenwand (rho * c) [J/m³K]",
-                        value=cfg_state['thermal_properties']['enclosure']['internal_walls_ceiling']['capacity_density_internal_wall']['expression'],
+                        value=cfg0['thermal_properties']['enclosure']['internal_walls_ceiling']['capacity_density_internal_wall']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="int_ceiling_capacity_density",
                         label="Kapazitätsdichte der Innendecke (rho * c) [J/m³K]",
-                        value=cfg_state['thermal_properties']['enclosure']['internal_walls_ceiling']['capacity_density_internal_ceiling']['expression'],
+                        value=cfg0['thermal_properties']['enclosure']['internal_walls_ceiling']['capacity_density_internal_ceiling']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
@@ -1273,7 +1271,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_numeric(
                         id="wall_inside_thickness",
                         label="Dicke der inneren Schicht der Wand (Ziegel) [m]",
-                        value=cfg_state["building_geometry"]['enclosure']['outside_wall_areas']['thickness']['inside_layer']['expression'],
+                        value=cfg0["building_geometry"]['enclosure']['outside_wall_areas']['thickness']['inside_layer']['expression'],
                         width=None,
                         min=0,
                         max=None,
@@ -1282,7 +1280,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_numeric(
                         id="wall_outside_thickness",
                         label="Dicke der äusseren Schicht der Wand (Dämmung) [m]",
-                        value=cfg_state["building_geometry"]['enclosure']['outside_wall_areas']['thickness']['outside_layer']['expression'],
+                        value=cfg0["building_geometry"]['enclosure']['outside_wall_areas']['thickness']['outside_layer']['expression'],
                         width=None,
                         min=0,
                         max=None,
@@ -1291,7 +1289,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_numeric(
                         id="roof_inside_thickness",
                         label="Dicke der inneren Schicht des Daches (Beton) [m]",
-                        value=cfg_state["building_geometry"]['enclosure']['roof_area']['thickness']['inside_layer']['expression'],
+                        value=cfg0["building_geometry"]['enclosure']['roof_area']['thickness']['inside_layer']['expression'],
                         width=None,
                         min=0,
                         max=None,
@@ -1300,7 +1298,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_numeric(
                         id="roof_outside_thickness",
                         label="Dicke der äusseren Schicht des Daches (Dämmung) [m]",
-                        value=cfg_state["building_geometry"]['enclosure']['roof_area']['thickness']['outside_layer']['expression'],
+                        value=cfg0["building_geometry"]['enclosure']['roof_area']['thickness']['outside_layer']['expression'],
                         width=None,
                         min=0,
                         max=None,
@@ -1309,7 +1307,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_numeric(
                         id="floor_inside_thickness",
                         label="Dicke der inneren Schicht des Fussbodens (Beton) [m]",
-                        value=cfg_state["building_geometry"]['enclosure']['floor_area']['thickness']['inside_layer']['expression'],
+                        value=cfg0["building_geometry"]['enclosure']['floor_area']['thickness']['inside_layer']['expression'],
                         width=None,
                         min=0,
                         max=None,
@@ -1318,7 +1316,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_numeric(
                         id="floor_outside_thickness",
                         label="Dicke der äusseren Schicht des Fussbodens (Dämmung) [m]",
-                        value=cfg_state["building_geometry"]['enclosure']['floor_area']['thickness']['outside_layer']['expression'],
+                        value=cfg0["building_geometry"]['enclosure']['floor_area']['thickness']['outside_layer']['expression'],
                         width=None,
                         min=0,
                         max=None,
@@ -1327,7 +1325,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_numeric(
                         id="int_wall_thickness",
                         label="Dicke der Innenwand (Gipskarton) [m]",
-                        value=cfg_state["building_geometry"]['enclosure']['int_wall_area']['thickness']['expression'],
+                        value=cfg0["building_geometry"]['enclosure']['int_wall_area']['thickness']['expression'],
                         width=None,
                         min=0,
                         max=None,
@@ -1336,7 +1334,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_numeric(
                         id="int_ceiling_thickness",
                         label="Dicke der Innendecke (Gipskarton) [m]",
-                        value=cfg_state["building_geometry"]['enclosure']['int_ceiling_area']['thickness']['expression'],
+                        value=cfg0["building_geometry"]['enclosure']['int_ceiling_area']['thickness']['expression'],
                         width=None,
                         min=0,
                         max=None,
@@ -1349,21 +1347,21 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_text(
                         id="infiltration_rate",
                         label="Infiltrationsrate des Gebäudes [m³/s]",
-                        value=cfg_state["thermal_properties"]['infiltration_rate_specific']['expression'],
+                        value=cfg0["thermal_properties"]['infiltration_rate_specific']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="air_ventilation_rate",
                         label="Mechanischer Luftwechselrate des Gebäudes (angenommen, immer eingeschaltet) [m³/s]",
-                        value=cfg_state["thermal_properties"]['air_ventilation_rate_specific']['expression'],
+                        value=cfg0["thermal_properties"]['air_ventilation_rate_specific']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_numeric(
                         id="heat_exchanger_efficiency",
                         label="Wirkungsgrad des Wärmetauschers im Belüftungssystem []",
-                        value=cfg_state["thermal_properties"]['heat_exchanger_efficiency']['expression'],
+                        value=cfg0["thermal_properties"]['heat_exchanger_efficiency']['expression'],
                         width=None,
                         min=0,
                         max=1,
@@ -1372,28 +1370,28 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_text(
                         id="thermal_bridges",
                         label="Wärmebrücken [W/K]",
-                        value=cfg_state["thermal_properties"]['thermal_bridges']['expression'],
+                        value=cfg0["thermal_properties"]['thermal_bridges']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="occupancy_power",
                         label="Belegungsstromverbrauch [W]",
-                        value=cfg_state['thermal_properties']['power_input']['occupancy_power_per_area']['expression'],
+                        value=cfg0['thermal_properties']['power_input']['occupancy_power_per_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="lighting_power",
                         label="Beleuchtungsstromverbrauch [W]",
-                        value=cfg_state['thermal_properties']['power_input']['lighting_power_per_area']['expression'],
+                        value=cfg0['thermal_properties']['power_input']['lighting_power_per_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="equipment_power",
                         label="Geräte-Stromverbrauch [W]",
-                        value=cfg_state['thermal_properties']['power_input']['equipment_power_per_area']['expression'],
+                        value=cfg0['thermal_properties']['power_input']['equipment_power_per_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
