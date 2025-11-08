@@ -23,6 +23,7 @@ facade_B = create_facade(PROJECT_ID_VAR_B)
 cfg_A = facade_A.load(PROJECT_ID_VAR_A)
 cfg_B = facade_B.load(PROJECT_ID_VAR_B)
 
+cfg_state = copy.deepcopy(cfg_A)
 # active config state
 cfg_state = reactive.Value(copy.deepcopy(cfg_A))    # initialize with variant A
 active_variant = reactive.Value("A")                # "A" or "B"
@@ -755,11 +756,29 @@ with ui.nav_panel("Einstellungen"):
         id="radio_variant_selection",
         label="Variante auswählen",
         choices={
-            "variant_a": cfg_state.set(copy.deepcopy(cfg_A)),
-            "variant_b": cfg_state.set(copy.deepcopy(cfg_B)),
-    
-        }
+            "A": "Variante A",
+            "B": "Variante B",
+        },
+        selected="A"
     )
+    @reactive.effect
+    @reactive.event(input.radio_variant_selection)
+    def on_variant_change():
+        new_variant = input.radio_variant_selection()
+        # warning if unsaved changes
+        if unsaved_changes() is True:
+            ui.notification_show(
+                "Warnung: Es gibt ungespeicherte Änderungen! Bitte speichern Sie diese, bevor Sie die Variante wechseln.",
+                type="warning",
+                duration=6
+            )
+            # Set working state from saved source
+            if new_variant == "A":
+               cfg_state.set(copy.deepcopy(cfg_A))
+            else:
+               cfg_state.set(copy.deepcopy(cfg_B))
+            active_variant.set(new_variant)
+            unsaved_changes.set(False)  # reset unsaved changes flag
     @render.text
     def variant_description():
         return input.radio_variant_selection()
