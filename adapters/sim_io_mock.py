@@ -179,3 +179,8 @@ def make_df_temperatures():
     df = df.sort_values(by="datetime").dropna(subset=["datetime"])
     return df
 
+def make_df_loads():
+    df_sim = load_sim_results()
+    df = df_sim[["datetime", "heating_power", "cooling_power"]]
+    df = df.sort_values(by="datetime").dropna(subset=["datetime"])
+    return df

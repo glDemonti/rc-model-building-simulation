@@ -284,7 +284,7 @@ with ui.nav_panel("Simulationsresultate"):
             df_temp = sim_io_mock.make_df_temperatures().copy()
 
 
-            # Zeitstempel in Millisekunden umwandeln
+            # time stamp in ms
             df_temp["ts_ms"] = ts_ms(df_temp["datetime"])
 
             fig = px.line(
@@ -393,12 +393,29 @@ with ui.nav_panel("Simulationsresultate"):
     with ui.card():
         @render_widget
         def plot_cooling_heating_power():
+            df_load = sim_io_mock.make_df_loads().copy()
+
+            # time stamp in ms
+            df_load["ts_ms"] = ts_ms(df_load["datetime"])
+
             fig = px.line(
-                df_results[['cooling_power', 'heating_power']],
-                ).update_layout(
-                    title="Heiz- und Kühlleistung",
-                    xaxis_title="Zeit [h]",
-                    yaxis_title="Leistung [W]",
+                df_load,
+                x="ts_ms",
+                y=["cooling_power", "heating_power"],
+                labels={
+                    "datetime": "Zeit", 
+                    "value": "Leistung [W]",
+                    "variable": "Legende",
+                },
+                ).update_xaxes(
+                    type="date",
+                    tickformat="%d-%m %H:%M",
+                    tickangle=45,
+                    showgrid=True,
+            ).update_layout(
+                title="Heiz- und Kühlleistung",
+                xaxis_title="Zeit [h]",
+                yaxis_title="Leistung [W]",
                 )
             return fig
         with ui.layout_column_wrap():
