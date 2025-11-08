@@ -11,13 +11,18 @@ from shiny.express import input, render, ui
 from shiny.ui import page_navbar, nav_panel, navset_pill_list
 from shinywidgets import render_widget, render_plotly
 
+from core import facade
 from core.bootstrap import create_facade # imports the connection to the midlayer
 
-PROJECT_ID = "demo-haus-a"
-facade = create_facade(PROJECT_ID)
-cfg = facade.load(PROJECT_ID) 
+PROJECT_ID_VAR_A = "simulation-variant-A"
+facade_A = create_facade(PROJECT_ID_VAR_A)
+cfg_A = facade_A.load(PROJECT_ID_VAR_A)
 
+PROJECT_ID_VAR_B = "simulation-variant-B"
+facade_B = create_facade(PROJECT_ID_VAR_B)
+cfg_B = facade_B.load(PROJECT_ID_VAR_B)
 
+cfg = copy.deepcopy(cfg_A)
 # Import sim_io_mock from adapters, adjusting sys.path if necessary
 try:
     from adapters import sim_io_mock
