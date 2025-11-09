@@ -170,28 +170,42 @@ def _safe_grid_row_or_cfg(grid_fn, row_name: str, cfg: dict, cfg_path_expr: str)
     If the renderer is not mounted yet or the row is missing, fall back to the cfg value at cfg_path_expr.
     """
     try:
-        df = grid_fn.data_patched().astype(float)
-        return[float(x) for x in df.loc[row_name].tolist()]
+        df = grid_fn.data_patched().astype(float)       # returns processed values when Tab is active
+        return [float(x) for x in df.loc[row_name].tolist()]
     except Exception as e:
         print(f"WARN: grid'{row_name}':{e}")
-        # fall back to cfg
+        # --- fall back: resolve structure in cfg
         cur = cfg
         for key in cfg_path_expr.split("."):
             cur = cur[key]
-        # cur can be a list or a dict with 'expression' or 'value'
+
+        # 1) allow list directly 
         if isinstance(cur, list):
-            expr_list = cur
-        elif isinstance(cur, dict):
-            if "expression" in cur and isinstance(cur["expression"], str):
-                expr_list = cur["expression"]
-            elif "value" in cur and isinstance(cur["value"], list):
-                expr_list = cur["value"]
-            else:
-                raise KeyError(f"Pfad '{cfg_path_expr}' enthält weder 'expression' noch 'value' als Liste.")
-        else:
-            raise TypeError(f"Pfad '{cfg_path_expr}' ist vom Typ {type(cur).__name__}, erwartet list oder dict.")
+            return [float(x) for x in cur]
+
+        # 2) allow dict with 'expression' or 'value' as list
+        if isinstance(cur, dict):
+            for k in ("expression", "value", "data"):
+                v = cur.get(k)
+                if isinstance(v, list):
+                    return [float(x) for x in v]
+                
+            hours = [f"{i:02d}:00" for i in range(24)]
+            if all(h in cur for h in hours):
+                return [float(cur[h]) for h in hours]
+            
+            # 3) Heuristics: take the first list value if it is a plausible 24-hour list
+            for k, v in cur.items():
+                if isinstance(v, list) and (len(v) == 24 or all(isinstance(x, (int, float)) for x in v)):
+                    return [float(x) for x in v]
+            
+            # 4) Diagnosis, so that we can see the true form
+            keys = list(cur.keys())
+            raise ValueError(f"{cfg_path_expr} ist ein Dict ohne passend Liste/Stunden-Mapping. Keys={keys}")
         
-        return [float(x) for x in expr_list]
+        # 5) all other cases: clearly name
+        keys = list(cfg.keys())
+        raise ValueError(f"{cfg_path_expr} hat Typ {type(cur).__name__}, erwartet list oder dict")
 
 # reactive schedules
 schedule_occupancy = reactive.Value(_schedule_df_from_cfg(cfg0, 'occupancy_schedule'))
