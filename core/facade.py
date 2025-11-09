@@ -27,7 +27,7 @@ class ConfigFacade:
        
        # save
         try:
-            self._repo.write_raw(cfg)
+            self._repo.write_raw(cfg_evaluated)
             return True, "Gespeichert"
         except Exception as e:
             return False, f"Speichern fehlgeschlagen: {e}"

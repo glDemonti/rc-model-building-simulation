@@ -73,7 +73,7 @@ class ExpressionEvaluator:
             raise EvalError(f"Syntaxfehler im Ausdruck: {e}") from e
         return self._eval_node(node)
     
-    def evaluate_cfg(self, cfg: dict) --> Tuple[dict, List[str]]:
+    def evaluate_cfg(self, cfg: dict) -> Tuple[dict, List[str]]:
         """
         Runs recursive true the dict. Evaluates all fields with 'expression' and sets the result in 'value'.
         Returns the modified dict and a list of error messages.

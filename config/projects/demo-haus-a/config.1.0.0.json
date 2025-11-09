@@ -346,7 +346,7 @@
                 "unit": "W/m2"
             },
             "lighting_power_per_area": {
-                "expression": "30.2.7 * 3.0",
+                "expression": "2.7 * 3.0",
                 "value": 81.0,
                 "unit": "W/m2"
             },
