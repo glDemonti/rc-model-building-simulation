@@ -18,6 +18,14 @@ class ConfigFacade:
     # def validate(self, cfg):
 
     def save(self, project_id, cfg):
+        # Evaluate expressions -> values
+        cfg_copy = cfg
+        cfg_evaluated, errors = self._evaluator.evaluate_cfg(cfg_copy)
+        if errors:
+            return False, "Fehler bei der Auswertung: " + "; ".join(errors)
+        
+       
+       # save
         try:
             self._repo.write_raw(cfg)
             return True, "Gespeichert"
