@@ -156,6 +156,42 @@ def _schedule_df_from_cfg(cfg, key):
         dtype=float
     )
 
+# def _safe_grid_vector(grid_fn, row_name: str, fallback: list[float]) -> list[float]:
+#     try:
+#         df = grid_fn.data_patched().astype(float)
+#         return[float(x) for x in df.loc[row_name].tolist()]
+#     except Exception as e:
+#         print(f"WARN: grid not ready or row missing:", row_name, e)
+#         return fallback
+
+def _safe_grid_row_or_cfg(grid_fn, row_name: str, cfg: dict, cfg_path_expr: str) -> list[float]:
+    """
+    Try to read a row from the DataFrame-renderer.
+    If the renderer is not mounted yet or the row is missing, fall back to the cfg value at cfg_path_expr.
+    """
+    try:
+        df = grid_fn.data_patched().astype(float)
+        return[float(x) for x in df.loc[row_name].tolist()]
+    except Exception as e:
+        print(f"WARN: grid'{row_name}':{e}")
+        # fall back to cfg
+        cur = cfg
+        for key in cfg_path_expr.split("."):
+            cur = cur[key]
+        # cur can be a list or a dict with 'expression' or 'value'
+        if isinstance(cur, list):
+            expr_list = cur
+        elif isinstance(cur, dict):
+            if "expression" in cur and isinstance(cur["expression"], str):
+                expr_list = cur["expression"]
+            elif "value" in cur and isinstance(cur["value"], list):
+                expr_list = cur["value"]
+            else:
+                raise KeyError(f"Pfad '{cfg_path_expr}' enthält weder 'expression' noch 'value' als Liste.")
+        else:
+            raise TypeError(f"Pfad '{cfg_path_expr}' ist vom Typ {type(cur).__name__}, erwartet list oder dict.")
+        
+        return [float(x) for x in expr_list]
 
 # reactive schedules
 schedule_occupancy = reactive.Value(_schedule_df_from_cfg(cfg0, 'occupancy_schedule'))
@@ -768,45 +804,67 @@ with ui.nav_panel("Einstellungen"):
     @reactive.effect
     @reactive.event(input.button_save_settings)
     def on_save_clicked():
-        # Extract schedules from data tables
-        occupancy_df = table_occupancy.data_patched().astype(float)
-        lighting_df = table_lighting.data_patched().astype(float)
-        equipment_df = table_equipment.data_patched().astype(float)
+        # temp for debugging
+        ui.notification_show("Speichern der Einstellungen...", type="info", duration=2)
+        import traceback
+        try:
 
-        occ = _extract_schedule(occupancy_df, "Occupancy")
-        lig = _extract_schedule(lighting_df, "Lighting")
-        eqp = _extract_schedule(equipment_df, "Equipment")
 
-        # Update cfg_state with new schedules
-        cur = cfg_state()
-        cur = _deep_set(cur, "thermal_properties.schedules.occupancy_schedule", occ)
-        cur = _deep_set(cur, "thermal_properties.schedules.lighting_schedule", lig)
-        cur = _deep_set(cur, "thermal_properties.schedules.equipment_schedule", eqp)
-        cfg_state.set(cur)
+            # # Extract schedules from data tables
+            # occupancy_df = table_occupancy.data_patched().astype(float)
+            # lighting_df = table_lighting.data_patched().astype(float)
+            # equipment_df = table_equipment.data_patched().astype(float)
+            cur = cfg_state()
 
-        # Save current variant
-        current_variant = active_variant()
-        current_cfg = cfg_state()
-
-        if current_variant == "A":
-            ok, msg = facade_A.save(PROJECT_ID_VAR_A, current_cfg)
-            if ok:
-                global cfg_A
-                cfg_A = copy.deepcopy(current_cfg)
-            else:
-                ui.notification_show(f"Fehler beim Speichern von Variante A: {msg}", type="error", duration=6)
-                return
-        else:
-            ok, msg = facade_B.save(PROJECT_ID_VAR_B, current_cfg)
-            if ok:
-                global cfg_B
-                cfg_B = copy.deepcopy(current_cfg)
-            else:
-                ui.notification_show(f"Fehler beim Speichern von Variante B: {msg}", type="error", duration=6)
-                return
+            occ = _safe_grid_row_or_cfg(
+                table_occupancy,
+                "Occupancy",
+                cur,
+                "thermal_properties.schedules.occupancy_schedule",)
+            lig = _safe_grid_row_or_cfg(
+                table_lighting,
+                "Lighting",
+                cur,
+                "thermal_properties.schedules.lighting_schedule",)
+            eqp = _safe_grid_row_or_cfg(
+                table_equipment,
+                "Equipment",
+                cur,
+                "thermal_properties.schedules.equipment_schedule",)
             
-        unsaved_changes.set(False)
-        ui.notification_show(f"Einstellungen für Variante {current_variant} erfolgreich gespeichert.", type="success", duration=4)
+
+            # Update cfg_state with new schedules
+            cur = _deep_set(cur, "thermal_properties.schedules.occupancy_schedule", occ)
+            cur = _deep_set(cur, "thermal_properties.schedules.lighting_schedule", lig)
+            cur = _deep_set(cur, "thermal_properties.schedules.equipment_schedule", eqp)
+            cfg_state.set(cur)
+
+            # Save current variant
+            current_variant = active_variant()
+            current_cfg = cfg_state()
+
+            if current_variant == "A":
+                ok, msg = facade_A.save(PROJECT_ID_VAR_A, current_cfg)
+                if ok:
+                    global cfg_A
+                    cfg_A = copy.deepcopy(current_cfg)
+                else:
+                    ui.notification_show(f"Fehler beim Speichern von Variante A: {msg}", type="error", duration=6)
+                    return
+            else:
+                ok, msg = facade_B.save(PROJECT_ID_VAR_B, current_cfg)
+                if ok:
+                    global cfg_B
+                    cfg_B = copy.deepcopy(current_cfg)
+                else:
+                    ui.notification_show(f"Fehler beim Speichern von Variante B: {msg}", type="error", duration=6)
+                    return
+                
+            unsaved_changes.set(False)
+            ui.notification_show(f"Einstellungen für Variante {current_variant} erfolgreich gespeichert.", type="success", duration=4)
+        except Exception as e:
+            tb = traceback.format_exc(limit=3)
+            ui.notification_show(f"Fehler beim Speichern der Einstellungen: {e}\n{tb}", type="error", duration=10)
 
     ui.input_radio_buttons(
         id="radio_variant_selection",
@@ -851,8 +909,8 @@ with ui.nav_panel("Einstellungen"):
         schedule_lighting.set(_schedule_df_from_cfg(cur_cfg, 'lighting_schedule'))
         schedule_equipment.set(_schedule_df_from_cfg(cur_cfg, 'equipment_schedule'))
 
-        # _push_inputs_from_cfg()
-        # _refresh_schedules_from_cfg()
+        _push_inputs_from_cfg()
+        _refresh_schedules_from_cfg()
 
     @render.text
     def variant_description():
