@@ -65,10 +65,10 @@ def _push_inputs_from_cfg():
             # if a field cannot be updated, skip it
             pass
 def _refresh_schedules_from_cfg():
-    sch = cfg_state()['thermal_properties']['schedules']
-    df_schedule_occupancy.loc['Occupancy', :] = sch['occupancy_schedule']
-    df_schedule_lighting.loc['Lighting', :] = sch['lighting_schedule']
-    df_schedule_equipment.loc['Equipment', :] = sch['equipment_schedule']
+    cur = cfg_state()
+    schedule_occupancy.set(_schedule_df_from_cfg(cur, 'occupancy_schedule'))
+    schedule_lighting.set(_schedule_df_from_cfg(cur, 'lighting_schedule'))
+    schedule_equipment.set(_schedule_df_from_cfg(cur, 'equipment_schedule'))
 
 BINDINGS = {
     "unshaded_glazing_area_n": ("building_geometry.windows.north.unshaded_glazing_area.expression", str),
@@ -143,27 +143,24 @@ BINDINGS = {
     "cooling_price": ("economic_parameters.cooling_price.expression", str),
 }
 
-# sheduled parameters
-df_schedule_occupancy = pd.DataFrame(
-    columns=[f'{i:02d}:00' for i in range(24)],
-    index=['Occupancy'],
-    data=[cfg0['thermal_properties']['schedules']['occupancy_schedule']],
-    dtype=float
+def _schedule_df_from_cfg(cfg, key):
+    # key ∈ {"occupancy_schedule", "lighting_schedule", "equipment_schedule"}
+    # returns a DataFrame with 1 row and 24 columns
+    row_name = {"occupancy_schedule": "Occupancy",
+                "lighting_schedule": "Lighting",
+                "equipment_schedule": "Equipment"}[key]
+    return pd.DataFrame(
+        columns=[f'{i:02d}:00' for i in range(24)],
+        index=[row_name],
+        data=[cfg['thermal_properties']['schedules'][key]],
+        dtype=float
     )
 
-df_schedule_lighting = pd.DataFrame(
-    columns=[f'{i:02d}:00' for i in range(24)],
-    index=['Lighting'],
-    data=[cfg0['thermal_properties']['schedules']['lighting_schedule']],
-    dtype=float
-    )
 
-df_schedule_equipment = pd.DataFrame(
-    columns=[f'{i:02d}:00' for i in range(24)],
-    index=['Equipment'],
-    data=[cfg0['thermal_properties']['schedules']['equipment_schedule']],
-    dtype=float
-    )
+# reactive schedules
+schedule_occupancy = reactive.Value(_schedule_df_from_cfg(cfg0, 'occupancy_schedule'))
+schedule_lighting = reactive.Value(_schedule_df_from_cfg(cfg0, 'lighting_schedule'))
+schedule_equipment = reactive.Value(_schedule_df_from_cfg(cfg0, 'equipment_schedule'))
 
 # Register reactive bindings for input fields to update cfg_state
 def _register_binding(input_id: str, path: str, cast):
@@ -764,10 +761,30 @@ with ui.nav_panel("Einstellungen"):
         label=" Speichern",
         disabled=False,
     )
-
+    def _extract_schedule(df, row):
+        # helper to extract schedule row as list of floats
+        return [float(x) for x in df.loc[row].tolist()]
+    
     @reactive.effect
     @reactive.event(input.button_save_settings)
     def on_save_clicked():
+        # Extract schedules from data tables
+        occupancy_df = table_occupancy.data_patched().astype(float)
+        lighting_df = table_lighting.data_patched().astype(float)
+        equipment_df = table_equipment.data_patched().astype(float)
+
+        occ = _extract_schedule(occupancy_df, "Occupancy")
+        lig = _extract_schedule(lighting_df, "Lighting")
+        eqp = _extract_schedule(equipment_df, "Equipment")
+
+        # Update cfg_state with new schedules
+        cur = cfg_state()
+        cur = _deep_set(cur, "thermal_properties.schedules.occupancy_schedule", occ)
+        cur = _deep_set(cur, "thermal_properties.schedules.lighting_schedule", lig)
+        cur = _deep_set(cur, "thermal_properties.schedules.equipment_schedule", eqp)
+        cfg_state.set(cur)
+
+        # Save current variant
         current_variant = active_variant()
         current_cfg = cfg_state()
 
@@ -798,7 +815,8 @@ with ui.nav_panel("Einstellungen"):
     @reactive.effect
     @reactive.event(input.radio_variant_selection)
     def on_variant_change():
-        new_variant = input.radio_variant_selection()
+        new_variant = input.radio_variant_selection()   # "A" or "B"
+
         # warning if unsaved changes
         if unsaved_changes() is True:
             ui.notification_show(
@@ -814,8 +832,22 @@ with ui.nav_panel("Einstellungen"):
             cfg_state.set(copy.deepcopy(cfg_B))
         active_variant.set(new_variant)
         unsaved_changes.set(False)  # reset unsaved changes flag
-        _push_inputs_from_cfg()
-        _refresh_schedules_from_cfg()
+        
+        # 
+        for _id, (path, cast) in BINDINGS.items():
+            try:
+                val = _deep_get(cfg_state(), path)
+                ui.update_text(_id, value=str(val))
+            except Exception:
+                pass  # skipp fields that cannot be updated
+
+        cur_cfg = cfg_state()
+        schedule_occupancy.set(_schedule_df_from_cfg(cur_cfg, 'occupancy_schedule'))
+        schedule_lighting.set(_schedule_df_from_cfg(cur_cfg, 'lighting_schedule'))
+        schedule_equipment.set(_schedule_df_from_cfg(cur_cfg, 'equipment_schedule'))
+
+        # _push_inputs_from_cfg()
+        # _refresh_schedules_from_cfg()
 
     @render.text
     def variant_description():
@@ -1380,10 +1412,8 @@ with ui.nav_panel("Einstellungen"):
 
                     @render.data_frame
                     def table_occupancy():
-                        return render.DataGrid(
-                            df_schedule_occupancy,
-                            editable=True,
-                            )
+                        return render.DataGrid(schedule_occupancy(), editable=True)
+                    
                     occ_last_error, occ_error_log = attach_numeric_guard(
                         table_occupancy,
                         schedule_name="Belegung",
@@ -1427,10 +1457,8 @@ with ui.nav_panel("Einstellungen"):
                     ui.card_header("Beleuchtungszeitplan")
                     @render.data_frame
                     def table_lighting():
-                        return render.DataGrid(
-                            df_schedule_lighting,
-                            editable=True,
-                            )
+                        return render.DataGrid(schedule_lighting(), editable=True)
+                    
                     light_last_error, light_error_log = attach_numeric_guard(
                         table_lighting,
                         schedule_name="Beleuchtung",
@@ -1476,10 +1504,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.card_header("Geräte-Zeitplan")
                     @render.data_frame
                     def table_equipment():
-                        return render.DataGrid(
-                            df_schedule_equipment,
-                            editable=True,
-                            )
+                        return render.DataGrid(schedule_equipment(), editable=True)
                     
                     equip_error, equip_error_log = attach_numeric_guard(
                         table_equipment,
