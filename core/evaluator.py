@@ -98,7 +98,7 @@ class ExpressionEvaluator:
                     except EvalError as e:
                         errors.append(f"{path or '/'}: {e}")
                 # recurse for child keys
-                for k, v in o.items():
+                for k, v in list(o.items()):
                     # avoid recusing on already changed 'value' keys
                     if k == "value":
                         continue

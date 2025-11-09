@@ -789,19 +789,24 @@ with ui.nav_panel("Einstellungen"):
         current_cfg = cfg_state()
 
         if current_variant == "A":
-            facade_A.save(PROJECT_ID_VAR_A, current_cfg)
-            global cfg_A
-            cfg_A = copy.deepcopy(current_cfg)
+            ok, msg = facade_A.save(PROJECT_ID_VAR_A, current_cfg)
+            if ok:
+                global cfg_A
+                cfg_A = copy.deepcopy(current_cfg)
+            else:
+                ui.notification_show(f"Fehler beim Speichern von Variante A: {msg}", type="error", duration=6)
+                return
         else:
-            facade_B.save(PROJECT_ID_VAR_B, current_cfg)
-            global cfg_B
-            cfg_B = copy.deepcopy(current_cfg)
-
+            ok, msg = facade_B.save(PROJECT_ID_VAR_B, current_cfg)
+            if ok:
+                global cfg_B
+                cfg_B = copy.deepcopy(current_cfg)
+            else:
+                ui.notification_show(f"Fehler beim Speichern von Variante B: {msg}", type="error", duration=6)
+                return
+            
         unsaved_changes.set(False)
-        ui.notification_show("Einstellungen  gespeichert (Variante {}).".format(current_variant),
-                            type="message",
-                            duration=4
-                            )
+        ui.notification_show(f"Einstellungen für Variante {current_variant} erfolgreich gespeichert.", type="success", duration=4)
 
     ui.input_radio_buttons(
         id="radio_variant_selection",
