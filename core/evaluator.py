@@ -47,6 +47,12 @@ class ExpressionEvaluator:
             if isinstance(op, ast.Div):
                 if right == 0:
                     raise EvalError("Division durch Null ist nicht erlaubt.")
+                return left / right
+            if isinstance(op, ast.Pow): return left ** right
+            if isinstance(op, ast.Mod): return left % right
+            if isinstance(op, ast.FloorDiv):
+                if right == 0:
+                    raise EvalError("Ganzzahlige Division durch Null ist nicht erlaubt.")
                 return left // right
             
         if isinstance(node, ast.UnaryOp):
