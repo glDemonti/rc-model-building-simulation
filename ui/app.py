@@ -349,6 +349,14 @@ with ui.nav_panel("Simulationsresultate"):
             label="Simulation starten",
             disabled=False,
         )
+
+        @reactive.effect
+        @reactive.event(input.button_start_simulation)
+        def on_simulation_clicked():
+            ui.notification_show("Simulation gestartet", type="info", duration=4)
+            facade_A.run_simulation(PROJECT_ID_VAR_A)
+            facade_B.run_simulation(PROJECT_ID_VAR_B)
+
     # with ui.card():
         #     @ render.data_frame
         #     def weather_data_table():

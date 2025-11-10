@@ -37,4 +37,8 @@ class ConfigFacade:
 
     # def run(self,cfg):
 
+    def run_simulation(self, project_id):
+        return f"Simulation for project {project_id} started."
 
+    def latest_result(self, project_id):
+        return f"Latest result for project {project_id}."
