@@ -19,7 +19,7 @@ add this to the ui:
 def create_facade(project_id: str) ->ConfigFacade:
     Root = Path(__file__).resolve().parents[1]
     
-    cfg_file = Root / "projects"/  project_id / "config" "config.1.0.0.json"
+    cfg_file = Root / "projects" / project_id / "config" "config.1.0.0.json"
     schema = Root / "projects" / "schema" / "config" /"config.1.0.0.schema.json"
     repo = ConfigRepository(str(cfg_file))
     
