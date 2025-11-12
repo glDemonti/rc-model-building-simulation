@@ -30,3 +30,9 @@ def create_facade(project_id: str) ->ConfigFacade:
         validator=ConfigValidator(schema_path=str(schema)),
         mapper=ModelMapper(),
     )
+
+
+def create_simulation_engine(project_id: str) -> StartSimulation:
+    cfg_file = Root / "config" / "projects" / project_id / "config.1.0.0.json"
+    
+    return StartSimulation()
