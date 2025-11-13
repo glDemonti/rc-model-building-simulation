@@ -57,4 +57,8 @@ class ConfigFacade:
         _persist =
     
     def load_timeseries(self, project_id: str, run_id="latest",) -> pd.DataFrame:
+        """
+        Transforms the simulationresults in to a DataFrame which contains the outsidetemperature, insidetemperature(room) , heatingpower and coolingpower.
+        the return ist a DataFram with the name  
+        """
         return f"Timeseries data for project {project_id}, run {run_id}."
