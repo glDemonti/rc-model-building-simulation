@@ -32,7 +32,3 @@ def create_facade(project_id: str) ->ConfigFacade:
     )
 
 
-# def create_simulation_engine(project_id: str) -> StartSimulation:
-#     cfg_file = Root / "config" / "projects" / project_id / "config.1.0.0.json"
-    
-#     # pass

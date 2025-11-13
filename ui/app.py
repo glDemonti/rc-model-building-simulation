@@ -11,7 +11,7 @@ from shiny.express import input, render, ui
 from shiny.ui import page_navbar, nav_panel, navset_pill_list
 from shinywidgets import render_widget, render_plotly
 
-from core.bootstrap import create_facade # imports the connection to the midlayer
+from core.bootstrap import create_facade, create_simulation_engine # imports the connection to the midlayer
 
 PROJECT_ID_VAR_A = "simulation-variant-A"
 PROJECT_ID_VAR_B = "simulation-variant-B"
@@ -26,6 +26,7 @@ cfg0 = copy.deepcopy(cfg_A) # static snapshot for UI initial values
 cfg_state = reactive.Value(copy.deepcopy(cfg_A))    # initialize with variant A
 active_variant = reactive.Value("A")                # "A" or "B"
 unsaved_changes = reactive.Value(False)            # track unsaved changes
+
 
 # Import sim_io_mock from adapters, adjusting sys.path if necessary
 try:

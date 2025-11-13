@@ -1,4 +1,11 @@
 import copy
+
+@dataclass
+class RunReport:
+    ok: bool
+    run_id: str
+    message: str
+    
 class ConfigFacade:
     """
     
@@ -37,8 +44,17 @@ class ConfigFacade:
 
     # def run(self,cfg):
 
-    def run_simulation(self, project_id):
+    def run_simulation(self, project_id: str, *, force: bool = False) -> RunReport:
         return f"Simulation for project {project_id} started."
 
-    def latest_result(self, project_id):
+    def latest_run(self, project_id) -> str | None:
         return f"Latest result for project {project_id}."
+
+        _prepare = 
+
+        _compute =
+
+        _persist =
+    
+    def load_timeseries(self, project_id: str, run_id="latest",) -> pd.DataFrame:
+        return f"Timeseries data for project {project_id}, run {run_id}."
