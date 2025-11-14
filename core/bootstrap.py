@@ -6,6 +6,7 @@ from core.evaluator import ExpressionEvaluator
 from core.mapper import ModelMapper
 from adapters.rc_engine_mock import RcEngineMock
 
+
 """
 Bootstrap module to create and configure the ConfigFacade with all necessary components.
 This allows to import a fully set up facade instance directly for use in the application.

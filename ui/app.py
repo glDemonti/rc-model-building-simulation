@@ -11,7 +11,7 @@ from shiny.express import input, render, ui
 from shiny.ui import page_navbar, nav_panel, navset_pill_list
 from shinywidgets import render_widget, render_plotly
 
-from core.bootstrap import create_facade, create_simulation_engine # imports the connection to the midlayer
+from core.bootstrap import create_facade # imports the connection to the midlayer
 
 PROJECT_ID_VAR_A = "simulation-variant-A"
 PROJECT_ID_VAR_B = "simulation-variant-B"
@@ -19,8 +19,8 @@ PROJECT_ID_VAR_B = "simulation-variant-B"
 facade_A = create_facade(PROJECT_ID_VAR_A)
 facade_B = create_facade(PROJECT_ID_VAR_B)
 
-cfg_A = facade_A.load(PROJECT_ID_VAR_A)
-cfg_B = facade_B.load(PROJECT_ID_VAR_B)
+cfg_A = facade_A.load_config(PROJECT_ID_VAR_A)
+cfg_B = facade_B.load_config(PROJECT_ID_VAR_B)
 
 cfg0 = copy.deepcopy(cfg_A) # static snapshot for UI initial values
 cfg_state = reactive.Value(copy.deepcopy(cfg_A))    # initialize with variant A
@@ -28,15 +28,15 @@ active_variant = reactive.Value("A")                # "A" or "B"
 unsaved_changes = reactive.Value(False)            # track unsaved changes
 
 
-# Import sim_io_mock from adapters, adjusting sys.path if necessary
-try:
-    from adapters import sim_io_mock
-except ModuleNotFoundError:
-    import sys, pathlib
-    ROOT = pathlib.Path(__file__).resolve().parents[1]  # repo root (one above /ui)
-    if str(ROOT) not in sys.path:
-        sys.path.insert(0, str(ROOT))
-    from adapters import sim_io_mock
+# # Import sim_io_mock from adapters, adjusting sys.path if necessary
+# try:
+#     from adapters import sim_io_mock
+# except ModuleNotFoundError:
+#     import sys, pathlib
+#     ROOT = pathlib.Path(__file__).resolve().parents[1]  # repo root (one above /ui)
+#     if str(ROOT) not in sys.path:
+#         sys.path.insert(0, str(ROOT))
+#     from adapters import sim_io_mock
 
 
 # Helper function to deeply set a value in a nested dictionary given a dot-separated path
@@ -312,8 +312,8 @@ def attach_numeric_guard(
     return last_error, error_log
 
 
-df_results = sim_io_mock.load_sim_results()
-df_weather = sim_io_mock.load_weather_data()
+df_results = facade_A.load_timeseries(PROJECT_ID_VAR_A)
+df_weather = facade_A.load_weatherdata(PROJECT_ID_VAR_A)
 
 # Helper: sichere Zeitachse → Millisekunden (vermeidet ns-Probleme)
 def ts_ms(series_dt):
@@ -368,7 +368,7 @@ with ui.nav_panel("Simulationsresultate"):
 
         @render_plotly
         def plot_temperatures():
-            df_temp = sim_io_mock.make_df_temperatures().copy()
+            df_temp = facade_A.load_timeseries(PROJECT_ID_VAR_A).copy()
 
 
             # time stamp in ms
@@ -480,7 +480,7 @@ with ui.nav_panel("Simulationsresultate"):
     with ui.card():
         @render_widget
         def plot_cooling_heating_power():
-            df_load = sim_io_mock.make_df_loads().copy()
+            df_load = facade_A.load_power_df(PROJECT_ID_VAR_A).copy()
 
             # time stamp in ms
             df_load["ts_ms"] = ts_ms(df_load["datetime"])
@@ -867,7 +867,7 @@ with ui.nav_panel("Einstellungen"):
             current_cfg = cfg_state()
 
             if current_variant == "A":
-                ok, msg = facade_A.save(PROJECT_ID_VAR_A, current_cfg)
+                ok, msg = facade_A.save_config(PROJECT_ID_VAR_A, current_cfg)
                 if ok:
                     global cfg_A
                     cfg_A = copy.deepcopy(current_cfg)
@@ -875,7 +875,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.notification_show(f"Fehler beim Speichern von Variante A: {msg}", type="error", duration=6)
                     return
             else:
-                ok, msg = facade_B.save(PROJECT_ID_VAR_B, current_cfg)
+                ok, msg = facade_B.save_config(PROJECT_ID_VAR_B, current_cfg)
                 if ok:
                     global cfg_B
                     cfg_B = copy.deepcopy(current_cfg)
