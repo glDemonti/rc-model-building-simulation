@@ -5,6 +5,7 @@ from core.validator import ConfigValidator
 from core.evaluator import ExpressionEvaluator
 from core.mapper import ModelMapper
 from r_c_model.r_c_modell import RCEngine
+from core.storage.result_store import ResultRepository
 
 
 """
@@ -30,6 +31,7 @@ def create_facade(project_id: str) ->ConfigFacade:
         evaluator=ExpressionEvaluator(),
         validator=ConfigValidator(schema_path=str(schema)),
         mapper=ModelMapper(),
+        result=ResultRepository()
     )
 
 
