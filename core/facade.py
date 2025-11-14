@@ -50,7 +50,7 @@ class ConfigFacade:
     def run_simulation(self, project_id: str, *, force: bool = False) -> RunReport:
         """quick and dirty implementation of start simulation
         """
-        import pyarrow
+        
         # start simulation
         df_raw = self._engine.run()
 
@@ -62,7 +62,7 @@ class ConfigFacade:
 
         # save results
         df_raw.to_parquet(out_path,
-                          engine="pyarrow",
+                        #   engine="pyarrow",
                           compression="snappy",)
 
 
