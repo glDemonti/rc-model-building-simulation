@@ -4,7 +4,7 @@ from core.repository import ConfigRepository
 from core.validator import ConfigValidator
 from core.evaluator import ExpressionEvaluator
 from core.mapper import ModelMapper
-from adapters.rc_engine_mock import RcEngineMock
+from r_c_model.r_c_modell import RCEngine
 
 
 """
@@ -26,7 +26,7 @@ def create_facade(project_id: str) ->ConfigFacade:
     
     return ConfigFacade(
         repo=repo,
-        engine=RcEngineMock(),
+        engine=RCEngine(),
         evaluator=ExpressionEvaluator(),
         validator=ConfigValidator(schema_path=str(schema)),
         mapper=ModelMapper(),

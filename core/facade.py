@@ -1,6 +1,7 @@
 import copy
 from dataclasses import dataclass
 import pandas as pd
+from pathlib import Path
 
 @dataclass
 class RunReport:
@@ -47,6 +48,24 @@ class ConfigFacade:
     # def run(self,cfg):
 
     def run_simulation(self, project_id: str, *, force: bool = False) -> RunReport:
+        """quick and dirty implementation of start simulation
+        """
+        import pyarrow
+        # start simulation
+        df_raw = self._engine.run()
+
+        # build paths
+        base_dir = Path("data") / "results" / project_id
+        base_dir.mkdir(parents=True, exist_ok=True)
+
+        out_path = base_dir / f"raw_results.parquet"
+
+        # save results
+        df_raw.to_parquet(out_path,
+                          engine="pyarrow",
+                          compression="snappy",)
+
+
         return f"Simulation for project {project_id} started."
 
     def latest_run(self, project_id) -> str | None:
