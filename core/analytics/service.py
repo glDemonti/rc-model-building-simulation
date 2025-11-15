@@ -22,3 +22,5 @@ class AnalyticsService:
             df_raw=df_raw,
             cfg=cfg,
             dt_hours=None  # Placeholder for time step, to be computed if needed
+        )
+        return context
