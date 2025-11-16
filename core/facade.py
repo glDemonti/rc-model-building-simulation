@@ -13,13 +13,14 @@ class ConfigFacade:
     """
     
     """
-    def __init__(self, repo, engine, result, evaluator=None, validator=None, mapper=None):
+    def __init__(self, repo, engine, result, evaluator=None, validator=None, mapper=None, analytics=None):
         self._repo = repo
         self._engine = engine
         self._evaluator = evaluator
         self._validator = validator
         self._mapper = mapper
         self._result = result
+        self._analytics = analytics
 
     def load_config(self, project_id) -> dict:
         cfg = self._repo.read_raw()
