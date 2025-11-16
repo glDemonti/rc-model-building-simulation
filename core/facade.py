@@ -35,8 +35,7 @@ class ConfigFacade:
         cfg_evaluated, errors = self._evaluator.evaluate_cfg(cfg_copy)
         if errors:
             return False, "Fehler bei der Auswertung: " + "; ".join(errors)
-        
-       
+              
        # save
         try:
             self._repo.write_raw(cfg_evaluated)

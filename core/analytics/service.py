@@ -9,18 +9,29 @@ class AnalyticsService:
         self._adapters = adapters or []
 
     def compute_all(self, project_id: str, variant_id: str) -> SimulationContext:
+        # load config
         cfg = self._config_repo.read_raw()
+        # load raw results
         df_raw = self._result_repo.load_raw(project_id, variant_id)
         if df_raw is None:
             raise RuntimeError(
                 f"Keine Rohresultate für Projekt {project_id} und Variante {variant_id} gefunden."
             )
         
+        # TODO: add Timestep computation if needed
+        dt_hours = None
+
+        # build context
         context = SimulationContext(
             project_id=project_id,
             variant_id=variant_id,
             df_raw=df_raw,
             cfg=cfg,
-            dt_hours=None  # Placeholder for time step, to be computed if needed
+            dt_hours=dt_hours  # Placeholder for time step, to be computed if needed
         )
+
+        # call adapters
+        # TODO: implement adapter calls if needed
+        
+
         return context

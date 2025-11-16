@@ -16,7 +16,6 @@ class ResultRepository:
         df_raw.to_parquet(out_path, compression="snappy")
 
 
-
     def load_raw(self, project_id: str, variant_id: str) -> pd.DataFrame | None:
         path = Path("data") / "results" / project_id / f"raw_results_{variant_id}.parquet"
         if not path.exists():

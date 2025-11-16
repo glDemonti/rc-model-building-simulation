@@ -34,4 +34,5 @@ def create_facade(project_id: str) ->ConfigFacade:
         result=ResultRepository()
     )
 
+def create_analytics_service(config_repo: ConfigRepository, result_repo: ResultRepository):
 
