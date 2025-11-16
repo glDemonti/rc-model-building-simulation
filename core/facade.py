@@ -47,6 +47,12 @@ class ConfigFacade:
     # def to_model_inputs(self, cfg):
 
     # def run(self,cfg):
+    def get_context(self, project_id: str, variant_id: str):
+        if self._analytics is None:
+            raise RuntimeError("AnalyticsService not configured in ConfigFacade.")
+        
+        context = self._analytics.compute_all(project_id, variant_id)
+        return context
 
     def run_simulation(self, project_id: str, variant_id: str, *, force: bool = False) -> RunReport:
         """quick and dirty implementation of start simulation
