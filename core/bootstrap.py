@@ -6,6 +6,7 @@ from core.evaluator import ExpressionEvaluator
 from core.mapper import ModelMapper
 from r_c_model.r_c_modell import RCEngine
 from core.storage.result_store import ResultRepository
+from core.analytics.service import AnalyticsService
 
 
 """
@@ -24,6 +25,7 @@ def create_facade(project_id: str) ->ConfigFacade:
     cfg_file = Root / "projects" / project_id / "config" / "config.1.0.0.json"
     schema = Root / "projects" / "schema" / "config" /"config.1.0.0.schema.json"
     repo = ConfigRepository(str(cfg_file))
+    result_repo = ResultRepository()
     
     return ConfigFacade(
         repo=repo,
@@ -31,8 +33,6 @@ def create_facade(project_id: str) ->ConfigFacade:
         evaluator=ExpressionEvaluator(),
         validator=ConfigValidator(schema_path=str(schema)),
         mapper=ModelMapper(),
-        result=ResultRepository()
+        result=result_repo
     )
-
-def create_analytics_service(config_repo: ConfigRepository, result_repo: ResultRepository):
 

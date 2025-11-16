@@ -32,6 +32,5 @@ class AnalyticsService:
 
         # call adapters
         # TODO: implement adapter calls if needed
-        
 
         return context
