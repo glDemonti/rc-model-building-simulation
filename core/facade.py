@@ -61,12 +61,14 @@ class ConfigFacade:
         # start simulation
         df_raw = self._engine.run()
         
-    
-
         self._result.save_raw(project_id, variant_id, df_raw)
 
-
-        return f"Simulation for project {project_id} started."
+        # return f"Simulation for project {project_id} started."
+        return RunReport(
+            ok=True,
+            run_id="latest",
+            message=f"Simulation for project {project_id} and variant {variant_id} completed successfully."
+        )
 
     def latest_run(self, project_id) -> str | None:
         return f"Latest result for project {project_id}."
