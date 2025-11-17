@@ -27,7 +27,7 @@ cfg_state = reactive.Value(copy.deepcopy(cfg_A))    # initialize with variant A
 active_variant = reactive.Value("A")                # "A" or "B"
 unsaved_changes = reactive.Value(False)            # track unsaved changes
 
-# context_A = facade_A.get_context(PROJECT_ID_VAR_A, "A")
+context_A = facade_A.get_context(PROJECT_ID_VAR_A, "A")
 
 # # Import sim_io_mock from adapters, adjusting sys.path if necessary
 # try:

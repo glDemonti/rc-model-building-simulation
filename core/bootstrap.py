@@ -33,6 +33,7 @@ def create_facade(project_id: str) ->ConfigFacade:
         evaluator=ExpressionEvaluator(),
         validator=ConfigValidator(schema_path=str(schema)),
         mapper=ModelMapper(),
-        result=result_repo
+        result=result_repo,
+        analytics=AnalyticsService(config_repo=repo, result_repo=result_repo)
     )
 
