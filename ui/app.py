@@ -27,7 +27,6 @@ cfg_state = reactive.Value(copy.deepcopy(cfg_A))    # initialize with variant A
 active_variant = reactive.Value("A")                # "A" or "B"
 unsaved_changes = reactive.Value(False)            # track unsaved changes
 
-context_A = facade_A.get_context(PROJECT_ID_VAR_A, "A")
 
 # # Import sim_io_mock from adapters, adjusting sys.path if necessary
 # try:
@@ -322,6 +321,17 @@ def attach_numeric_guard(
 df_results = facade_A.load_timeseries(PROJECT_ID_VAR_A)
 df_weather = facade_A.load_weatherdata(PROJECT_ID_VAR_A)
 
+summary_A = reactive.Value(None)
+summary_B = reactive.Value(None)
+
+@reactive.effect
+def _load_initial_results():
+    try:
+        summary_A.set(facade_A.get_summary(PROJECT_ID_VAR_A, "A"))
+        summary_B.set(facade_B.get_summary(PROJECT_ID_VAR_B, "B"))
+    except RuntimeError:
+        pass
+
 # Helper: sichere Zeitachse → Millisekunden (vermeidet ns-Probleme)
 def ts_ms(series_dt):
     dt = pd.to_datetime(series_dt, errors="raise").dt.tz_localize(None)
@@ -364,6 +374,8 @@ with ui.nav_panel("Simulationsresultate"):
             ui.notification_show("Simulation gestartet", type="info", duration=4)
             facade_A.run_simulation(PROJECT_ID_VAR_A, "A")
             facade_B.run_simulation(PROJECT_ID_VAR_B, "B")
+            summary_A.set(facade_A.get_summary(PROJECT_ID_VAR_A, "A"))
+            summary_B.set(facade_B.get_summary(PROJECT_ID_VAR_B, "B"))
 
     # with ui.card():
         #     @ render.data_frame
@@ -512,7 +524,6 @@ with ui.nav_panel("Simulationsresultate"):
                 yaxis_title="Leistung [W]",
                 )
             return fig
-        res_heating_cooling = facade_A.get_summary(PROJECT_ID_VAR_A, "A")
 
         with ui.layout_column_wrap():
             with ui.value_box(

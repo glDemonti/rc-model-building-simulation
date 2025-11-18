@@ -114,7 +114,7 @@ class ConfigFacade:
 
         df_weather = sim_io_mock.load_weather_data()
         return df_weather
-    
+
     def load_power_df(self, project_id: str) ->pd.DataFrame:
         """
         Loads the power data as a DataFrame for the given project_id.
@@ -131,7 +131,7 @@ class ConfigFacade:
 
         df_power = sim_io_mock.make_df_loads()
         return df_power
-    
+   
     def get_summary(self, project_id: str, variant_id: str, ):
         result = self._analytics.compute_all(project_id, variant_id)
         return result["summary"]

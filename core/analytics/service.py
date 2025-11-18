@@ -3,10 +3,10 @@ from core.analytics.context import SimulationContext
 
 
 class AnalyticsService:
-    def __init__(self, config_repo, result_repo, adapters=None):
+    def __init__(self, config_repo, result_repo, adapters: list):
         self._config_repo = config_repo
         self._result_repo = result_repo
-        self._adapters = adapters or []
+        self._adapters = adapters
 
     def compute_all(self, project_id: str, variant_id: str) -> dict:
         # load config
@@ -35,7 +35,7 @@ class AnalyticsService:
         all_summaries = []
 
         for adapter in self._adapters:
-            missing_cols = adapter.required_raw_colums - set(context.df_raw.columns)
+            missing_cols = adapter.required_raw_columns - set(context.df_raw.columns)
             if missing_cols:
                 continue
 

@@ -38,8 +38,10 @@ class HeatingCoolingSummaryAdapter(BaseAdapter):
         df_summary = pd.DataFrame([
             {"project_id": project_id, "variant_id": variant_id, "end_use": "heating", "metric": "energy_year", "value": E_heating_kWh, "unit": "kWh"},
             {"project_id": project_id, "variant_id": variant_id, "end_use": "cooling", "metric": "energy_year", "value": E_cooling_kWh, "unit": "kWh"},
-            {"project_id": project_id, "variant_id": variant_id, "end_use": "heating", "metrics":"power_max", "value": max_heating_power, "unit": "kW"}
-
+            {"project_id": project_id, "variant_id": variant_id, "end_use": "heating", "metric":"power_max", "value": max_heating_power, "unit": "kW"},
+            {"project_id": project_id, "variant_id": variant_id, "end_use": "cooling", "metric":"power_max", "value": max_cooling_power, "unit": "kW"},
+            {"project_id": project_id, "variant_id": variant_id, "end_use": "heating", "metric":"costs_year", "value": anual_heating_cost, "unit": "CHF"},
+            {"project_id": project_id, "variant_id": variant_id, "end_use": "cooling", "metric":"costs_year", "value": anual_cooling_cost, "unit": "CHF"},
         ])
 
         return {"summary": df_summary}
