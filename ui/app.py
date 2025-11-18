@@ -512,6 +512,8 @@ with ui.nav_panel("Simulationsresultate"):
                 yaxis_title="Leistung [W]",
                 )
             return fig
+        res_heating_cooling = facade_A.get_summary(PROJECT_ID_VAR_A, "A")
+
         with ui.layout_column_wrap():
             with ui.value_box(
                 id="value_box_heating_demand",

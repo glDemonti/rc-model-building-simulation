@@ -7,6 +7,7 @@ from core.mapper import ModelMapper
 from r_c_model.r_c_modell import RCEngine
 from core.storage.result_store import ResultRepository
 from core.analytics.service import AnalyticsService
+from core.analytics.adapters.heating_cooling_summary import HeatingCoolingSummaryAdapter
 
 
 """
@@ -26,6 +27,10 @@ def create_facade(project_id: str) ->ConfigFacade:
     schema = Root / "projects" / "schema" / "config" /"config.1.0.0.schema.json"
     repo = ConfigRepository(str(cfg_file))
     result_repo = ResultRepository()
+
+    adapters = [
+        HeatingCoolingSummaryAdapter(),
+    ]
     
     return ConfigFacade(
         repo=repo,
@@ -34,6 +39,6 @@ def create_facade(project_id: str) ->ConfigFacade:
         validator=ConfigValidator(schema_path=str(schema)),
         mapper=ModelMapper(),
         result=result_repo,
-        analytics=AnalyticsService(config_repo=repo, result_repo=result_repo)
+        analytics=AnalyticsService(config_repo=repo, result_repo=result_repo, adapters=adapters)
     )
 

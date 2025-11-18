@@ -131,3 +131,7 @@ class ConfigFacade:
 
         df_power = sim_io_mock.make_df_loads()
         return df_power
+    
+    def get_summary(self, project_id: str, variant_id: str, ):
+        result = self._analytics.compute_all(project_id, variant_id)
+        return result["summary"]
