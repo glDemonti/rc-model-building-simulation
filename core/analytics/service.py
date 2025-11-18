@@ -8,7 +8,7 @@ class AnalyticsService:
         self._result_repo = result_repo
         self._adapters = adapters or []
 
-    def compute_all(self, project_id: str, variant_id: str) -> SimulationContext:
+    def compute_all(self, project_id: str, variant_id: str) -> dict:
         # load config
         cfg = self._config_repo.read_raw()
         # load raw results
@@ -32,5 +32,25 @@ class AnalyticsService:
 
         # call adapters
         # TODO: implement adapter calls if needed
+        all_summaries = []
 
-        return context
+        for adapter in self._adapters:
+            missing_cols = adapter.required_raw_colums - set(context.df_raw.columns)
+            if missing_cols:
+                continue
+
+            results = adapter.compute(context)
+
+            df_summary = results.get("summary")
+            if df_summary is not None:
+                all_summaries.append(df_summary)
+
+        if all_summaries:
+            summary_df = pd.concat(all_summaries, ignore_index=True)
+        else:
+            summary_df = pd.DataFrame()
+
+        return {
+            "context": context,
+            "summary": summary_df,
+        }
