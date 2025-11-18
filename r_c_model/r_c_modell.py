@@ -1499,12 +1499,13 @@ class RCEngine:
             'temperatute_floor_4': output_temperatures[:, 46],
             'temperatute_int_wall_4': output_temperatures[:, 47],
             'temperatute_int_ceiling_4': output_temperatures[:, 48],
-            'Output Heating Power': output_heating_power.flatten(),
-            'Output Cooling Power': output_cooling_power.flatten(),
-            'Output Lighting Electricity': output_lighting_electricity.flatten(),
-            'Output Equipment Electricity': output_equipment_electricity.flatten(),
+            'output_heating_power': output_heating_power.flatten(),
+            'output_cooling_power': output_cooling_power.flatten(),
+            'output_lighting_electricity': output_lighting_electricity.flatten(),
+            'output_equipment_electricity': output_equipment_electricity.flatten(),
         })
         return df_raw
+print("Simulation finished.")    
 
 # print(f"total heating power = {output_heating_power_sum} MWh")
 # print(f"total cooling power = {output_cooling_power_sum} MWh")

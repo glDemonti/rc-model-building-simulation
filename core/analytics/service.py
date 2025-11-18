@@ -19,8 +19,8 @@ class AnalyticsService:
             )
         
         # TODO: add Timestep computation if needed
-        dt_hours = None
-
+        # dt_hours = (df_raw["datetime"].iloc[1]-df_raw["datetime"].iloc[0]).total_seconds() / 3600
+        dt_hours = 1.0  # timestep of 1h
         # build context
         context = SimulationContext(
             project_id=project_id,

@@ -50,12 +50,14 @@ def _deep_set(d, path, value):
     cur[parts[-1]] = value
     return out
 
+
 def _deep_get(d, path):
     cur = d
     parts = path.split(".")
     for k in parts:
         cur = cur[k]
     return cur
+
 
 def _push_inputs_from_cfg():
     # Push current cfg_state values to input fields
@@ -66,11 +68,14 @@ def _push_inputs_from_cfg():
         except Exception:
             # if a field cannot be updated, skip it
             pass
+
+
 def _refresh_schedules_from_cfg():
     cur = cfg_state()
     schedule_occupancy.set(_schedule_df_from_cfg(cur, 'occupancy_schedule'))
     schedule_lighting.set(_schedule_df_from_cfg(cur, 'lighting_schedule'))
     schedule_equipment.set(_schedule_df_from_cfg(cur, 'equipment_schedule'))
+
 
 BINDINGS = {
     "unshaded_glazing_area_n": ("building_geometry.windows.north.unshaded_glazing_area.expression", str),
@@ -208,6 +213,7 @@ def _safe_grid_row_or_cfg(grid_fn, row_name: str, cfg: dict, cfg_path_expr: str)
         # 5) all other cases: clearly name
         keys = list(cfg.keys())
         raise ValueError(f"{cfg_path_expr} hat Typ {type(cur).__name__}, erwartet list oder dict")
+
 
 # reactive schedules
 schedule_occupancy = reactive.Value(_schedule_df_from_cfg(cfg0, 'occupancy_schedule'))
