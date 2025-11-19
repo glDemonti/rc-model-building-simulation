@@ -42,7 +42,7 @@ class AnalyticsService:
             results = adapter.compute(context)
 
             df_summary = results.get("summary")
-            if df_summary is not None:
+            if df_summary is not None and not df_summary.empty:
                 all_summaries.append(df_summary)
 
         if all_summaries:

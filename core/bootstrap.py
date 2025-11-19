@@ -31,6 +31,11 @@ def create_facade(project_id: str) ->ConfigFacade:
     adapters = [
         HeatingCoolingSummaryAdapter(),
     ]
+    analytics = AnalyticsService(
+        config_repo=repo,
+        result_repo=result_repo,
+        adapters=adapters
+        )
     
     return ConfigFacade(
         repo=repo,
@@ -39,6 +44,6 @@ def create_facade(project_id: str) ->ConfigFacade:
         validator=ConfigValidator(schema_path=str(schema)),
         mapper=ModelMapper(),
         result=result_repo,
-        analytics=AnalyticsService(config_repo=repo, result_repo=result_repo, adapters=adapters)
+        analytics=analytics
     )
 

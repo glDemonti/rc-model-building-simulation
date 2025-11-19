@@ -384,6 +384,18 @@ with ui.nav_panel("Simulationsresultate"):
         # with ui.card():
                  
     with ui.card():
+        ui.card_header("Debug: Summary Heizung/Kühlung Variante A")
+
+        @render.data_frame
+        def debug_summary_A():
+            df = summary_A()
+            if df is None:
+                return pd.DataFrame({"Info": ["Summary noch nicht verfügbar. Bitte Simulation starten."]})
+            if isinstance(df,  pd.DataFrame) and df.empty:
+                return pd.DataFrame({"Info": ["Summary ist leer. Möglicherweise ist ein Fehler aufgetreten."]})
+            return df
+
+    with ui.card():
 
         @render_plotly
         def plot_temperatures():
