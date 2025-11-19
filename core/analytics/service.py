@@ -50,7 +50,9 @@ class AnalyticsService:
         else:
             summary_df = pd.DataFrame()
 
+
         return {
             "context": context,
             "summary": summary_df,
         }
+    

@@ -13,7 +13,7 @@ class HeatingCoolingSummaryAdapter(BaseAdapter):
         self.required_raw_columns = {
             "output_heating_power",
             "output_cooling_power",
-            "datetime",
+            # "datetime",
         }
 
     def compute(self, context: SimulationContext) -> dict:
@@ -48,6 +48,5 @@ class HeatingCoolingSummaryAdapter(BaseAdapter):
         print("df_raw columns:", list(df_raw.columns))
         print("E_heating_kWh:", E_heating_kWh, "E_cooling_kWh:", E_cooling_kWh)
         print("df_summary:\n", df_summary)
-
 
         return {"summary": df_summary}

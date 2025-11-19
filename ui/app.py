@@ -323,6 +323,7 @@ df_weather = facade_A.load_weatherdata(PROJECT_ID_VAR_A)
 
 summary_A = reactive.Value(None)
 summary_B = reactive.Value(None)
+# summary_A = facade_A.get_summary(PROJECT_ID_VAR_A, "A")
 
 @reactive.effect
 def _load_initial_results():
@@ -331,6 +332,28 @@ def _load_initial_results():
         summary_B.set(facade_B.get_summary(PROJECT_ID_VAR_B, "B"))
     except RuntimeError:
         pass
+
+def get_summary_values(summary_df, *, end_use: str, metric: str, default="-"):
+    if summary_df is None:
+        return default
+    if not isinstance(summary_df, pd.DataFrame) or summary_df.empty:
+        return default
+    
+    rows = summary_df[
+        (summary_df["end_use"] == end_use) &
+        (summary_df["metric"] == metric)
+    ]
+    if rows.empty:
+        return default
+    
+    value = rows.iloc[0]["value"]
+    try:   
+        return f"{float(value):.1f}"
+    except Exception:
+        return str(value)
+
+
+
 
 # Helper: sichere Zeitachse → Millisekunden (vermeidet ns-Probleme)
 def ts_ms(series_dt):
@@ -388,13 +411,14 @@ with ui.nav_panel("Simulationsresultate"):
 
         @render.data_frame
         def debug_summary_A():
-            df = summary_A()
-            if df is None:
-                return pd.DataFrame({"Info": ["Summary noch nicht verfügbar. Bitte Simulation starten."]})
-            if isinstance(df,  pd.DataFrame) and df.empty:
-                return pd.DataFrame({"Info": ["Summary ist leer. Möglicherweise ist ein Fehler aufgetreten."]})
-            return df
-
+                df = summary_A()
+                if df is None:
+                    # Noch nix geladen
+                    return pd.DataFrame({"info": ["summary_A is None (noch nicht geladen)"]})
+                if isinstance(df, pd.DataFrame) and df.empty:
+                    return pd.DataFrame({"info": ["summary_A ist ein leerer DataFrame"]})
+                return df
+        
     with ui.card():
 
         @render_plotly
@@ -538,12 +562,19 @@ with ui.nav_panel("Simulationsresultate"):
             return fig
 
         with ui.layout_column_wrap():
+            df_summary = summary_A()
+            # heating_energy = get_summary_values(summary_A(), end_use="heating", metric="annual_demand")
+            heating_energy = 2460.7
             with ui.value_box(
                 id="value_box_heating_demand",
-                value="1234",
+                # value=heating_energy,
                 width=4,
             ):
                 "Jährlicher Heizwärmebedarf [kWh]"
+
+                @render.ui
+                def heating_energy_source():
+                    return f"${heating_energy} kWh"
 
             with ui.value_box(
                 id="value_box_cooling_demand",
