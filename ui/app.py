@@ -562,26 +562,28 @@ with ui.nav_panel("Simulationsresultate"):
             return fig
 
         with ui.layout_column_wrap():
-            df_summary = summary_A()
-            # heating_energy = get_summary_values(summary_A(), end_use="heating", metric="annual_demand")
-            heating_energy = 2460.7
             with ui.value_box(
                 id="value_box_heating_demand",
                 # value=heating_energy,
                 width=4,
             ):
-                "Jährlicher Heizwärmebedarf [kWh]"
+                "Jährlicher Heizwärmebedarf"
 
-                @render.ui
-                def heating_energy_source():
-                    return f"${heating_energy} kWh"
+                @render.text
+                def heating_energy_value():
+                    value_energy_h = get_summary_values(summary_A(), end_use="heating", metric="energy_year")
+                    return f"{value_energy_h} kWh"
 
             with ui.value_box(
                 id="value_box_cooling_demand",
-                value="567",
                 width=4,
             ):
-                "Jährlicher Kühlbedarf [kWh]"
+                "Jährlicher Kühlbedarf"
+
+                @render.text
+                def cooling_energy_value():
+                    value = get_summary_values(summary_A(), end_use="cooling", metric="energy_year")
+                    return f"{value} kWh"
 
             with ui.value_box(
                 id="value_box_max_heating_power",
