@@ -419,6 +419,16 @@ with ui.nav_panel("Simulationsresultate"):
                     return pd.DataFrame({"info": ["summary_A ist ein leerer DataFrame"]})
                 return df
         
+        @render.data_frame
+        def debug_summary_B():
+                df = summary_B()
+                if df is None:
+                    # Noch nix geladen
+                    return pd.DataFrame({"info": ["summary_B is None (noch nicht geladen)"]})
+                if isinstance(df, pd.DataFrame) and df.empty:
+                    return pd.DataFrame({"info": ["summary_B ist ein leerer DataFrame"]})
+                return df
+        
     with ui.card():
 
         @render_plotly
@@ -590,7 +600,10 @@ with ui.nav_panel("Simulationsresultate"):
                 width=4,
             ):
                 "Maximale Heizleistung [W]"
-                1234
+                @render.text
+                def max_heating_power_value():
+                    value = get_summary_values(summary_A(), end_use="heating", metric="power_max")
+                    return f"{value} kW"
                 "am 15.01.2023 14:00"
 
             with ui.value_box(
@@ -598,7 +611,10 @@ with ui.nav_panel("Simulationsresultate"):
                 width=4,
             ):
                 "Maximale Kühlleistung [W]"
-                567
+                @render.text
+                def max_cooling_power_value():
+                    value = get_summary_values(summary_A(), end_use="cooling", metric="power_max")
+                    return f"{value} kW"                
                 "am 15.01.2023 14:00"
 
             with ui.value_box(
@@ -617,17 +633,23 @@ with ui.nav_panel("Simulationsresultate"):
 
             with ui.value_box(
                 id="value_box_total_energy_costs_heating",
-                value="234.56",
                 width=4,
             ):
-                "Jährliche Stromkosten Heizung [CHF]"
+                "Jährliche Stromkosten Heizung"
+                @render.text
+                def total_energy_costs_heating_value():
+                    value = get_summary_values(summary_A(), end_use="heating", metric="costs_year")
+                    return f"{value} CHF"
 
             with ui.value_box(
                 id="value_box_total_energy_costs_cooling",
-                value="345.67",
                 width=4,
             ):
-                "Jährliche Stromkosten Kühlung [CHF]"
+                "Jährliche Stromkosten Kühlung"
+                @render.text
+                def total_energy_costs_cooling_value():
+                    value = get_summary_values(summary_A(), end_use="cooling", metric="costs_year")
+                    return f"{value} CHF"
 
 
 
