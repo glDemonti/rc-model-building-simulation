@@ -333,13 +333,14 @@ def _load_initial_results():
     except RuntimeError:
         pass
 
-def get_summary_values(summary_df, *, end_use: str, metric: str, default="-"):
+def get_summary_values(summary_df, *,variant: str, end_use: str, metric: str, default="-"):
     if summary_df is None:
         return default
     if not isinstance(summary_df, pd.DataFrame) or summary_df.empty:
         return default
     
     rows = summary_df[
+        (summary_df["variant"] == variant) &
         (summary_df["end_use"] == end_use) &
         (summary_df["metric"] == metric)
     ]
@@ -570,6 +571,8 @@ with ui.nav_panel("Simulationsresultate"):
                 yaxis_title="Leistung [W]",
                 )
             return fig
+        
+        
 
         with ui.layout_column_wrap():
             with ui.value_box(
@@ -581,7 +584,7 @@ with ui.nav_panel("Simulationsresultate"):
 
                 @render.text
                 def heating_energy_value():
-                    value_energy_h = get_summary_values(summary_A(), end_use="heating", metric="energy_year")
+                    value_energy_h = get_summary_values(summary_A(), variant="A", end_use="heating", metric="energy_year")
                     return f"{value_energy_h} kWh"
 
             with ui.value_box(
@@ -592,7 +595,7 @@ with ui.nav_panel("Simulationsresultate"):
 
                 @render.text
                 def cooling_energy_value():
-                    value = get_summary_values(summary_A(), end_use="cooling", metric="energy_year")
+                    value = get_summary_values(summary_A(), variant="A", end_use="cooling", metric="energy_year")
                     return f"{value} kWh"
 
             with ui.value_box(
@@ -602,7 +605,7 @@ with ui.nav_panel("Simulationsresultate"):
                 "Maximale Heizleistung [W]"
                 @render.text
                 def max_heating_power_value():
-                    value = get_summary_values(summary_A(), end_use="heating", metric="power_max")
+                    value = get_summary_values(summary_A(), variant="A", end_use="heating", metric="power_max")
                     return f"{value} kW"
                 "am 15.01.2023 14:00"
 
@@ -613,7 +616,7 @@ with ui.nav_panel("Simulationsresultate"):
                 "Maximale Kühlleistung [W]"
                 @render.text
                 def max_cooling_power_value():
-                    value = get_summary_values(summary_A(), end_use="cooling", metric="power_max")
+                    value = get_summary_values(summary_A(), variant="A", end_use="cooling", metric="power_max")
                     return f"{value} kW"                
                 "am 15.01.2023 14:00"
 
@@ -638,7 +641,7 @@ with ui.nav_panel("Simulationsresultate"):
                 "Jährliche Stromkosten Heizung"
                 @render.text
                 def total_energy_costs_heating_value():
-                    value = get_summary_values(summary_A(), end_use="heating", metric="costs_year")
+                    value = get_summary_values(summary_A, variant="A", end_use="heating", metric="costs_year")
                     return f"{value} CHF"
 
             with ui.value_box(
@@ -648,7 +651,7 @@ with ui.nav_panel("Simulationsresultate"):
                 "Jährliche Stromkosten Kühlung"
                 @render.text
                 def total_energy_costs_cooling_value():
-                    value = get_summary_values(summary_A(), end_use="cooling", metric="costs_year")
+                    value = get_summary_values(summary_A, variant="A", end_use="cooling", metric="costs_year")
                     return f"{value} CHF"
 
 
