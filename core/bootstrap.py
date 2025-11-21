@@ -31,7 +31,7 @@ def create_facade(project_id: str) ->ConfigFacade:
 
     adapters = [
         HeatingCoolingSummaryAdapter(),
-        TemperatureSummaryAdapter
+        TemperatureSummaryAdapter(),
     ]
     analytics = AnalyticsService(
         config_repo=repo,

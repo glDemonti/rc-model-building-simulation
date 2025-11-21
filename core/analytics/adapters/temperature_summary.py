@@ -17,7 +17,7 @@ class TemperatureSummaryAdapter(BaseAdapter):
 
     def compute(self, context: SimulationContext) -> dict:
         df_raw = context.df_raw
-        dt_hours =  context.dt_hours
+        dt_hours = context.dt_hours
         cfg = context.cfg
         project_id = context.project_id
         variant_id = context.variant_id
