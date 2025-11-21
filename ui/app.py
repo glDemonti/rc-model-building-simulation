@@ -598,11 +598,14 @@ with ui.nav_panel("Simulationsresultate"):
         
         with ui.layout_column_wrap():
             with ui.value_box(
-                id="value_box_overheating_hours",
-                value="123",
+                id="value_box_overheating_hours_A",
                 width=4,
             ):
                 "Überhitzungsstunden [h]"
+                @render.text
+                def overheating_hour_value():
+                    value_overheating = get_summary_values(summary_all(), variant="A", end_use="temperature", metric="overheating_hours")
+                    return value_overheating
 
     with ui.card():
         @render_widget
