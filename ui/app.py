@@ -333,14 +333,64 @@ def _load_initial_results():
     except RuntimeError:
         pass
 
-def get_summary_values(summary_df, *,variant: str, end_use: str, metric: str, default="-"):
+summary_all = reactive.Value(None)
+
+@reactive.effect
+def _compute_combined_summary():
+    a = summary_A()
+    b = summary_B()
+
+    if a is None and b is None:
+        summary_all.set(None)
+        return
+    
+    dfs = []
+    # Variant A
+    if isinstance(a, pd.DataFrame) and not a.empty:
+        da = a.copy()
+        if 'variant_id' not in da.columns:
+            # check that all variant values are 'A'
+            if not (da['variant'] == 'A').all():
+                # preserve original vlues and force variant_id to 'A'
+                da["source_variant"] = da["variant_id"]  
+                da["variant_id"] = "A"
+                ui.notification_show("Warnung: Summary A enthält unerwartete variant-Werte.", type="warning", duration=6)
+            else:
+                # if column missing, set it to 'A'
+                da["variant_id"] = "A"
+            dfs.append(da)
+    # Variant B
+    if isinstance(b, pd.DataFrame) and not b.empty:
+        db = b.copy()
+        if 'variant_id' not in db.columns:
+            # check that all variant values are 'B'
+            if not (db['variant'] == 'B').all():
+                # preserve original vlues and force variant_id to 'B'
+                db["source_variant"] = db["variant_id"]  
+                db["variant_id"] = "B"
+                ui.notification_show("Warnung: Summary B enthält unerwartete variant-Werte.", type="warning", duration=6)
+            else:
+                # if column missing, set it to 'B'
+                db["variant_id"] = "B"
+            dfs.append(db)
+        
+    if not dfs:
+        summary_all.set(pd.DataFrame())
+        return
+
+    combined = pd.concat(dfs, ignore_index=True)
+    combined = combined.drop_duplicates().reset_index(drop=True)
+    summary_all.set(combined)
+
+
+def get_summary_values(summary_df, *, variant: str, end_use: str, metric: str, default="-"):
     if summary_df is None:
         return default
     if not isinstance(summary_df, pd.DataFrame) or summary_df.empty:
         return default
     
     rows = summary_df[
-        (summary_df["variant"] == variant) &
+        (summary_df["variant_id"] == variant) &
         (summary_df["end_use"] == end_use) &
         (summary_df["metric"] == metric)
     ]
@@ -428,6 +478,16 @@ with ui.nav_panel("Simulationsresultate"):
                     return pd.DataFrame({"info": ["summary_B is None (noch nicht geladen)"]})
                 if isinstance(df, pd.DataFrame) and df.empty:
                     return pd.DataFrame({"info": ["summary_B ist ein leerer DataFrame"]})
+                return df
+        
+        @render.data_frame
+        def debug_summary_all():
+                df = summary_all()
+                if df is None:
+                    # Noch nix geladen
+                    return pd.DataFrame({"info": ["summary_all is None (noch nicht geladen)"]})
+                if isinstance(df, pd.DataFrame) and df.empty:
+                    return pd.DataFrame({"info": ["summary_all ist ein leerer DataFrame"]})
                 return df
         
     with ui.card():
@@ -572,7 +632,15 @@ with ui.nav_panel("Simulationsresultate"):
                 )
             return fig
         
-        
+        ui.input_radio_buttons(
+            id="power_variant_selector",
+            label="Variante auswählen",
+            choices={
+                "A": "Variante A",
+                "B": "Variante B",
+            },
+            selected="A",
+        )
 
         with ui.layout_column_wrap():
             with ui.value_box(
@@ -584,7 +652,7 @@ with ui.nav_panel("Simulationsresultate"):
 
                 @render.text
                 def heating_energy_value():
-                    value_energy_h = get_summary_values(summary_A(), variant="A", end_use="heating", metric="energy_year")
+                    value_energy_h = get_summary_values(summary_A(), variant=input.power_variant_selector(), end_use="heating", metric="energy_year")
                     return f"{value_energy_h} kWh"
 
             with ui.value_box(
