@@ -44,9 +44,4 @@ class HeatingCoolingSummaryAdapter(BaseAdapter):
             {"project_id": project_id, "variant_id": variant_id, "end_use": "cooling", "metric":"costs_year", "value": anual_cooling_cost, "unit": "CHF"},
         ])
 
-        print("HeatingCoolingSummaryAdapter.compute called for", context.project_id, context.variant_id)
-        print("df_raw columns:", list(df_raw.columns))
-        print("E_heating_kWh:", E_heating_kWh, "E_cooling_kWh:", E_cooling_kWh)
-        print("df_summary:\n", df_summary)
-
         return {"summary": df_summary}

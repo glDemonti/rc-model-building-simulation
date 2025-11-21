@@ -8,6 +8,7 @@ from r_c_model.r_c_modell import RCEngine
 from core.storage.result_store import ResultRepository
 from core.analytics.service import AnalyticsService
 from core.analytics.adapters.heating_cooling_summary import HeatingCoolingSummaryAdapter
+from core.analytics.adapters.temperature_summary import TemperatureSummaryAdapter
 
 
 """
@@ -30,6 +31,7 @@ def create_facade(project_id: str) ->ConfigFacade:
 
     adapters = [
         HeatingCoolingSummaryAdapter(),
+        TemperatureSummaryAdapter
     ]
     analytics = AnalyticsService(
         config_repo=repo,
