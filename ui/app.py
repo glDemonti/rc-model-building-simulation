@@ -651,6 +651,7 @@ with ui.nav_panel("Simulationsresultate"):
                 id="value_box_heating_demand",
                 # value=heating_energy,
                 width=4,
+                sep=","
             ):
                 "Jährlicher Heizwärmebedarf"
 
