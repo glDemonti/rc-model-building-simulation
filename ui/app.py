@@ -355,10 +355,10 @@ def _compute_combined_summary():
                 da["source_variant"] = da["variant_id"]  
                 da["variant_id"] = "A"
                 ui.notification_show("Warnung: Summary A enthält unerwartete variant-Werte.", type="warning", duration=6)
-            else:
-                # if column missing, set it to 'A'
-                da["variant_id"] = "A"
-            dfs.append(da)
+        else:
+            # if column missing, set it to 'A'
+            da["variant_id"] = "A"
+        dfs.append(da)
     # Variant B
     if isinstance(b, pd.DataFrame) and not b.empty:
         db = b.copy()
@@ -369,10 +369,10 @@ def _compute_combined_summary():
                 db["source_variant"] = db["variant_id"]  
                 db["variant_id"] = "B"
                 ui.notification_show("Warnung: Summary B enthält unerwartete variant-Werte.", type="warning", duration=6)
-            else:
-                # if column missing, set it to 'B'
-                db["variant_id"] = "B"
-            dfs.append(db)
+        else:
+            # if column missing, set it to 'B'
+            db["variant_id"] = "B"
+        dfs.append(db)
         
     if not dfs:
         summary_all.set(pd.DataFrame())
@@ -381,6 +381,7 @@ def _compute_combined_summary():
     combined = pd.concat(dfs, ignore_index=True)
     combined = combined.drop_duplicates().reset_index(drop=True)
     summary_all.set(combined)
+    
 
 
 def get_summary_values(summary_df, *, variant: str, end_use: str, metric: str, default="-"):
@@ -652,7 +653,7 @@ with ui.nav_panel("Simulationsresultate"):
 
                 @render.text
                 def heating_energy_value():
-                    value_energy_h = get_summary_values(summary_A(), variant=input.power_variant_selector(), end_use="heating", metric="energy_year")
+                    value_energy_h = get_summary_values(summary_all(), variant=input.power_variant_selector(), end_use="heating", metric="energy_year")
                     return f"{value_energy_h} kWh"
 
             with ui.value_box(
@@ -663,7 +664,7 @@ with ui.nav_panel("Simulationsresultate"):
 
                 @render.text
                 def cooling_energy_value():
-                    value = get_summary_values(summary_A(), variant="A", end_use="cooling", metric="energy_year")
+                    value = get_summary_values(summary_all(), variant=input.power_variant_selector(), end_use="cooling", metric="energy_year")
                     return f"{value} kWh"
 
             with ui.value_box(
@@ -673,7 +674,7 @@ with ui.nav_panel("Simulationsresultate"):
                 "Maximale Heizleistung [W]"
                 @render.text
                 def max_heating_power_value():
-                    value = get_summary_values(summary_A(), variant="A", end_use="heating", metric="power_max")
+                    value = get_summary_values(summary_all(), variant=input.power_variant_selector(), end_use="heating", metric="power_max")
                     return f"{value} kW"
                 "am 15.01.2023 14:00"
 
@@ -684,23 +685,29 @@ with ui.nav_panel("Simulationsresultate"):
                 "Maximale Kühlleistung [W]"
                 @render.text
                 def max_cooling_power_value():
-                    value = get_summary_values(summary_A(), variant="A", end_use="cooling", metric="power_max")
+                    value = get_summary_values(summary_all(), variant=input.power_variant_selector(), end_use="cooling", metric="power_max")
                     return f"{value} kW"                
                 "am 15.01.2023 14:00"
 
             with ui.value_box(
                 id="value_box_spec_heating_load",
-                value="45.6",
                 width=4,
             ):
                 "Spezifische Heizlast [W/m²]"
+                @render.text
+                def spec_heating_load_value():
+                    value = get_summary_values(summary_all(), variant=input.power_variant_selector(), end_use="heating", metric="load_specific")
+                    return f"{value} W/m²"
 
             with ui.value_box(
                 id="value_box_spec_cooling_load",
-                value="78.9",
                 width=4,
             ):
                 "Spezifische Kühllast [W/m²]"
+                @render.text
+                def spec_cooling_load_value():
+                    value = get_summary_values(summary_all(), variant=input.power_variant_selector(), end_use="cooling", metric="load_specific")
+                    return f"{value} W/m²"
 
             with ui.value_box(
                 id="value_box_total_energy_costs_heating",
@@ -709,7 +716,7 @@ with ui.nav_panel("Simulationsresultate"):
                 "Jährliche Stromkosten Heizung"
                 @render.text
                 def total_energy_costs_heating_value():
-                    value = get_summary_values(summary_A, variant="A", end_use="heating", metric="costs_year")
+                    value = get_summary_values(summary_all(), variant=input.power_variant_selector(), end_use="heating", metric="costs_year")
                     return f"{value} CHF"
 
             with ui.value_box(
@@ -719,7 +726,7 @@ with ui.nav_panel("Simulationsresultate"):
                 "Jährliche Stromkosten Kühlung"
                 @render.text
                 def total_energy_costs_cooling_value():
-                    value = get_summary_values(summary_A, variant="A", end_use="cooling", metric="costs_year")
+                    value = get_summary_values(summary_all(), variant=input.power_variant_selector(), end_use="cooling", metric="costs_year")
                     return f"{value} CHF"
 
 
