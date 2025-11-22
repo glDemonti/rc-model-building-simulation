@@ -390,8 +390,8 @@ timeseries_all = reactive.Value(None)
 
 @reactive.effect
 def _compute_combined_timeseries():
-    a = timeseries_A
-    b = timeseries_B
+    a = timeseries_A()
+    b = timeseries_B()
 
     if a is None and b is None:
         timeseries_all.set(None)
@@ -554,7 +554,7 @@ with ui.nav_panel("Simulationsresultate"):
                 return df
         ui.card_header("Debug:Timeseries")
         @render.data_frame
-        def debug_timeseries_A():
+        def debug_timeseries_all():
             df = timeseries_all()
             if df is None:
                 # Noch nix geladen
@@ -567,7 +567,7 @@ with ui.nav_panel("Simulationsresultate"):
 
         @render_plotly
         def plot_temperatures():
-            df_temp = timeseries_A()
+            df_temp = timeseries_all()
 
             # # time stamp in ms
             # df_temp["ts_ms"] = ts_ms(df_temp["datetime"])
@@ -576,60 +576,12 @@ with ui.nav_panel("Simulationsresultate"):
                 df_temp,
                  y=[
                     "temp_air_room",
-                    # "Innenlufttemperatur", 
-                    # 'Innentemperatur Verglasung Nord',
-                    # 'Innentemperatur Verglasung Ost',
-                    # 'Innentemperatur Verglasung Süd', 
-                    # 'Innentemperatur Verglasung West',
-                    # 'Aussentemperatur Verglasung Nord',
-                    # 'Aussentemperatur Verglasung Ost',
-                    # 'Aussentemperatur Verglasung Süd',
-                    # 'Aussentemperatur Verglasung West',
-                    # 'Inenntemperatur Fensterrahmen Nord',
-                    # 'Inenntemperatur Fensterrahmen Ost',
-                    # 'Inenntemperatur Fensterrahmen Süd', 
-                    # 'Inenntemperatur Fensterrahmen West',
-                    # 'Aussentemperatur Fensterrahmen Nord',
-                    # 'Aussentemperatur Fensterrahmen Ost',
-                    # 'Aussentemperatur Fensterrahmen Süd',
-                    # 'Aussentemperatur Fensterrahmen West',
-                    # "Temperatur 1. Knoten Aussenwand Nord",
-                    # "Temperatur 1. Knoten Aussenwand Ost",
-                    # "Temperatur 1. Knoten Aussenwand Süd",
-                    # "Temperatur 1. Knoten Aussenwand West",
-                    # "Temperatur 1. Knoten Dach",
-                    # "Temperatur 1. Knoten Boden",
-                    # "Temperatur 1. Knoten Innenwand",
-                    # "Temperatur 1. Knoten Innendecke",
-                    # "Temperatur 2. Knoten Aussenwand Nord",
-                    # "Temperatur 2. Knoten Aussenwand Ost",
-                    # "Temperatur 2. Knoten Aussenwand Süd",
-                    # "Temperatur 2. Knoten Aussenwand West",
-                    # "Temperatur 2. Knoten Dach",
-                    # "Temperatur 2. Knoten Boden",
-                    # "Temperatur 2. Knoten Innenwand",
-                    # "Temperatur 2. Knoten Innendecke",
-                    # "Temperatur 3. Knoten Aussenwand Nord",
-                    # "Temperatur 3. Knoten Aussenwand Ost",
-                    # "Temperatur 3. Knoten Aussenwand Süd",
-                    # "Temperatur 3. Knoten Aussenwand West",
-                    # "Temperatur 3. Knoten Dach",
-                    # "Temperatur 3. Knoten Boden",
-                    # "Temperatur 3. Knoten Innenwand",
-                    # "Temperatur 3. Knoten Innendecke",
-                    # "Temperatur 4. Knoten Aussenwand Nord",
-                    # "Temperatur 4. Knoten Aussenwand Ost",
-                    # "Temperatur 4. Knoten Aussenwand Süd",
-                    # "Temperatur 4. Knoten Aussenwand West",
-                    # "Temperatur 4. Knoten Dach",
-                    # "Temperatur 4. Knoten Boden",
-                    # "Temperatur 4. Knoten Innenwand",
-                    # "Temperatur 4. Knoten Innendecke",
                    ],
+                   color="variant_id",
                 labels={
                     "step": "Zeitschritt", 
-                    "value": "Temperature [°C]",
-                    "variable": "Legende",
+                    "temp_air_room": "Innenlufttemperatur [°C]",
+                    "variant_id": "Variante",
                 },
                 ).update_xaxes(
                     type="date",
