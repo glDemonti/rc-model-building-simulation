@@ -323,8 +323,8 @@ df_weather = facade_A.load_weatherdata(PROJECT_ID_VAR_A)
 
 summary_A = reactive.Value(None)
 summary_B = reactive.Value(None)
-timeseries_A = reactive.value(None)
-timeseries_B = reactive.value(None)
+timeseries_A = reactive.Value(None)
+timeseries_B = reactive.Value(None)
 
 @reactive.effect
 def _load_initial_results():
@@ -332,7 +332,7 @@ def _load_initial_results():
         summary_A.set(facade_A.get_summary(PROJECT_ID_VAR_A, "A"))
         summary_B.set(facade_B.get_summary(PROJECT_ID_VAR_B, "B"))
         timeseries_A.set(facade_A.get_timeseries(PROJECT_ID_VAR_A, "A"))
-        timeseries_A.set(facade_B.get_timeseries(PROJECT_ID_VAR_B, "B"))
+        timeseries_B.set(facade_B.get_timeseries(PROJECT_ID_VAR_B, "B"))
     except RuntimeError:
         pass
 
@@ -505,7 +505,7 @@ with ui.nav_panel("Simulationsresultate"):
         ui.card_header("Debug:Timeseries")
         @render.data_frame
         def debug_timeseries_A():
-            df = facade_A.get_timeseries(PROJECT_ID_VAR_A, "A")
+            df = timeseries_A()
             if df is None:
                 # Noch nix geladen
                 return pd.DataFrame({"info": ["timeseries_A is None (noch nicht geladen)"]})
@@ -517,17 +517,14 @@ with ui.nav_panel("Simulationsresultate"):
 
         @render_plotly
         def plot_temperatures():
-            df_temp = facade_A.get_timeseries(PROJECT_ID_VAR_A, "A").copy()
-
+            df_temp = timeseries_A()
 
             # # time stamp in ms
             # df_temp["ts_ms"] = ts_ms(df_temp["datetime"])
 
             fig = px.line(
-
                 df_temp,
-                # x=[],
-                y=[
+                 y=[
                     "temp_air_room",
                     # "Innenlufttemperatur", 
                     # 'Innentemperatur Verglasung Nord',
@@ -580,7 +577,7 @@ with ui.nav_panel("Simulationsresultate"):
                     # "Temperatur 4. Knoten Innendecke",
                    ],
                 labels={
-                    "datetime": "Zeit", 
+                    "step": "Zeitschritt", 
                     "value": "Temperature [°C]",
                     "variable": "Legende",
                 },
