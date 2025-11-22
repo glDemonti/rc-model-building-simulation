@@ -386,6 +386,56 @@ def _compute_combined_summary():
     summary_all.set(combined)
     
 
+timeseries_all = reactive.Value(None)
+
+@reactive.effect
+def _compute_combined_timeseries():
+    a = timeseries_A
+    b = timeseries_B
+
+    if a is None and b is None:
+        timeseries_all.set(None)
+        return
+    
+    dfs = []
+    # Variant A
+    if isinstance(a, pd.DataFrame) and not a.empty:
+        da = a.copy()
+        if 'variant_id' not in da.columns:
+            # check that all variant values are 'A'
+            if not (da['variant'] == 'A').all():
+                # preserve original vlues and force variant_id to 'A'
+                da["source_variant"] = da["variant_id"]  
+                da["variant_id"] = "A"
+                ui.notification_show("Warnung: Summary A enthält unerwartete variant-Werte.", type="warning", duration=6)
+        else:
+            # if column missing, set it to 'A'
+            da["variant_id"] = "A"
+        dfs.append(da)
+    # Variant B
+    if isinstance(b, pd.DataFrame) and not b.empty:
+        db = b.copy()
+        if 'variant_id' not in db.columns:
+            # check that all variant values are 'B'
+            if not (db['variant'] == 'B').all():
+                # preserve original vlues and force variant_id to 'B'
+                db["source_variant"] = db["variant_id"]  
+                db["variant_id"] = "B"
+                ui.notification_show("Warnung: Summary B enthält unerwartete variant-Werte.", type="warning", duration=6)
+        else:
+            # if column missing, set it to 'B'
+            db["variant_id"] = "B"
+        dfs.append(db)
+
+    if not dfs:
+        timeseries_all.set(pd.DataFrame())
+        return
+    
+    combined = pd.concat(dfs, ignore_index=True)
+    combined = combined.drop_duplicates().reset_index(drop=True)
+    timeseries_all.set(combined)
+    
+
 
 def get_summary_values(summary_df, *, variant: str, end_use: str, metric: str, default="-"):
     """
@@ -505,13 +555,13 @@ with ui.nav_panel("Simulationsresultate"):
         ui.card_header("Debug:Timeseries")
         @render.data_frame
         def debug_timeseries_A():
-            df = timeseries_A()
+            df = timeseries_all()
             if df is None:
                 # Noch nix geladen
-                return pd.DataFrame({"info": ["timeseries_A is None (noch nicht geladen)"]})
+                return pd.DataFrame({"info": ["timeseries_all is None (noch nicht geladen)"]})
             if isinstance(df, pd.DataFrame) and df.empty:
-                return pd.DataFrame({"info": ["timeseries_A ist ein leerer DataFrame"]})
-            return df.head(20)
+                return pd.DataFrame({"info": ["timeseries_all ist ein leerer DataFrame"]})
+            return df
         
     with ui.card():
 
