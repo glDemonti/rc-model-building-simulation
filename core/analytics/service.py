@@ -56,7 +56,9 @@ class AnalyticsService:
             summary_df = pd.DataFrame()
 
         if all_timeseries:
-            timeseries_df = pd.concat(all_timeseries, ignore_index=True)
+            ts = pd.concat(all_timeseries, axis=1, join="inner")
+            ts = ts.loc[:, ~ts.columns.duplicated()]
+            timeseries_df = ts
         else:
             timeseries_df = pd.DataFrame()
 

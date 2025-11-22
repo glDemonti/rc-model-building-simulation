@@ -629,14 +629,14 @@ with ui.nav_panel("Simulationsresultate"):
     with ui.card():
         @render_widget
         def plot_cooling_heating_power():
-            df_load = facade_A.load_power_df(PROJECT_ID_VAR_A).copy()
+            df_load = timeseries_A()
 
             # time stamp in ms
-            df_load["ts_ms"] = ts_ms(df_load["datetime"])
+            # df_load["ts_ms"] = ts_ms(df_load["datetime"])
 
             fig = px.line(
                 df_load,
-                x="ts_ms",
+                # x="ts_ms",
                 y=["cooling_power", "heating_power"],
                 labels={
                     "datetime": "Zeit", 
