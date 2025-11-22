@@ -318,18 +318,21 @@ def attach_numeric_guard(
     return last_error, error_log
 
 
-df_results = facade_A.load_timeseries(PROJECT_ID_VAR_A)
+df_results = facade_A.get_timeseries(PROJECT_ID_VAR_A, "A")
 df_weather = facade_A.load_weatherdata(PROJECT_ID_VAR_A)
 
 summary_A = reactive.Value(None)
 summary_B = reactive.Value(None)
-# summary_A = facade_A.get_summary(PROJECT_ID_VAR_A, "A")
+timeseries_A = reactive.value(None)
+timeseries_B = reactive.value(None)
 
 @reactive.effect
 def _load_initial_results():
     try:
         summary_A.set(facade_A.get_summary(PROJECT_ID_VAR_A, "A"))
         summary_B.set(facade_B.get_summary(PROJECT_ID_VAR_B, "B"))
+        timeseries_A.set(facade_A.get_timeseries(PROJECT_ID_VAR_A, "A"))
+        timeseries_A.set(facade_B.get_timeseries(PROJECT_ID_VAR_B, "B"))
     except RuntimeError:
         pass
 
@@ -385,6 +388,15 @@ def _compute_combined_summary():
 
 
 def get_summary_values(summary_df, *, variant: str, end_use: str, metric: str, default="-"):
+    """
+    Funktion for extracting a single summary value from the summary DataFrame.
+    Args:
+        summary_df (pd.DataFrame): The summary DataFrame containing the results.
+        variant (str): The variant ID to filter by (e.g., "A" or "B").
+        end_use (str): The end use to filter by (e.g., "heating", "cooling", "temperature").
+        metric (str): The metric to filter by (e.g., "energy_year", "power_max", "overheating_hours").
+        default (str, optional): The default value to return if no matching entry is found. Defaults to "-".
+    """
     if summary_df is None:
         return default
     if not isinstance(summary_df, pd.DataFrame) or summary_df.empty:
@@ -490,24 +502,34 @@ with ui.nav_panel("Simulationsresultate"):
                 if isinstance(df, pd.DataFrame) and df.empty:
                     return pd.DataFrame({"info": ["summary_all ist ein leerer DataFrame"]})
                 return df
+        ui.card_header("Debug:Timeseries")
+        @render.data_frame
+        def debug_timeseries_A():
+            df = facade_A.get_timeseries(PROJECT_ID_VAR_A, "A")
+            if df is None:
+                # Noch nix geladen
+                return pd.DataFrame({"info": ["timeseries_A is None (noch nicht geladen)"]})
+            if isinstance(df, pd.DataFrame) and df.empty:
+                return pd.DataFrame({"info": ["timeseries_A ist ein leerer DataFrame"]})
+            return df.head(20)
         
     with ui.card():
 
         @render_plotly
         def plot_temperatures():
-            df_temp = facade_A.load_timeseries(PROJECT_ID_VAR_A).copy()
+            df_temp = facade_A.get_timeseries(PROJECT_ID_VAR_A, "A").copy()
 
 
-            # time stamp in ms
-            df_temp["ts_ms"] = ts_ms(df_temp["datetime"])
+            # # time stamp in ms
+            # df_temp["ts_ms"] = ts_ms(df_temp["datetime"])
 
             fig = px.line(
 
                 df_temp,
-                x="ts_ms",
+                x=[],
                 y=[
-                    "Aussenlufttemperatur",
-                    "Innenlufttemperatur", 
+                    "temp_air_room",
+                    # "Innenlufttemperatur", 
                     # 'Innentemperatur Verglasung Nord',
                     # 'Innentemperatur Verglasung Ost',
                     # 'Innentemperatur Verglasung Süd', 

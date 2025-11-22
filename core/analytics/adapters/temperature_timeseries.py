@@ -1,0 +1,28 @@
+import pandas as pd
+
+from core.analytics.context import SimulationContext
+from core.analytics.adapters.base import BaseAdapter
+
+class TemperatureTimeseriesAdapter(BaseAdapter):
+    """
+    Adapter for temperature timeseries.
+    """
+    def __init__(self):
+        super().__init__(name="temperature_timeseries", kind="timeseries")
+
+        self.required_raw_columns = {
+            # "datetime",
+            "temperature_air_room",
+        }
+
+    def compute(self, context:SimulationContext) -> dict:
+        df_raw = context.df_raw
+
+        df_ts_temp = pd.DataFrame({
+            # "datetime": df_raw["datetime"],
+            "project_id": context.project_id,
+            "varian_id": context.variant_id,
+            "temp_air_room": df_raw["temperature_air_room"]
+        })
+
+        return {"timeseries": df_ts_temp}

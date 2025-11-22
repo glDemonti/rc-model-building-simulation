@@ -30,9 +30,10 @@ class AnalyticsService:
             dt_hours=dt_hours  # Placeholder for time step, to be computed if needed
         )
 
-        # call adapters
-        # TODO: implement adapter calls if needed
+
+        # summary adapters
         all_summaries = []
+        all_timeseries = []
 
         for adapter in self._adapters:
             missing_cols = adapter.required_raw_columns - set(context.df_raw.columns)
@@ -44,15 +45,24 @@ class AnalyticsService:
             df_summary = results.get("summary")
             if df_summary is not None and not df_summary.empty:
                 all_summaries.append(df_summary)
+            
+            df_timeseries = results.get("timeseries")
+            if df_timeseries is not None and not df_timeseries.empty:
+                all_timeseries.append(df_timeseries)
 
         if all_summaries:
             summary_df = pd.concat(all_summaries, ignore_index=True)
         else:
             summary_df = pd.DataFrame()
 
+        if all_timeseries:
+            timeseries_df = pd.concat(all_timeseries, ignore_index=True)
+        else:
+            timeseries_df = pd.DataFrame()
+
 
         return {
             "context": context,
             "summary": summary_df,
+            "timeseries": timeseries_df,
         }
-    

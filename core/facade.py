@@ -79,24 +79,24 @@ class ConfigFacade:
 
         # _persist =
     
-    def load_timeseries(self, project_id: str, run_id="latest",) -> pd.DataFrame:
-        """
-        Transforms the simulationresults in to a DataFrame which contains the outsidetemperature, insidetemperature(room) , heatingpower and coolingpower.
-        the return ist a DataFram with the name  
-        """
-        # return f"Timeseries data for project {project_id}, run {run_id}."
-        # Import sim_io_mock from adapters, adjusting sys.path if necessary
-        try:
-            from adapters import sim_io_mock
-        except ModuleNotFoundError:
-            import sys, pathlib
-            ROOT = pathlib.Path(__file__).resolve().parents[1]  # repo root (one above /ui)
-            if str(ROOT) not in sys.path:
-                sys.path.insert(0, str(ROOT))
-            from adapters import sim_io_mock
+    # def load_timeseries(self, project_id: str, run_id="latest",) -> pd.DataFrame:
+    #     """
+    #     Transforms the simulationresults in to a DataFrame which contains the outsidetemperature, insidetemperature(room) , heatingpower and coolingpower.
+    #     the return ist a DataFram with the name  
+    #     """
+    #     # return f"Timeseries data for project {project_id}, run {run_id}."
+    #     # Import sim_io_mock from adapters, adjusting sys.path if necessary
+    #     try:
+    #         from adapters import sim_io_mock
+    #     except ModuleNotFoundError:
+    #         import sys, pathlib
+    #         ROOT = pathlib.Path(__file__).resolve().parents[1]  # repo root (one above /ui)
+    #         if str(ROOT) not in sys.path:
+    #             sys.path.insert(0, str(ROOT))
+    #         from adapters import sim_io_mock
 
-        df_temperatures = sim_io_mock.make_df_temperatures()
-        return df_temperatures
+    #     df_temperatures = sim_io_mock.make_df_temperatures()
+    #     return df_temperatures
 
     def load_weatherdata(self, project_id: str) -> pd.DataFrame:
         """
@@ -135,3 +135,7 @@ class ConfigFacade:
     def get_summary(self, project_id: str, variant_id: str, ):
         result = self._analytics.compute_all(project_id, variant_id)
         return result["summary"]
+    
+    def get_timeseries(self, project_id:str, variant_id: str):
+        result = self._analytics.compute_all(project_id, variant_id)
+        return result["timeseries"]

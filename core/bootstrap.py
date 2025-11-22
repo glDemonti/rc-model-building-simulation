@@ -9,6 +9,7 @@ from core.storage.result_store import ResultRepository
 from core.analytics.service import AnalyticsService
 from core.analytics.adapters.heating_cooling_summary import HeatingCoolingSummaryAdapter
 from core.analytics.adapters.temperature_summary import TemperatureSummaryAdapter
+from core.analytics.adapters.temperature_timeseries import TemperatureTimeseriesAdapter
 
 
 """
@@ -32,6 +33,8 @@ def create_facade(project_id: str) ->ConfigFacade:
     adapters = [
         HeatingCoolingSummaryAdapter(),
         TemperatureSummaryAdapter(),
+        TemperatureTimeseriesAdapter(),
+
     ]
     analytics = AnalyticsService(
         config_repo=repo,
