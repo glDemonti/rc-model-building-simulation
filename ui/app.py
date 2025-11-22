@@ -526,7 +526,7 @@ with ui.nav_panel("Simulationsresultate"):
             fig = px.line(
 
                 df_temp,
-                x=[],
+                # x=[],
                 y=[
                     "temp_air_room",
                     # "Innenlufttemperatur", 
