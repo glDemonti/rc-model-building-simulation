@@ -16,8 +16,11 @@ from core.bootstrap import create_facade # imports the connection to the midlaye
 PROJECT_ID_VAR_A = "simulation-variant-A"
 PROJECT_ID_VAR_B = "simulation-variant-B"
 
-facade_A = create_facade(PROJECT_ID_VAR_A)
-facade_B = create_facade(PROJECT_ID_VAR_B)
+VARIANT_ID_A = "A"
+VARIANT_ID_B = "B"
+
+facade_A = create_facade(PROJECT_ID_VAR_A, VARIANT_ID_A)
+facade_B = create_facade(PROJECT_ID_VAR_B, VARIANT_ID_B)
 
 cfg_A = facade_A.load_config(PROJECT_ID_VAR_A)
 cfg_B = facade_B.load_config(PROJECT_ID_VAR_B)

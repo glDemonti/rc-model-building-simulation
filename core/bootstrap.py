@@ -23,11 +23,11 @@ add this to the ui:
 
 """
 
-def create_facade(project_id: str) ->ConfigFacade:
+def create_facade(project_id: str, variant_id) -> ConfigFacade:
     Root = Path(__file__).resolve().parents[1]
     
-    cfg_file = Root / "projects" / project_id / "config" / "config.1.0.0.json"
-    schema = Root / "projects" / "schema" / "config" /"config.1.0.0.schema.json"
+    cfg_file = Root / "projects" / project_id / "config" / f"config_{variant_id}.json"
+    schema = Root / "projects" / "schema" / "config" / f"config_{variant_id}.schema.json"
     repo = ConfigRepository(str(cfg_file))
     result_repo = ResultRepository()
 

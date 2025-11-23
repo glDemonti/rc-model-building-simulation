@@ -6,7 +6,8 @@ class RCEngine:
     def __init__(self):
         pass
 
-    def run(self):
+    def run(self, params, weather_df):
+        
                 
         # =======================================================
         #  Parameters and constants for the RC model
