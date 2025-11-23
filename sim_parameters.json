@@ -118,7 +118,7 @@
                 },
                 "thickness": {
                     "inside_layer": {
-                        "explenation": "brock or concrete wall",
+                        "explenation": "brick or concrete wall",
                         "expression": "0.2",
                         "value": 0.2,
                         "unit": "m"
