@@ -168,9 +168,24 @@ class ModelMapper:
         occupancy_power_per_area = cfg["thermal_properties"]["power_input"]["occupancy_power_per_area"]["value"]
         lighting_power_per_area = cfg["thermal_properties"]["power_input"]["lighting_power_per_area"]["value"]
         equipment_power_per_area = cfg["thermal_properties"]["power_input"]["equipment_power_per_area"]["value"]
-        occupancy_schedule = np.array(cfg["thermal_properties"]["schedules"]["occupancy_schedule"])
-        lighting_schedule = np.array(cfg["thermal_properties"]["schedules"]["lighting_schedule"])
-        equipment_schedule = np.array(cfg["thermal_properties"]["schedules"]["equipment_schedule"])
+        
+        # schedules
+        hours = [f"{h:02d}:00" for h in range(24)]
+
+        occup_dict = cfg["thermal_properties"]["schedules"]["occupancy_schedule"]
+        ligh_dict = cfg["thermal_properties"]["schedules"]["lighting_schedule"]
+        equip_dict = cfg["thermal_properties"]["schedules"]["equipment_schedule"]
+
+        def schedule_to_array(raw):
+            if isinstance(raw, dict):
+                return np.array([raw[h] for h in hours], dtype=float)
+            else:
+                # Liste o.ä.
+                return np.array(raw, dtype=float)
+        
+        occupancy_schedule = schedule_to_array(occup_dict)
+        lighting_schedule = schedule_to_array(ligh_dict)
+        equipment_schedule = schedule_to_array(equip_dict)
 
 
         # simulation parameters
