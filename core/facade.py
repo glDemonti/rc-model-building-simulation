@@ -59,7 +59,7 @@ class ConfigFacade:
         """
         cfg = self._repo.read_raw()
 
-        rc_params = self._mapper.to_rc_params(cfg)
+        rc_params = self._mapper.to_model_params(cfg)
         # start simulation
         df_raw = self._engine.run(rc_params)
         

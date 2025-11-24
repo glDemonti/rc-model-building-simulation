@@ -83,8 +83,8 @@ class RCParams:
 
     # simulation parameters
     time_step: float
-    h_internal: float
-    h_external: float
+    surf_htc_in: float
+    surf_htc_out: float
     heating_setpoint: float
     cooling_setpoint: float
 
@@ -93,7 +93,7 @@ class ModelMapper:
     def __init__(self) -> None:
         pass
 
-    def to_model_parms(self, cfg: dict) -> RCParams:
+    def to_model_params(self, cfg: dict) -> RCParams:
 
         # building poperties
         unshaded_glazing_area_n = cfg["building_geometry"]["windows"]["north"]["unshaded_glazing_area"]["value"]
@@ -176,8 +176,8 @@ class ModelMapper:
         # simulation parameters
 
         time_step = cfg["simulation_parameters"]["time_step"]["value"]
-        h_internal = cfg["simulation_parameters"]["surface_heat_transfer_internal"]["value"]
-        h_external = cfg["simulation_parameters"]["surface_heat_transfer_external"]["value"]
+        surf_htc_in = cfg["simulation_parameters"]["surface_heat_transfer_internal"]["value"]
+        surf_htc_out = cfg["simulation_parameters"]["surface_heat_transfer_external"]["value"]
         heating_setpoint = cfg["simulation_parameters"]["heating_setpoint"]["value"]
         cooling_setpoint = cfg["simulation_parameters"]["cooling_setpoint"]["value"]
 
@@ -256,8 +256,8 @@ class ModelMapper:
             lighting_schedule=lighting_schedule,
             equipment_schedule=equipment_schedule,
             time_step=time_step,
-            h_internal=h_internal,
-            h_external=h_external,
+            surf_htc_in=surf_htc_in,
+            surf_htc_out=surf_htc_out,
             heating_setpoint=heating_setpoint,
             cooling_setpoint=cooling_setpoint,
         )

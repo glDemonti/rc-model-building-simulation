@@ -25,55 +25,55 @@ class RCEngine:
         unshaded_glazing_area_w = params.unshaded_glazing_area_w  # West facade   [m²]
 
         # shaded glazing area (under permanent obstacles like balconies)
-        shaded_glazing_area_n = 0.0 # North facade  [m²]
-        shaded_glazing_area_e = 0.825 * (1.98 * 2) # East facade   [m²]
-        shaded_glazing_area_s = 0.825 * (1.73 * 4 + 5.18 * 4 + 1.98 * 8 + 2.07 * 2) # South facade  [m²]
-        shaded_glazing_area_w = 0.825 * (2.07 * 2) # West facade   [m²]
+        shaded_glazing_area_n = params.shaded_glazing_area_n  # North facade  [m²]
+        shaded_glazing_area_e = params.shaded_glazing_area_e  # East facade   [m²]
+        shaded_glazing_area_s = params.shaded_glazing_area_s  # South facade  [m²]
+        shaded_glazing_area_w = params.shaded_glazing_area_w  # West facade   [m²]
 
         # unshaded window frame area (without permanent obstacles like balcony)
-        unshaded_frame_area_n = 0.175 * (2.3 * 12 + 1.2 * 6 + 3 * 2.07)   # North facade  [m²]
-        unshaded_frame_area_e = 0.175 * (3.45 * 3 + 2.3 * 3 + 1.98 * 1)   # East facade   [m²]
-        unshaded_frame_area_s = 0.175 * (1.73 * 2 + 5.18 * 2 + 1.98 * 4 + 1.2 * 6 + 2.07 * 1)  # South facade  [m²]
-        unshaded_frame_area_w = 0.175 * (3.45 * 3 + 2.3 * 3 + 2.07 * 1)  # West facade   [m²]
+        unshaded_frame_area_n = params.unshaded_frame_area_n  # North facade  [m²]
+        unshaded_frame_area_e = params.unshaded_frame_area_e  # East facade   [m²]
+        unshaded_frame_area_s = params.unshaded_frame_area_s  # South facade  [m²]
+        unshaded_frame_area_w = params.unshaded_frame_area_w  # West facade   [m²]
 
         # shaded window frame area (under permanent obstacles like balconies)
-        shaded_frame_area_n = 0.0  # North facade  [m²]
-        shaded_frame_area_e = 0.175 * (1.98 * 2)  # East facade   [m²]
-        shaded_frame_area_s = 0.175 * (1.73 * 4 + 5.18 * 4 + 1.98 * 8 + 2.07 * 2)   # South facade  [m²]
-        shaded_frame_area_w = 0.175 * (2.07 * 2)  # West facade   [m²]
+        shaded_frame_area_n = params.shaded_frame_area_n  # North facade  [m²]
+        shaded_frame_area_e = params.shaded_frame_area_e  # East facade   [m²]
+        shaded_frame_area_s = params.shaded_frame_area_s  # South facade  [m²]
+        shaded_frame_area_w = params.shaded_frame_area_w  # West facade   [m²]
 
         # total glazing area
-        glazing_area_n = unshaded_glazing_area_n + shaded_glazing_area_n  # North facade  [m²]
-        glazing_area_e = unshaded_glazing_area_e + shaded_glazing_area_e  # East facade   [m²]
-        glazing_area_s = unshaded_glazing_area_s + shaded_glazing_area_s  # South facade  [m²]
-        glazing_area_w = unshaded_glazing_area_w + shaded_glazing_area_w  # West facade   [m²]
+        glazing_area_n = params.glazing_area_n  # North facade  [m²]
+        glazing_area_e = params.glazing_area_e  # East facade   [m²]
+        glazing_area_s = params.glazing_area_s  # South facade  [m²]
+        glazing_area_w = params.glazing_area_w  # West facade   [m²]
 
         # total window frame area
-        frame_area_n = unshaded_frame_area_n + shaded_frame_area_n  # North facade  [m²]
-        frame_area_e = unshaded_frame_area_e + shaded_frame_area_e  # East facade   [m²]
-        frame_area_s = unshaded_frame_area_s + shaded_frame_area_s  # South facade  [m²]
-        frame_area_w = unshaded_frame_area_w + shaded_frame_area_w  # West facade   [m²]
+        frame_area_n = params.frame_area_n  # North facade  [m²]
+        frame_area_e = params.frame_area_e  # East facade   [m²]
+        frame_area_s = params.frame_area_s  # South facade  [m²]
+        frame_area_w = params.frame_area_w  # West facade   [m²]
 
         # areas of external walls (excluding glazings and frames)
-        wall_area_n = 2.5 * 3 * (32.6 + 1.6 - 6.0) - glazing_area_n - frame_area_n # North facade [m^2], excluding glazings
-        wall_area_e = 2.5 * 3 * 14.0 - glazing_area_e - frame_area_e # East facade [m^2], excluding glazings
-        wall_area_s = 2.5 * 3 * (32.6 + 1.6) - glazing_area_s - frame_area_s # South facade [m^2], excluding glazings
-        wall_area_w = 2.5 * 3 * 14.0 - glazing_area_w - frame_area_w # West facade [m^2], excluding glazings
+        wall_area_n = params.wall_area_n   # North facade [m^2], excluding glazings
+        wall_area_e = params.wall_area_e   # East facade [m^2], excluding glazings
+        wall_area_s = params.wall_area_s   # South facade [m^2], excluding glazings
+        wall_area_w = params.wall_area_w   # West facade [m^2], excluding glazings
 
         # areas of roof against unheated or ambiency     todo: check if correct
-        roof_area = 313.8       # Roof area [m²] excluding roof windows
+        roof_area = params.roof_area       # Roof area [m²] excluding roof windows
 
         # area of a floor against unheated or ground
-        floor_area = 313.8      # Floor area [m²]
+        floor_area = params.floor_area      # Floor area [m²]
 
         # area of internal walls
-        int_wall_area =  (72.975 + 91.9 + 2.0 *19.75) * 3.0     # Internal wall area [m²] (both sides should be present)
+        int_wall_area = params.int_wall_area       # Internal wall area [m²] (both sides should be present)
 
         # area of internal ceilings / floors
-        int_ceiling_area = 313.8 * 2.0 * 2.0     # Internal ceiling area [m²] (both sides should be present)
+        int_ceiling_area = params.int_ceiling_area     # Internal ceiling area [m²] (both sides should be present)
 
         # area of walls against unheated zones like staircases
-        wall_against_unheated_area = (21.5 + 12.5 + 5.3) * 3.0  # Wall area against unheated zones [m²]
+        wall_against_unheated_area = params.wall_against_unheated_area  # Wall area against unheated zones [m²]
 
         # orientation vectors of walls
         surface_vector_north = np.array([0, 1, 0])   # North facade
@@ -84,7 +84,7 @@ class RCEngine:
         # todo: make it with Pandas DataFrame? or a multipl vactor array?
 
         # height of the building (needed for air temperature calculations)
-        building_height = 2.5 * 3  # Height of the building [m]
+        building_height = params.building_height  # Height of the building [m]
 
         # summ of all areas of all constructions, excluding walls against unheated zones
         total_area_constructions = (glazing_area_n + glazing_area_e + glazing_area_s + glazing_area_w +
@@ -98,41 +98,41 @@ class RCEngine:
         # ------------------------------------------------------
 
         # Thermal Properties of window components
-        glazing_u_value = 0.7       # U-value of glazing [W/m²K]
-        glazing_g_value = 0.45      # g-value of glazing (fraction of solar radiation transmitted into the building) []
-        shading_g_value_reduction_factor = 0.14  # Reduction factor of g-value due to shading (e.g. balconies) []
-        frame_u_value = 2.0         # U-value of window frame [W/m²K]
+        glazing_u_value = params.glazing_u_value       # U-value of glazing [W/m²K]
+        glazing_g_value = params.glazing_g_value      # g-value of glazing (fraction of solar radiation transmitted into the building) []
+        shading_g_value_reduction_factor = params.shading_g_value_reduction_factor  # Reduction factor of g-value due to shading (e.g. balconies) []
+        frame_u_value = params.frame_u_value         # U-value of window frame [W/m²K]
 
         # Thermal properties of opaque building components
-        wall_against_unheated_u_value = 1 / (2 / 8.0 + 0.17 / 0.79) # u-value of Wall against unheated zones [W/m²K]
+        wall_against_unheated_u_value = params.wall_against_unheated_u_value # u-value of Wall against unheated zones [W/m²K]
 
         # Thermal properties of inside layers of building components
-        wall_inside_lambda = 1.8 
-        roof_inside_lambda = 1.8
-        floor_inside_lambda = 1.8
+        wall_inside_lambda = params.wall_inside_lambda 
+        roof_inside_lambda = params.roof_inside_lambda
+        floor_inside_lambda = params.floor_inside_lambda
 
         # capacity density of inside layers of building components. (rho * c) [J/m³K]
-        wall_inside_capacity_density = 2400 * 1100
-        roof_inside_capacity_density = 2400 * 1100
-        floor_inside_capacity_density = 2400 * 1100
+        wall_inside_capacity_density = params.wall_inside_capacity_density
+        roof_inside_capacity_density = params.roof_inside_capacity_density
+        floor_inside_capacity_density = params.floor_inside_capacity_density
 
         # thermal properties of outside layers of building components 
-        wall_outside_lambda = 0.031
-        roof_outside_lambda = 0.02
-        floor_outside_lambda = 0.03
+        wall_outside_lambda = params.wall_outside_lambda
+        roof_outside_lambda = params.roof_outside_lambda
+        floor_outside_lambda = params.floor_outside_lambda
 
         # capacity density of outside layers of building components. (rho * c) [J/m³K]
-        wall_outside_capacity_density = 16 * 1400
-        roof_outside_capacity_density = 30 * 1400
-        floor_outside_capacity_density = 18 * 1400
+        wall_outside_capacity_density = params.wall_outside_capacity_density
+        roof_outside_capacity_density = params.roof_outside_capacity_density
+        floor_outside_capacity_density = params.floor_outside_capacity_density
 
         # thermal properties of internal building components
-        int_wall_lambda = 0.79
-        int_ceiling_lambda = 1.8
+        int_wall_lambda = params.int_wall_lambda
+        int_ceiling_lambda = params.int_ceiling_lambda
 
         # capacity density of internal building components. (rho * c) [J/m³K]
-        int_wall_capacity_density = 1070.0 * 850.0
-        int_ceiling_capacity_density = 2400.0 * 1100.0
+        int_wall_capacity_density = params.int_wall_capacity_density
+        int_ceiling_capacity_density = params.int_ceiling_capacity_density
         # endregion
 
         # ------------------------------------------------------
@@ -140,20 +140,20 @@ class RCEngine:
         # ------------------------------------------------------
 
         # thickness of layers of outside walls
-        wall_inside_thickness = 0.2  # thickness of inside layer of walls (brick) [m]
-        wall_outside_thickness = 0.1  # thickness of outside layer of walls (insulation) [m]
+        wall_inside_thickness = params.wall_inside_thickness  # thickness of inside layer of walls (brick) [m]
+        wall_outside_thickness = params.wall_outside_thickness  # thickness of outside layer of walls (insulation) [m]
 
         # thickness of layers of outside roof
-        roof_inside_thickness = 0.25  # thickness of inside layer of roof (concrete) [m]
-        roof_outside_thickness = 0.1   # thickness of outside layer of roof (insulation) [m]
+        roof_inside_thickness = params.roof_inside_thickness  # thickness of inside layer of roof (concrete) [m]
+        roof_outside_thickness = params.roof_outside_thickness   # thickness of outside layer of roof (insulation) [m]
 
         # thickness of layers of floor against unheated zones or ground
-        floor_inside_thickness = 0.3   # thickness of inside layer of floor (concrete) [m]
-        floor_outside_thickness = 0.08  # thickness of outside layer of floor (insulation) [m]
+        floor_inside_thickness = params.floor_inside_thickness   # thickness of inside layer of floor (concrete) [m]
+        floor_outside_thickness = params.floor_outside_thickness  # thickness of outside layer of floor (insulation) [m]
 
         # thickness of layers of internal walls
-        int_wall_thickness = 0.17       # thickness of internal walls (drywall) [m]
-        int_ceiling_thickness = 0.3654  # thickness of internal ceiling (drywall) [m]
+        int_wall_thickness = params.int_wall_thickness       # thickness of internal walls (drywall) [m]
+        int_ceiling_thickness = params.int_ceiling_thickness  # thickness of internal ceiling (drywall) [m]
 
         # endregion
 
@@ -161,14 +161,14 @@ class RCEngine:
         # region: Building thermal parameters
         # ------------------------------------------------------
         # total infiltration rate of the building
-        infiltration_rate = 0.194444 * 0.001 * floor_area * 3.0
+        infiltration_rate = params.infiltration_rate_specific * floor_area # [1/h]
 
         # ventilation rate of the building (assumed to be always on)
-        air_ventilation_rate = 0.278 * 0.001 * floor_area * 3.0  # [m³/s]
-        heat_exchanger_efficiency = 0.0  # efficiency of heat exchanger in ventilation system []
+        air_ventilation_rate = params.air_ventilation_rate_specific * floor_area  # [m³/s]
+        heat_exchanger_efficiency = params.heat_exchanger_efficiency  # efficiency of heat exchanger in ventilation system []
 
         # thermal bridges
-        thermal_bridges = 123.4 # thermal bridges [W/K]
+        thermal_bridges = params.thermal_bridges  # thermal bridges [W/K]
 
         # difference power input [W] 
         occupancy_power = 70.0 * 0.033 * floor_area * 3.0
@@ -176,9 +176,10 @@ class RCEngine:
         equipment_power = 8.0 * floor_area * 3.0
 
         # shedules [0..1] for occupancy, lighting and equipment (24 values for 24 hours)
-        occupancy_schedule = np.array([1, 1, 1, 1, 1, 1, 0.6, 0.4, 0, 0, 0, 0, 0.8, 0.4, 0, 0, 0, 0.4, 0.8, 0.8, 0.8, 1, 1, 1])
-        lighting_schedule = np.array([0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0])
-        equipment_schedule = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.8, 0.2, 0.1, 0.1, 0.1, 0.1, 0.8, 0.2, 0.1, 0.1, 0.1, 0.2, 0.8, 1.0, 0.2, 0.2, 0.2, 0.1])
+        occupancy_schedule = params.occupancy_schedule
+        lighting_schedule = params.lighting_schedule
+        equipment_schedule = params.equipment_schedule
+
 
         # todo: change description of comments for better understanding
 
@@ -320,17 +321,17 @@ class RCEngine:
         # ------------------------------------------------------
 
         # simulation time step
-        time_step = 5 * 60  # [s]
+        time_step = params.time_step  # [s]
 
         # surface heat transfer coefficients of internal surfaces
-        surf_htc_in =  4.5  # internal surface heat transfer coefficient [W/m²K]
+        surf_htc_in =  params.surf_htc_in  # internal surface heat transfer coefficient [W/m²K]
 
         # surface heat transfer coefficients of external surfaces
-        surf_htc_out = 23.0  # external surface heat transfer coefficient [W/m²K]
+        surf_htc_out = params.surf_htc_out  # external surface heat transfer coefficient [W/m²K]
 
         # heating and cooling setpoints
-        heating_setpoint = 21.0  # heating setpoint temperature [°C]
-        cooling_setpoint = 26.0  # cooling setpoint temperature [°C]
+        heating_setpoint = params.heating_setpoint  # heating setpoint temperature [°C]
+        cooling_setpoint = params.cooling_setpoint  # cooling setpoint temperature [°C]
 
         # distribution of internal heat gains to air and building constructions
         int_heat_gain_to_air_coef = 0.6
