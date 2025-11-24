@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import numpy as np
 
 
 @dataclass
@@ -76,14 +77,14 @@ class RCParams:
     occupancy_power_per_area: float
     lighting_power_per_area: float
     equipment_power_per_area: float
-    occupancy_schedule: dict
-    lighting_schedule: dict
-    equipment_schedule: dict
+    occupancy_schedule: np.ndarray
+    lighting_schedule: np.ndarray
+    equipment_schedule: np.ndarray
 
     # simulation parameters
     time_step: float
-    surf_htc_in: float
-    surf_htc_out: float
+    h_internal: float
+    h_exterenal: float
     heating_setpoint: float
     cooling_setpoint: float
 
@@ -93,385 +94,171 @@ class ModelMapper:
         pass
 
     def to_model_parms(self, cfg: dict) -> RCParams:
-        sim_params = cfg.get("simulation_parameters", {})
-        therm_props = (
-            cfg.get("thermal_parameters")
-            or cfg.get("thermal_properties", {})
-        )
-        build_geom = cfg.get("building_geometry", {})
 
-        def get_nested(d, *keys, default=None):
-            cur = d
-            for k in keys:
-                if not isinstance(cur, dict) or k not in cur:
-                    return default
-                cur = cur[k]
-            return cur
+        # building poperties
+        unshaded_glazing_area_n = cfg["building_geometry"]["windows"]["north"]["unshaded_glazing_area"]["value"]
+        unshaded_glazing_area_e = cfg["building_geometry"]["windows"]["east"]["unshaded_glazing_area"]["value"]
+        unshaded_glazing_area_s = cfg["building_geometry"]["windows"]["south"]["unshaded_glazing_area"]["value"]
+        unshaded_glazing_area_w = cfg["building_geometry"]["windows"]["west"]["unshaded_glazing_area"]["value"]
+        shaded_glazing_area_n = cfg["building_geometry"]["windows"]["north"]["shaded_glazing_area"]["value"]
+        shaded_glazing_area_e = cfg["building_geometry"]["windows"]["east"]["shaded_glazing_area"]["value"]
+        shaded_glazing_area_s = cfg["building_geometry"]["windows"]["south"]["shaded_glazing_area"]["value"]
+        shaded_glazing_area_w = cfg["building_geometry"]["windows"]["west"]["shaded_glazing_area"]["value"]
+        unshaded_frame_area_n = cfg["building_geometry"]["windows"]["north"]["unshaded_frame_area"]["value"]
+        unshaded_frame_area_e = cfg["building_geometry"]["windows"]["east"]["unshaded_frame_area"]["value"]
+        unshaded_frame_area_s = cfg["building_geometry"]["windows"]["south"]["unshaded_frame_area"]["value"]
+        unshaded_frame_area_w = cfg["building_geometry"]["windows"]["west"]["unshaded_frame_area"]["value"]
+        shaded_frame_area_n = cfg["building_geometry"]["windows"]["north"]["shaded_frame_area"]["value"]
+        shaded_frame_area_e = cfg["building_geometry"]["windows"]["east"]["shaded_frame_area"]["value"]
+        shaded_frame_area_s = cfg["building_geometry"]["windows"]["south"]["shaded_frame_area"]["value"]
+        shaded_frame_area_w = cfg["building_geometry"]["windows"]["west"]["shaded_frame_area"]["value"]
+        glazing_area_n = unshaded_glazing_area_n + shaded_glazing_area_n
+        glazing_area_e = unshaded_glazing_area_e + shaded_glazing_area_e
+        glazing_area_s = unshaded_glazing_area_s + shaded_glazing_area_s
+        glazing_area_w = unshaded_glazing_area_w + shaded_glazing_area_w
+        frame_area_n = unshaded_frame_area_n + shaded_frame_area_n
+        frame_area_e = unshaded_frame_area_e + shaded_frame_area_e
+        frame_area_s = unshaded_frame_area_s + shaded_frame_area_s
+        frame_area_w = unshaded_frame_area_w + shaded_frame_area_w
+        wall_area_n = cfg["building_geometry"]["enclosure"]["outside_wall_areas"]["north"]["value"] - (glazing_area_n + frame_area_n)
+        wall_area_e = cfg["building_geometry"]["enclosure"]["outside_wall_areas"]["east"]["value"] - (glazing_area_e + frame_area_e)
+        wall_area_s = cfg["building_geometry"]["enclosure"]["outside_wall_areas"]["south"]["value"] - (glazing_area_s + frame_area_s)
+        wall_area_w = cfg["building_geometry"]["enclosure"]["outside_wall_areas"]["west"]["value"] - (glazing_area_w + frame_area_w)
+        roof_area = cfg["building_geometry"]["roof_area"]["value"]
+        floor_area = cfg["building_geometry"]["floor_area"]["value"]
+        int_wall_area = cfg["building_geometry"]["enclosure"]["int_wall_area"]["value"]
+        int_ceiling_area = cfg["building_geometry"]["enclosure"]["int_ceiling_area"]["value"]
+        wall_against_unheated_area = cfg["building_geometry"]["enclosure"]["wall_to_unheated_area"]["value"]
+        building_height = cfg["building_geometry"]["building_height"]["value"]
+        wall_inside_thickness = cfg["building_geometry"]["enclosure"]["outside_wall_areas"]["thickness"]["inside_layer"]["value"]
+        wall_outside_thickness = cfg["building_geometry"]["enclosure"]["outside_wall_areas"]["thickness"]["outside_layer"]["value"]
+        roof_inside_thickness = cfg["building_geometry"]["enclosure"]["roof_area"]["thickness"]["inside_layer"]["value"]
+        roof_outside_thickness = cfg["building_geometry"]["enclosure"]["roof_area"]["thickness"]["outside_layer"]["value"]
+        floor_inside_thickness = cfg["building_geometry"]["enclosure"]["floor_area"]["thickness"]["inside_layer"]["value"]
+        floor_outside_thickness = cfg["building_geometry"]["enclosure"]["floor_area"]["thickness"]["outside_layer"]["value"]
+        int_wall_thickness = cfg["building_geometry"]["enclosure"]["int_wall_area"]["thickness"]["value"]
+        int_ceiling_thickness = cfg["building_geometry"]["enclosure"]["int_ceiling_area"]["thickness"]["value"]
 
-        params_dict = {}
+        # thermal properties
+        glazing_u_value = cfg["thermal_properties"]["windows"]["u_value_glazing"]["value"]
+        glazing_g_value = cfg["thermal_properties"]["windows"]["g_value_glazing"]["value"]
+        shading_g_value_reduction_factor = cfg["thermal_properties"]["windows"]["shading_g_value_reduction_factor"]["value"]
+        frame_u_value = cfg["thermal_properties"]["windows"]["u_value_frame"]["value"]
+        wall_against_unheated_u_value = cfg["thermal_properties"]["enclosure"]["u_value_wall_against_unheated"]["value"]
+        wall_inside_lambda = cfg["thermal_properties"]["enclosure"]["inside_layer"]["lambda_wall_inside"]["value"]
+        roof_inside_lambda = cfg["thermal_properties"]["enclosure"]["inside_layer"]["lambda_roof_inside"]["value"]
+        floor_inside_lambda = cfg["thermal_properties"]["enclosure"]["inside_layer"]["lambda_floor_inside"]["value"]
+        wall_inside_capacity_density = cfg["thermal_properties"]["enclosure"]["inside_layer"]["capacity_density_wall_inside"]["value"]
+        roof_inside_capacity_density = cfg["thermal_properties"]["enclosure"]["inside_layer"]["capacity_density_roof_inside"]["value"]
+        floor_inside_capacity_density = cfg["thermal_properties"]["enclosure"]["inside_layer"]["capacity_density_floor_inside"]["value"]
+        wall_outside_lambda = cfg["thermal_properties"]["enclosure"]["outside_layer"]["lambda_wall_outside"]["value"]
+        roof_outside_lambda = cfg["thermal_properties"]["enclosure"]["outside_layer"]["lambda_roof_outside"]["value"]
+        floor_outside_lambda = cfg["thermal_properties"]["enclosure"]["outside_layer"]["lambda_floor_outside"]["value"]
+        wall_outside_capacity_density = cfg["thermal_properties"]["enclosure"]["outside_layer"]["capacity_density_wall_outside"]["value"]
+        roof_outside_capacity_density = cfg["thermal_properties"]["enclosure"]["outside_layer"]["capacity_density_roof_outside"]["value"]
+        floor_outside_capacity_density = cfg["thermal_properties"]["enclosure"]["outside_layer"]["capacity_density_floor_outside"]["value"]
+        int_wall_lambda = cfg["thermal_properties"]["enclosure"]["internal_walls_ceiling"]["lambda_internal_wall"]["value"]
+        int_ceiling_lambda = cfg["thermal_properties"]["enclosure"]["internal_walls_ceiling"]["lambda_internal_ceiling"]["value"]
+        int_wall_capacity_density = cfg["thermal_properties"]["enclosure"]["internal_walls_ceiling"]["capacity_density_internal_wall"]["value"]
+        int_ceiling_capacity_density = cfg["thermal_properties"]["enclosure"]["internal_walls_ceiling"]["capacity_density_internal_ceiling"]["value"]
+        infiltration_rate_specific = cfg["thermal_properties"]["infiltration_rate_specific"]["value"]
+        air_ventilation_rate_specific = cfg["thermal_properties"]["air_ventilation_rate_specific"]["value"]
+        heat_exchanger_efficiency = cfg["thermal_properties"]["heat_exchanger_efficiency"]["value"]
+        thermal_bridges = cfg["thermal_properties"]["thermal_bridges"]["value"]
+        occupancy_power_per_area = cfg["thermal_properties"]["power_input"]["occupancy_power_per_area"]["value"]
+        lighting_power_per_area = cfg["thermal_properties"]["power_input"]["lighting_power_per_area"]["value"]
+        equipment_power_per_area = cfg["thermal_properties"]["power_input"]["equipment_power_per_area"]["value"]
+        occupancy_schedule = np.array(cfg["thermal_properties"]["schedules"]["occupancy_schedule"])
+        lighting_schedule = np.array(cfg["thermal_properties"]["schedules"]["lighting_schedule"])
+        equipment_schedule = np.array(cfg["thermal_properties"]["schedules"]["equipment_schedule"])
 
-        # geometry - windows (north/east/south/west)
-        params_dict["unshaded_glazing_area_n"] = get_nested(
-            build_geom, "windows", "north", "unshaded_glazing_area", "value"
-        )
-        params_dict["unshaded_glazing_area_e"] = get_nested(
-            build_geom, "windows", "east", "unshaded_glazing_area", "value"
-        )
-        params_dict["unshaded_glazing_area_s"] = get_nested(
-            build_geom, "windows", "south", "unshaded_glazing_area", "value"
-        )
-        params_dict["unshaded_glazing_area_w"] = get_nested(
-            build_geom, "windows", "west", "unshaded_glazing_area", "value"
-        )
-
-        params_dict["shaded_glazing_area_n"] = get_nested(
-            build_geom, "windows", "north", "shaded_glazing_area", "value"
-        )
-        params_dict["shaded_glazing_area_e"] = get_nested(
-            build_geom, "windows", "east", "shaded_glazing_area", "value"
-        )
-        params_dict["shaded_glazing_area_s"] = get_nested(
-            build_geom, "windows", "south", "shaded_glazing_area", "value"
-        )
-        params_dict["shaded_glazing_area_w"] = get_nested(
-            build_geom, "windows", "west", "shaded_glazing_area", "value"
-        )
-
-        params_dict["unshaded_frame_area_n"] = get_nested(
-            build_geom, "windows", "north", "unshaded_frame_area", "value"
-        )
-        params_dict["unshaded_frame_area_e"] = get_nested(
-            build_geom, "windows", "east", "unshaded_frame_area", "value"
-        )
-        params_dict["unshaded_frame_area_s"] = get_nested(
-            build_geom, "windows", "south", "unshaded_frame_area", "value"
-        )
-        params_dict["unshaded_frame_area_w"] = get_nested(
-            build_geom, "windows", "west", "unshaded_frame_area", "value"
-        )
-
-        params_dict["shaded_frame_area_n"] = get_nested(
-            build_geom, "windows", "north", "shaded_frame_area", "value"
-        )
-        params_dict["shaded_frame_area_e"] = get_nested(
-            build_geom, "windows", "east", "shaded_frame_area", "value"
-        )
-        params_dict["shaded_frame_area_s"] = get_nested(
-            build_geom, "windows", "south", "shaded_frame_area", "value"
-        )
-        params_dict["shaded_frame_area_w"] = get_nested(
-            build_geom, "windows", "west", "shaded_frame_area", "value"
-        )
-
-        # totals
-        ug_n = params_dict.get("unshaded_glazing_area_n") or 0.0
-        sg_n = params_dict.get("shaded_glazing_area_n") or 0.0
-        params_dict["glazing_area_n"] = ug_n + sg_n
-
-        ug_e = params_dict.get("unshaded_glazing_area_e") or 0.0
-        sg_e = params_dict.get("shaded_glazing_area_e") or 0.0
-        params_dict["glazing_area_e"] = ug_e + sg_e
-
-        ug_s = params_dict.get("unshaded_glazing_area_s") or 0.0
-        sg_s = params_dict.get("shaded_glazing_area_s") or 0.0
-        params_dict["glazing_area_s"] = ug_s + sg_s
-
-        ug_w = params_dict.get("unshaded_glazing_area_w") or 0.0
-        sg_w = params_dict.get("shaded_glazing_area_w") or 0.0
-        params_dict["glazing_area_w"] = ug_w + sg_w
-
-        uf_n = params_dict.get("unshaded_frame_area_n") or 0.0
-        sf_n = params_dict.get("shaded_frame_area_n") or 0.0
-        params_dict["frame_area_n"] = uf_n + sf_n
-
-        uf_e = params_dict.get("unshaded_frame_area_e") or 0.0
-        sf_e = params_dict.get("shaded_frame_area_e") or 0.0
-        params_dict["frame_area_e"] = uf_e + sf_e
-
-        uf_s = params_dict.get("unshaded_frame_area_s") or 0.0
-        sf_s = params_dict.get("shaded_frame_area_s") or 0.0
-        params_dict["frame_area_s"] = uf_s + sf_s
-
-        uf_w = params_dict.get("unshaded_frame_area_w") or 0.0
-        sf_w = params_dict.get("shaded_frame_area_w") or 0.0
-        params_dict["frame_area_w"] = uf_w + sf_w
-
-        # enclosure areas
-        params_dict["wall_area_n"] = get_nested(
-            build_geom, "enclosure", "outside_wall_areas", "north", "value"
-        )
-        params_dict["wall_area_e"] = get_nested(
-            build_geom, "enclosure", "outside_wall_areas", "east", "value"
-        )
-        params_dict["wall_area_s"] = get_nested(
-            build_geom, "enclosure", "outside_wall_areas", "south", "value"
-        )
-        params_dict["wall_area_w"] = get_nested(
-            build_geom, "enclosure", "outside_wall_areas", "west", "value"
-        )
-        params_dict["roof_area"] = get_nested(
-            build_geom, "enclosure", "roof_area", "value"
-        )
-        params_dict["floor_area"] = get_nested(
-            build_geom, "enclosure", "floor_area", "value"
-        )
-        params_dict["int_wall_area"] = get_nested(
-            build_geom, "enclosure", "int_wall_area", "value"
-        )
-        params_dict["int_ceiling_area"] = get_nested(
-            build_geom, "enclosure", "int_ceiling_area", "value"
-        )
-        params_dict["wall_against_unheated_area"] = get_nested(
-            build_geom, "enclosure", "wall_to_unheated_area", "value"
-        )
-        params_dict["building_height"] = get_nested(
-            build_geom, "building_height", "value"
-        )
-
-        # thicknesses
-        params_dict["wall_inside_thickness"] = get_nested(
-            build_geom,
-            "enclosure",
-            "outside_wall_areas",
-            "thickness",
-            "inside_layer",
-            "value",
-        )
-        params_dict["wall_outside_thickness"] = get_nested(
-            build_geom,
-            "enclosure",
-            "outside_wall_areas",
-            "thickness",
-            "outside_layer",
-            "value",
-        )
-        params_dict["roof_inside_thickness"] = get_nested(
-            build_geom,
-            "enclosure",
-            "roof_area",
-            "thickness",
-            "inside_layer",
-            "value",
-        )
-        params_dict["roof_outside_thickness"] = get_nested(
-            build_geom,
-            "enclosure",
-            "roof_area",
-            "thickness",
-            "outside_layer",
-            "value",
-        )
-        params_dict["floor_inside_thickness"] = get_nested(
-            build_geom,
-            "enclosure",
-            "floor_area",
-            "thickness",
-            "inside_layer",
-            "value",
-        )
-        params_dict["floor_outside_thickness"] = get_nested(
-            build_geom,
-            "enclosure",
-            "floor_area",
-            "thickness",
-            "outside_layer",
-            "value",
-        )
-        
-        # thermal properties and inputs
-        params_dict["glazing_u_value"] = get_nested(
-            therm_props, "windows", "u_value_glazing", "value"
-        )
-        params_dict["glazing_g_value"] = get_nested(
-            therm_props, "windows", "g_value_glazing", "value"
-        )
-        params_dict["shading_g_value_reduction_factor"] = get_nested(
-            therm_props,
-            "windows",
-            "shading_g_value_reduction_factor",
-            "value",
-        )
-        params_dict["frame_u_value"] = get_nested(
-            therm_props, "windows", "u_value_frame", "value"
-        )
-
-        params_dict["wall_against_unheated_u_value"] = get_nested(
-            therm_props, "enclosure", "u_value_wall_against_unheated", "value"
-        )
-
-        params_dict["wall_inside_lambda"] = get_nested(
-            therm_props,
-            "enclosure",
-            "inside_layer",
-            "lambda_wall_inside",
-            "value",
-        )
-        params_dict["roof_inside_lambda"] = get_nested(
-            therm_props,
-            "enclosure",
-            "inside_layer",
-            "lambda_roof_inside",
-            "value",
-        )
-        params_dict["floor_inside_lambda"] = get_nested(
-            therm_props,
-            "enclosure",
-            "inside_layer",
-            "lambda_floor_inside",
-            "value",
-        )
-
-        params_dict["wall_inside_capacity_density"] = get_nested(
-            therm_props,
-            "enclosure",
-            "inside_layer",
-            "capacity_density_wall_inside",
-            "value",
-        )
-        params_dict["roof_inside_capacity_density"] = get_nested(
-            therm_props,
-            "enclosure",
-            "inside_layer",
-            "capacity_density_roof_inside",
-            "value",
-        )
-        params_dict["floor_inside_capacity_density"] = get_nested(
-            therm_props,
-            "enclosure",
-            "inside_layer",
-            "capacity_density_floor_inside",
-            "value",
-        )
-
-        params_dict["wall_outside_lambda"] = get_nested(
-            therm_props,
-            "enclosure",
-            "outside_layer",
-            "lambda_wall_outside",
-            "value",
-        )
-        params_dict["roof_outside_lambda"] = get_nested(
-            therm_props,
-            "enclosure",
-            "outside_layer",
-            "lambda_roof_outside",
-            "value",
-        )
-        params_dict["floor_outside_lambda"] = get_nested(
-            therm_props,
-            "enclosure",
-            "outside_layer",
-            "lambda_floor_outside",
-            "value",
-        )
-
-        params_dict["wall_outside_capacity_density"] = get_nested(
-            therm_props,
-            "enclosure",
-            "outside_layer",
-            "capacity_density_wall_outside",
-            "value",
-        )
-        params_dict["roof_outside_capacity_density"] = get_nested(
-            therm_props,
-            "enclosure",
-            "outside_layer",
-            "capacity_density_roof_outside",
-            "value",
-        )
-        params_dict["floor_outside_capacity_density"] = get_nested(
-            therm_props,
-            "enclosure",
-            "outside_layer",
-            "capacity_density_floor_outside",
-            "value",
-        )
-
-        params_dict["int_wall_lambda"] = get_nested(
-            therm_props,
-            "enclosure",
-            "internal_walls_ceiling",
-            "lambda_internal_wall",
-            "value",
-        )
-        params_dict["int_ceiling_lambda"] = get_nested(
-            therm_props,
-            "enclosure",
-            "internal_walls_ceiling",
-            "lambda_internal_ceiling",
-            "value",
-        )
-        params_dict["int_wall_capacity_density"] = get_nested(
-            therm_props,
-            "enclosure",
-            "internal_walls_ceiling",
-            "capacity_density_internal_wall",
-            "value",
-        )
-        params_dict["int_ceiling_capacity_density"] = get_nested(
-            therm_props,
-            "enclosure",
-            "internal_walls_ceiling",
-            "capacity_density_internal_ceiling",
-            "value",
-        )
-
-        params_dict["infiltration_rate_specific"] = get_nested(
-            therm_props, "infiltration_rate_specific", "value"
-        )
-        params_dict["air_ventilation_rate_specific"] = get_nested(
-            therm_props, "air_ventilation_rate_specific", "value"
-        )
-        params_dict["heat_exchanger_efficiency"] = get_nested(
-            therm_props, "heat_exchanger_efficiency", "value"
-        )
-        params_dict["thermal_bridges"] = get_nested(
-            therm_props, "thermal_bridges", "value"
-        )
-
-        params_dict["occupancy_power_per_area"] = get_nested(
-            therm_props, "power_input", "occupancy_power_per_area", "value"
-        )
-        params_dict["lighting_power_per_area"] = get_nested(
-            therm_props, "power_input", "lighting_power_per_area", "value"
-        )
-        params_dict["equipment_power_per_area"] = get_nested(
-            therm_props, "power_input", "equipment_power_per_area", "value"
-        )
-
-        # schedules
-        params_dict["occupancy_schedule"] = get_nested(
-            therm_props, "schedules", "occupancy_schedule", default={}
-        ) or {}
-        params_dict["lighting_schedule"] = get_nested(
-            therm_props, "schedules", "lighting_schedule", default={}
-        ) or {}
-        params_dict["equipment_schedule"] = get_nested(
-            therm_props, "schedules", "equipment_schedule", default={}
-        ) or {}
 
         # simulation parameters
-        params_dict["time_step"] = get_nested(sim_params, "time_step", "value")
-        params_dict["surf_htc_in"] = get_nested(
-            sim_params, "surface_heat_transfer_internal_", "value"
-        )
-        params_dict["surf_htc_out"] = get_nested(
-            sim_params, "surface_heat_transfer_external_", "value"
-        )
-        params_dict["heating_setpoint"] = get_nested(
-            sim_params, "heating_setpoint", "value"
-        )
-        params_dict["cooling_setpoint"] = get_nested(
-            sim_params, "cooling_setpoint", "value"
-        )
 
-        # ensure all dataclass fields exist in params_dict
-        for fname in RCParams.__dataclass_fields__:
-            if fname not in params_dict:
-                if fname.endswith("_schedule"):
-                    params_dict[fname] = {}
-                else:
-                    params_dict[fname] = 0.0
+        time_step = cfg["simulation_parameters"]["time_step"]["value"]
+        h_internal = cfg["simulation_parameters"]["surface_heat_transfer_internal"]["value"]
+        h_exterenal = cfg["simulation_parameters"]["surface_heat_transfer_external"]["value"]
+        heating_setpoint = cfg["simulation_parameters"]["heating_setpoint"]["value"]
+        cooling_setpoint = cfg["simulation_parameters"]["cooling_setpoint"]["value"]
 
-        return RCParams(**params_dict)
-
+        return RCParams(
+            unshaded_glazing_area_n=unshaded_glazing_area_n,
+            unshaded_glazing_area_e=unshaded_glazing_area_e,
+            unshaded_glazing_area_s=unshaded_glazing_area_s,
+            unshaded_glazing_area_w=unshaded_glazing_area_w,
+            shaded_glazing_area_n=shaded_glazing_area_n,
+            shaded_glazing_area_e=shaded_glazing_area_e,
+            shaded_glazing_area_s=shaded_glazing_area_s,
+            shaded_glazing_area_w=shaded_glazing_area_w,
+            unshaded_frame_area_n=unshaded_frame_area_n,
+            unshaded_frame_area_e=unshaded_frame_area_e,
+            unshaded_frame_area_s=unshaded_frame_area_s,
+            unshaded_frame_area_w=unshaded_frame_area_w,
+            shaded_frame_area_n=shaded_frame_area_n,
+            shaded_frame_area_e=shaded_frame_area_e,
+            shaded_frame_area_s=shaded_frame_area_s,
+            shaded_frame_area_w=shaded_frame_area_w,
+            glazing_area_n=glazing_area_n,
+            glazing_area_e=glazing_area_e,
+            glazing_area_s=glazing_area_s,
+            glazing_area_w=glazing_area_w,
+            frame_area_n=frame_area_n,
+            frame_area_e=frame_area_e,
+            frame_area_s=frame_area_s,
+            frame_area_w=frame_area_w,
+            wall_area_n=wall_area_n,
+            wall_area_e=wall_area_e,
+            wall_area_s=wall_area_s,
+            wall_area_w=wall_area_w,
+            roof_area=roof_area,
+            floor_area=floor_area,
+            int_wall_area=int_wall_area,
+            int_ceiling_area=int_ceiling_area,
+            wall_against_unheated_area=wall_against_unheated_area,
+            building_height=building_height,
+            wall_inside_thickness=wall_inside_thickness,
+            wall_outside_thickness=wall_outside_thickness,
+            roof_inside_thickness=roof_inside_thickness,
+            roof_outside_thickness=roof_outside_thickness,
+            floor_inside_thickness=floor_inside_thickness,
+            floor_outside_thickness=floor_outside_thickness,
+            int_wall_thickness=int_wall_thickness,
+            int_ceiling_thickness=int_ceiling_thickness,
+            glazing_u_value=glazing_u_value,
+            glazing_g_value=glazing_g_value,
+            shading_g_value_reduction_factor=shading_g_value_reduction_factor,
+            frame_u_value=frame_u_value,
+            wall_against_unheated_u_value=wall_against_unheated_u_value,
+            wall_inside_lambda=wall_inside_lambda,
+            roof_inside_lambda=roof_inside_lambda,
+            floor_inside_lambda=floor_inside_lambda,
+            wall_inside_capacity_density=wall_inside_capacity_density,
+            roof_inside_capacity_density=roof_inside_capacity_density,
+            floor_inside_capacity_density=floor_inside_capacity_density,
+            wall_outside_lambda=wall_outside_lambda,
+            roof_outside_lambda=roof_outside_lambda,
+            floor_outside_lambda=floor_outside_lambda,
+            wall_outside_capacity_density=wall_outside_capacity_density,
+            roof_outside_capacity_density=roof_outside_capacity_density,
+            floor_outside_capacity_density=floor_outside_capacity_density,
+            int_wall_lambda=int_wall_lambda,
+            int_ceiling_lambda=int_ceiling_lambda,
+            int_wall_capacity_density=int_wall_capacity_density,
+            int_ceiling_capacity_density=int_ceiling_capacity_density,
+            infiltration_rate_specific=infiltration_rate_specific,
+            air_ventilation_rate_specific=air_ventilation_rate_specific,
+            heat_exchanger_efficiency=heat_exchanger_efficiency,
+            thermal_bridges=thermal_bridges,
+            occupancy_power_per_area=occupancy_power_per_area,
+            lighting_power_per_area=lighting_power_per_area,
+            equipment_power_per_area=equipment_power_per_area,
+            occupancy_schedule=occupancy_schedule,
+            lighting_schedule=lighting_schedule,
+            equipment_schedule=equipment_schedule,
+            time_step=time_step,
+            h_internal=h_internal,
+            h_exterenal=h_exterenal,
+            heating_setpoint=heating_setpoint,
+            cooling_setpoint=cooling_setpoint,
+        )
+                                                                          
