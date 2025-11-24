@@ -57,9 +57,11 @@ class ConfigFacade:
     def run_simulation(self, project_id: str, variant_id: str, *, force: bool = False) -> RunReport:
         """quick and dirty implementation of start simulation
         """
-        
+        cfg = self._repo.read_raw()
+
+        rc_params = self._mapper.to_rc_params(cfg)
         # start simulation
-        df_raw = self._engine.run()
+        df_raw = self._engine.run(rc_params)
         
         self._result.save_raw(project_id, variant_id, df_raw)
 
@@ -70,8 +72,8 @@ class ConfigFacade:
             message=f"Simulation for project {project_id} and variant {variant_id} completed successfully."
         )
 
-    def latest_run(self, project_id) -> str | None:
-        return f"Latest result for project {project_id}."
+    # def latest_run(self, project_id) -> str | None:
+    #     return f"Latest result for project {project_id}."
 
         # _prepare = 
 

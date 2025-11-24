@@ -1,12 +1,13 @@
 import numpy as np
 import scipy.io as sio
 import pandas as pd
+from core.mapper import RCParams
 
 class RCEngine:
     def __init__(self):
         pass
 
-    def run(self, params, weather_df):
+    def run(self, params: RCParams,):
         
                 
         # =======================================================
@@ -18,10 +19,10 @@ class RCEngine:
         # ------------------------------------------------------
 
         # unshaded glazing area (without permanent obstacles like balconies)
-        unshaded_glazing_area_n = 0.825 * (2.3 * 12 + 1.2 * 6 + 3 * 2.07)  # North facade  [m²]
-        unshaded_glazing_area_e = 0.825 * (3.45 * 3 + 2.3 * 3 + 1.98 * 1)   # East facade   [m²]
-        unshaded_glazing_area_s = 0.825 * (1.73 * 2 + 5.18 * 2 + 1.98 * 4 + 1.2 * 6 + 2.07 * 1)  # South facade  [m²]
-        unshaded_glazing_area_w = 0.825 * (3.45 * 3 + 2.3 * 3 + 2.07 * 1)  # West facade   [m²]
+        unshaded_glazing_area_n = params.unshaded_glazing_area_n  # North facade  [m²]
+        unshaded_glazing_area_e = params.unshaded_glazing_area_e   # East facade   [m²]
+        unshaded_glazing_area_s = params.unshaded_glazing_area_s  # South facade  [m²]
+        unshaded_glazing_area_w = params.unshaded_glazing_area_w  # West facade   [m²]
 
         # shaded glazing area (under permanent obstacles like balconies)
         shaded_glazing_area_n = 0.0 # North facade  [m²]

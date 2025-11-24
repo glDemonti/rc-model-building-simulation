@@ -84,7 +84,7 @@ class RCParams:
     # simulation parameters
     time_step: float
     h_internal: float
-    h_exterenal: float
+    h_external: float
     heating_setpoint: float
     cooling_setpoint: float
 
@@ -177,7 +177,7 @@ class ModelMapper:
 
         time_step = cfg["simulation_parameters"]["time_step"]["value"]
         h_internal = cfg["simulation_parameters"]["surface_heat_transfer_internal"]["value"]
-        h_exterenal = cfg["simulation_parameters"]["surface_heat_transfer_external"]["value"]
+        h_external = cfg["simulation_parameters"]["surface_heat_transfer_external"]["value"]
         heating_setpoint = cfg["simulation_parameters"]["heating_setpoint"]["value"]
         cooling_setpoint = cfg["simulation_parameters"]["cooling_setpoint"]["value"]
 
@@ -257,7 +257,7 @@ class ModelMapper:
             equipment_schedule=equipment_schedule,
             time_step=time_step,
             h_internal=h_internal,
-            h_exterenal=h_exterenal,
+            h_external=h_external,
             heating_setpoint=heating_setpoint,
             cooling_setpoint=cooling_setpoint,
         )
