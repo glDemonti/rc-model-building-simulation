@@ -124,8 +124,8 @@ class ModelMapper:
         wall_area_e = cfg["building_geometry"]["enclosure"]["outside_wall_areas"]["east"]["value"] - (glazing_area_e + frame_area_e)
         wall_area_s = cfg["building_geometry"]["enclosure"]["outside_wall_areas"]["south"]["value"] - (glazing_area_s + frame_area_s)
         wall_area_w = cfg["building_geometry"]["enclosure"]["outside_wall_areas"]["west"]["value"] - (glazing_area_w + frame_area_w)
-        roof_area = cfg["building_geometry"]["roof_area"]["value"]
-        floor_area = cfg["building_geometry"]["floor_area"]["value"]
+        roof_area = cfg["building_geometry"]["enclosure"]["roof_area"]["value"]
+        floor_area = cfg["building_geometry"]["enclosure"]["floor_area"]["value"]
         int_wall_area = cfg["building_geometry"]["enclosure"]["int_wall_area"]["value"]
         int_ceiling_area = cfg["building_geometry"]["enclosure"]["int_ceiling_area"]["value"]
         wall_against_unheated_area = cfg["building_geometry"]["enclosure"]["wall_to_unheated_area"]["value"]

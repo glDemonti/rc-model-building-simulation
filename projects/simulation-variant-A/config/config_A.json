@@ -443,12 +443,12 @@
             "value": 300,
             "unit": "s"
         },
-        "surface_heat_transfer_internal_": {
+        "surface_heat_transfer_internal": {
             "expression": "4.5",
             "value": 4.5,
             "unit": "W/m2K"
         },
-        "surface_heat_transfer_external_": {
+        "surface_heat_transfer_external": {
             "expression": "23.0",
             "value": 23.0,
             "unit": "W/m2K"
