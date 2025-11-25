@@ -13,7 +13,7 @@ class ConfigFacade:
     """
     
     """
-    def __init__(self, repo, engine, result, evaluator=None, validator=None, mapper=None, analytics=None):
+    def __init__(self, repo, engine, result, , evaluator=None, validator=None, mapper=None, analytics=None, weather_service=None):
         self._repo = repo
         self._engine = engine
         self._evaluator = evaluator
@@ -21,6 +21,7 @@ class ConfigFacade:
         self._mapper = mapper
         self._result = result
         self._analytics = analytics
+        self._weather = weather_service
 
     def load_config(self, project_id) -> dict:
         cfg = self._repo.read_raw()
@@ -60,8 +61,10 @@ class ConfigFacade:
         cfg = self._repo.read_raw()
 
         rc_params = self._mapper.to_model_params(cfg)
+
+        weather_df = self._weather.load_weather(project_id)
         # start simulation
-        df_raw = self._engine.run(rc_params)
+        df_raw = self._engine.run(rc_params, weather_df)
         
         self._result.save_raw(project_id, variant_id, df_raw)
 

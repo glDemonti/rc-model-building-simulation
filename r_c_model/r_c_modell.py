@@ -7,7 +7,7 @@ class RCEngine:
     def __init__(self):
         pass
 
-    def run(self, params: RCParams,):
+    def run(self, params: RCParams,weather_df: pd.DataFrame):
         
                 
         # =======================================================

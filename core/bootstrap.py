@@ -11,6 +11,8 @@ from core.analytics.adapters.heating_cooling_summary import HeatingCoolingSummar
 from core.analytics.adapters.temperature_summary import TemperatureSummaryAdapter
 from core.analytics.adapters.temperature_timeseries import TemperatureTimeseriesAdapter
 from core.analytics.adapters.heating_cooling_timeseries import HeatingCoolingTimeseriesAdapter
+from core.weather_service import WeatherService
+from core.storage.weather_repo import WeatherRepository
 
 
 """
@@ -28,21 +30,24 @@ def create_facade(project_id: str, variant_id) -> ConfigFacade:
     
     cfg_file = Root / "projects" / project_id / "config" / f"config_{variant_id}.json"
     schema = Root / "projects" / "schema" / "config" / f"config_{variant_id}.schema.json"
+    # res_file = Root / "projects" / project_id / "results" / f"raw_results_{variant_id}.parquet"
+    weath_file_raw = Root / "projects" / project_id / "weather" / "raw" / "basel_dry_ver2.mat"
     repo = ConfigRepository(str(cfg_file))
     result_repo = ResultRepository()
+    weather_repo = WeatherRepository(str(weath_file_raw))
 
     adapters = [
         HeatingCoolingSummaryAdapter(),
         TemperatureSummaryAdapter(),
         TemperatureTimeseriesAdapter(),
         HeatingCoolingTimeseriesAdapter(),
-
-    ]
+        ]
     analytics = AnalyticsService(
         config_repo=repo,
         result_repo=result_repo,
         adapters=adapters
         )
+ 
     
     return ConfigFacade(
         repo=repo,
@@ -51,6 +56,7 @@ def create_facade(project_id: str, variant_id) -> ConfigFacade:
         validator=ConfigValidator(schema_path=str(schema)),
         mapper=ModelMapper(),
         result=result_repo,
-        analytics=analytics
+        analytics=analytics,
+        weather_service=WeatherService(weather_repo)
     )
 
