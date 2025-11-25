@@ -18,7 +18,7 @@ class WeatherRepository:
         return sio.loadmat(self.raw_path)
     
 
-    def write_processed(self, df)
+    def write_processed(self, df) -> None:
         """
         Writes the processed weather data to a file.
         Path is defined in bootstrap.py

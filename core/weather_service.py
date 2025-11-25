@@ -1,14 +1,16 @@
-import scipy.io as sio
 import pandas as pd
-from pathlib import Path
+from core.storage.weather_repo import WeatherRepository
 
 class WeatherService:
 
     def __init__(self, repo: WeatherRepository):
         self._repo = repo
 
-    def load_weather(self, project_id: str) -> pd.DataFrame:
-        raw = self._repo.read_raw_mat(project_id)
+    def load_weather(self) -> pd.DataFrame:
+        raw = self._repo.read_raw_mat()
+        if raw is None:
+            raise RuntimeError(f"Weather data file not found at {self._repo.raw_path}")
+        
         weather_df = self._to_dataframe(raw)
 
         # Save processed data for future use
@@ -18,6 +20,10 @@ class WeatherService:
     
     
     def _to_datafram(self, raw)
+        # Extract table from mat file
+        table= raw['basel_dry']
+
+        # define column names
         columns = [
             "timestamp",                # time of the year, [hours]
             "air_temperature",          # air temperatur, [°C]
@@ -30,6 +36,9 @@ class WeatherService:
             "sun_elevation",            # sun elevation angle, [°]
             "sun_azimuth"               # sun azimuth angle, [°]
             ]
-        df = pd.DataFrame(raw, columns)
+        # Create DataFrame. 
+        df = pd.DataFrame(table[:, :len(columns)], columns=columns)
 
+        # Convert timestamp to datetime
+        
         return df
