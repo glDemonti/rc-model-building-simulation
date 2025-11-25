@@ -14,14 +14,14 @@ class HeatingCoolingTimeseriesAdapter(BaseAdapter):
         self.required_raw_columns = {
             "output_heating_power",
             "output_cooling_power",
-            "datetime",
+            # "datetime",
         }
 
     def compute(self, context: SimulationContext) -> dict:
         df_raw = context.df_raw
 
         df_ts_power = pd.DataFrame({
-            "datetime": df_raw["datetime"],
+            # "datetime": df_raw["datetime"],
             "project_id": context.project_id,
             "variant_id": context.variant_id,
             "heating_power": df_raw["output_heating_power"],

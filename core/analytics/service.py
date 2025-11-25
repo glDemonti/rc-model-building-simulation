@@ -38,7 +38,9 @@ class AnalyticsService:
         for adapter in self._adapters:
             missing_cols = adapter.required_raw_columns - set(context.df_raw.columns)
             if missing_cols:
-                continue
+                raise RuntimeError(
+                    f"Adapter '{adapter.name}' benötigt fehlende Spalten in Rohdaten: {missing_cols}"
+                )
 
             results = adapter.compute(context)
 

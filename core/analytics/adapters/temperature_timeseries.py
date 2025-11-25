@@ -20,7 +20,7 @@ class TemperatureTimeseriesAdapter(BaseAdapter):
 
         df_ts_temp = pd.DataFrame({
             # "datetime": df_raw["datetime"],
-            # "project_id": context.project_id,
+            "project_id": context.project_id,
             "variant_id": context.variant_id,
             "temp_air_room": df_raw["temperature_air_room"]
         })

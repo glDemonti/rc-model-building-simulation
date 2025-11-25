@@ -434,10 +434,38 @@ def _compute_combined_timeseries():
         timeseries_all.set(pd.DataFrame())
         return
     
-    combined = pd.concat(dfs, ignore_index=True)
-    combined = combined.drop_duplicates().reset_index(drop=True)
+    combined = pd.concat(dfs, axis=0)
+    combined = combined.sort_index()
     timeseries_all.set(combined)
     
+timeseries_wide = reactive.Value(None)
+
+@reactive.effect
+def _compute_timeseries_wide():
+    df = timeseries_all
+    if df is None or not isinstance(df, pd.DataFrame) or df.empty:
+        timeseries_wide.set(pd.DataFrame())
+        return
+    
+    # transform from long to wide format
+    wide = df.pivot(
+        index="datetime",
+        columns="variant_id",
+        values=[
+            "Temp_air_room",
+            # "temp_outside",
+            "heating_power",
+            "cooling_power",
+        ],
+    )
+
+    # flatten multiindex columns
+    wide.columns = [f"{var}_{variant}" for (var, variant) in wide.columns]
+
+    wide = wide.sort_index()
+    wide = wide.reset_index()
+
+    timeseries_wide.set(wide)
 
 
 def get_summary_values(summary_df, *, variant: str, end_use: str, metric: str, default="-"):
@@ -557,8 +585,8 @@ with ui.nav_panel("Simulationsresultate"):
                 return df
         ui.card_header("Debug:Timeseries")
         @render.data_frame
-        def debug_timeseries_all():
-            df = timeseries_all()
+        def debug_timeseries_wide():
+            df = timeseries_wide()
             if df is None:
                 # Noch nix geladen
                 return pd.DataFrame({"info": ["timeseries_all is None (noch nicht geladen)"]})
@@ -570,19 +598,20 @@ with ui.nav_panel("Simulationsresultate"):
 
         @render_plotly
         def plot_temperatures():
-            df_temp = timeseries_all()
+            df_temp = timeseries_wide()
 
             # # time stamp in ms
-            # df_temp["ts_ms"] = ts_ms(df_temp["datetime"])
+            # df_temp = df_temp.reset_index().rename(columns={"index": "datetime"})
 
             fig = px.line(
                 df_temp,
-                 y=[
+                x="datetime",
+                y=[
                     "temp_air_room",
                    ],
                    color="variant_id",
                 labels={
-                    "step": "Zeitschritt", 
+                    "datetime": "Zeit", 
                     "temp_air_room": "Innenlufttemperatur [°C]",
                     "variant_id": "Variante",
                 },
