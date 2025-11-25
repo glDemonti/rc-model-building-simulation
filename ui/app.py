@@ -500,27 +500,27 @@ def get_summary_values(summary_df, *, variant: str, end_use: str, metric: str, d
 
 
 
-# # Helper: sichere Zeitachse → Millisekunden (vermeidet ns-Probleme)
-# def ts_ms(series_dt):
-#     dt = pd.to_datetime(series_dt, errors="raise").dt.tz_localize(None)
-#     return (dt.view("int64") // 1_000_000).astype("int64")
+# Helper: sichere Zeitachse → Millisekunden (vermeidet ns-Probleme)
+def ts_ms(series_dt):
+    dt = pd.to_datetime(series_dt, errors="raise").dt.tz_localize(None)
+    return (dt.view("int64") // 1_000_000).astype("int64")
 
-# def ensure_datetime(col):
-#     s = pd.Series(col)
-#     if np.issubdtype(s.dtype, np.datetime64):
-#         return pd.to_datetime(s)  # schon ok
-#     if np.issubdtype(s.dtype, np.number):
-#         m = np.nanmax(s.astype("float64"))
-#         # Heuristik für Einheit
-#         if m > 1e15:        # ns
-#             unit = "ns"
-#         elif m > 1e12:      # ms
-#             unit = "ms"
-#         else:               # s
-#             unit = "s"
-#         return pd.to_datetime(s, unit=unit)
-#     # Strings etc.
-#     return pd.to_datetime(s, errors="coerce")
+def ensure_datetime(col):
+    s = pd.Series(col)
+    if np.issubdtype(s.dtype, np.datetime64):
+        return pd.to_datetime(s)  # schon ok
+    if np.issubdtype(s.dtype, np.number):
+        m = np.nanmax(s.astype("float64"))
+        # Heuristik für Einheit
+        if m > 1e15:        # ns
+            unit = "ns"
+        elif m > 1e12:      # ms
+            unit = "ms"
+        else:               # s
+            unit = "s"
+        return pd.to_datetime(s, unit=unit)
+    # Strings etc.
+    return pd.to_datetime(s, errors="coerce")
 
 
 ui.page_opts(
@@ -606,16 +606,18 @@ with ui.nav_panel("Simulationsresultate"):
 
             if df_temp is None or df_temp.empty:
                 return go.Figure()
+            
+            df_temp["ts_ms"] = ts_ms(df_temp["datetime"])
 
             fig = px.line(
                 df_temp,
-                x="datetime",
+                x="ts_ms",
                 y=[
                     "temp_air_room_A",
                     "temp_air_room_B",
                    ],
                 labels={
-                    "datetime": "Zeit",
+                    "ts_ms": "Zeit",
                     "temp_air_room": "Innenlufttemperatur [°C]",
                     "variant_id": "Variante",
                 },
@@ -670,11 +672,11 @@ with ui.nav_panel("Simulationsresultate"):
             df_load = timeseries_wide()
 
             # time stamp in ms
-            # df_load["ts_ms"] = ts_ms(df_load["datetime"])
+            df_load["ts_ms"] = ts_ms(df_load["datetime"])
 
             fig = px.line(
                 df_load,
-                x="datetime",
+                x="ts_ms",
                 y=[
                     "cooling_power_A",
                     "heating_power_A",
@@ -682,13 +684,13 @@ with ui.nav_panel("Simulationsresultate"):
                     "heating_power_B",
                     ],
                 labels={
-                    "datetime": "Zeit", 
+                    "ts_ms": "Zeit", 
                     "value": "Leistung [W]",
                     "variable": "Legende",
                 },
                 ).update_xaxes(
-                    # type="date",
-                    # tickformat="%d-%m %H:%M",
+                    type="date",
+                    tickformat="%d-%m %H:%M",
                     tickangle=45,
                     showgrid=True,
             ).update_layout(
