@@ -21,7 +21,7 @@ class ConfigFacade:
         self._mapper = mapper
         self._result = result
         self._analytics = analytics
-        self._weather = weather_service
+        self._weather_service = weather_service
 
     def load_config(self, project_id) -> dict:
         cfg = self._repo.read_raw()
@@ -62,7 +62,7 @@ class ConfigFacade:
 
         rc_params = self._mapper.to_model_params(cfg)
 
-        weather_df = self._weather.load_weather(project_id)
+        weather_df = self._weather_service.load_weather()
         # start simulation
         df_raw = self._engine.run(rc_params, weather_df)
         
