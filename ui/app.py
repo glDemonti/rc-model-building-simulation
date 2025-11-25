@@ -641,7 +641,7 @@ with ui.nav_panel("Simulationsresultate"):
 
             fig = px.line(
                 df_load,
-                # x="ts_ms",
+                x="datetime",
                 y=["cooling_power", "heating_power"],
                 labels={
                     "datetime": "Zeit", 
