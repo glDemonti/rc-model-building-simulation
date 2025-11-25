@@ -442,7 +442,7 @@ timeseries_wide = reactive.Value(None)
 
 @reactive.effect
 def _compute_timeseries_wide():
-    df = timeseries_all
+    df = timeseries_all()
     if df is None or not isinstance(df, pd.DataFrame) or df.empty:
         timeseries_wide.set(pd.DataFrame())
         return
@@ -452,7 +452,7 @@ def _compute_timeseries_wide():
         index="datetime",
         columns="variant_id",
         values=[
-            "Temp_air_room",
+            "temp_air_room",
             # "temp_outside",
             "heating_power",
             "cooling_power",
@@ -500,10 +500,10 @@ def get_summary_values(summary_df, *, variant: str, end_use: str, metric: str, d
 
 
 
-# Helper: sichere Zeitachse → Millisekunden (vermeidet ns-Probleme)
-def ts_ms(series_dt):
-    dt = pd.to_datetime(series_dt, errors="raise").dt.tz_localize(None)
-    return (dt.view("int64") // 1_000_000).astype("int64")
+# # Helper: sichere Zeitachse → Millisekunden (vermeidet ns-Probleme)
+# def ts_ms(series_dt):
+#     dt = pd.to_datetime(series_dt, errors="raise").dt.tz_localize(None)
+#     return (dt.view("int64") // 1_000_000).astype("int64")
 
 # def ensure_datetime(col):
 #     s = pd.Series(col)
@@ -542,8 +542,12 @@ with ui.nav_panel("Simulationsresultate"):
             ui.notification_show("Simulation gestartet", type="info", duration=4)
             facade_A.run_simulation(PROJECT_ID_VAR_A, "A")
             facade_B.run_simulation(PROJECT_ID_VAR_B, "B")
+
+            # actualize summaries and timeseries
             summary_A.set(facade_A.get_summary(PROJECT_ID_VAR_A, "A"))
             summary_B.set(facade_B.get_summary(PROJECT_ID_VAR_B, "B"))
+            timeseries_A.set(facade_A.get_timeseries(PROJECT_ID_VAR_A, "A"))
+            timeseries_B.set(facade_B.get_timeseries(PROJECT_ID_VAR_B, "B"))
 
     # with ui.card():
         #     @ render.data_frame
@@ -586,7 +590,7 @@ with ui.nav_panel("Simulationsresultate"):
         ui.card_header("Debug:Timeseries")
         @render.data_frame
         def debug_timeseries_wide():
-            df = timeseries_B()
+            df = timeseries_wide()
             if df is None:
                 # Noch nix geladen
                 return pd.DataFrame({"info": ["timeseries_all is None (noch nicht geladen)"]})
@@ -600,24 +604,24 @@ with ui.nav_panel("Simulationsresultate"):
         def plot_temperatures():
             df_temp = timeseries_wide()
 
-            # # time stamp in ms
-            # df_temp = df_temp.reset_index().rename(columns={"index": "datetime"})
+            if df_temp is None or df_temp.empty:
+                return go.Figure()
 
             fig = px.line(
                 df_temp,
                 x="datetime",
                 y=[
-                    "temp_air_room",
+                    "temp_air_room_A",
+                    "temp_air_room_B",
                    ],
-                   color="variant_id",
                 labels={
-                    "datetime": "Zeit", 
+                    "datetime": "Zeit",
                     "temp_air_room": "Innenlufttemperatur [°C]",
                     "variant_id": "Variante",
                 },
                 ).update_xaxes(
                     type="date",
-                    tickformat="%d-%m %H:%M",
+                    tickformat="%d-%m-%y %H:%M",
                     tickangle=45,
                     showgrid=True,
                 ).update_layout(
@@ -663,7 +667,7 @@ with ui.nav_panel("Simulationsresultate"):
     with ui.card():
         @render_widget
         def plot_cooling_heating_power():
-            df_load = timeseries_A()
+            df_load = timeseries_wide()
 
             # time stamp in ms
             # df_load["ts_ms"] = ts_ms(df_load["datetime"])
@@ -671,15 +675,20 @@ with ui.nav_panel("Simulationsresultate"):
             fig = px.line(
                 df_load,
                 x="datetime",
-                y=["cooling_power", "heating_power"],
+                y=[
+                    "cooling_power_A",
+                    "heating_power_A",
+                    "cooling_power_B",
+                    "heating_power_B",
+                    ],
                 labels={
                     "datetime": "Zeit", 
                     "value": "Leistung [W]",
                     "variable": "Legende",
                 },
                 ).update_xaxes(
-                    type="date",
-                    tickformat="%d-%m %H:%M",
+                    # type="date",
+                    # tickformat="%d-%m %H:%M",
                     tickangle=45,
                     showgrid=True,
             ).update_layout(

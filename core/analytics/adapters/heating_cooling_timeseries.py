@@ -21,7 +21,7 @@ class HeatingCoolingTimeseriesAdapter(BaseAdapter):
         df_raw = context.df_raw
 
         df_ts_power = pd.DataFrame({
-            # "datetime": df_raw["datetime"],
+            "datetime": df_raw.index,
             "project_id": context.project_id,
             "variant_id": context.variant_id,
             "heating_power": df_raw["output_heating_power"],
