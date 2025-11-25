@@ -13,7 +13,7 @@ class ConfigFacade:
     """
     
     """
-    def __init__(self, repo, engine, result, , evaluator=None, validator=None, mapper=None, analytics=None, weather_service=None):
+    def __init__(self, repo, engine, result, evaluator=None, validator=None, mapper=None, analytics=None, weather_service=None):
         self._repo = repo
         self._engine = engine
         self._evaluator = evaluator

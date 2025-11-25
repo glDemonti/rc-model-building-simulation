@@ -19,7 +19,7 @@ class WeatherService:
         return weather_df
     
     
-    def _to_datafram(self, raw)
+    def _to_dataframe(self, raw) -> pd.DataFrame:
         # Extract table from mat file
         table= raw['basel_dry']
 
@@ -43,5 +43,5 @@ class WeatherService:
         start = pd.Timestamp("2018-12-18 00:00:00")
         df['datetime'] = pd.date_range(start=start, periods=len(df), freq='H')
         df = df.set_index('datetime')
-        
+
         return df
