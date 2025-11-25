@@ -61,11 +61,12 @@ class ConfigFacade:
         cfg = self._repo.read_raw()
 
         rc_params = self._mapper.to_model_params(cfg)
-
         weather_df = self._weather_service.load_weather()
+
         # start simulation
         df_raw = self._engine.run(rc_params, weather_df)
         
+        # save result
         self._result.save_raw(project_id, variant_id, df_raw)
 
         # return f"Simulation for project {project_id} started."

@@ -41,7 +41,7 @@ class WeatherService:
 
         # Convert timestamp to datetime
         start = pd.Timestamp("2018-12-18 00:00:00")
-        df['datetime'] = pd.date_range(start=start, periods=len(df), freq='H')
+        df['datetime'] = pd.date_range(start=start, periods=len(df), freq='h')
         df = df.set_index('datetime')
 
         return df
