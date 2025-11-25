@@ -11,8 +11,9 @@ class WeatherService:
         raw = self._repo.read_raw_mat(project_id)
         weather_df = self._to_dataframe(raw)
 
+        # Save processed data for future use
+        self._repo.write_processed(weather_df)
 
-        
         return weather_df
     
     
