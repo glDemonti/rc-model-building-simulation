@@ -180,7 +180,7 @@ class ModelMapper:
             if isinstance(raw, dict):
                 return np.array([raw[h] for h in hours], dtype=float)
             else:
-                # Liste o.ä.
+                # for list or similar
                 return np.array(raw, dtype=float)
         
         occupancy_schedule = schedule_to_array(occup_dict)
