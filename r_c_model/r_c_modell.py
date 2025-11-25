@@ -189,7 +189,7 @@ class RCEngine:
         # ======================================================
         # region: Load weather data from file
         # ======================================================
-        
+
         # access weather data from DataFrame
         ambient_temp = weather_df['air_temperature'].to_numpy(dtype=float)              # Ambient temperature  [°C]
         beam_radiation = weather_df['solar_radiation_direct'].to_numpy(dtype=float)     # Beam radiation       [W/m²]
@@ -1409,6 +1409,14 @@ class RCEngine:
         output_equipment_electricity_sum = output_equipment_electricity.sum() / 1e6
         # endregion
 
+        if isinstance(weather_df.index, pd.DatetimeIndex):
+            # takes the datetime index form the last year of the weather data.
+            # This is useful when the weather data more the one year.
+            result_index = weather_df.index[-output_temperatures.shape[0]:]
+        else:
+            # fallback to RangeIndex if no DatetimeIndex is available
+            result_index = pd.RangeIndex(output_temperatures.shape[0]) 
+
         #  return results as a DataFrame
         df_raw = pd.DataFrame({
             'temperature_air_room': output_temperatures[:, 0],
@@ -1464,9 +1472,12 @@ class RCEngine:
             'output_cooling_power': output_cooling_power.flatten(),
             'output_lighting_electricity': output_lighting_electricity.flatten(),
             'output_equipment_electricity': output_equipment_electricity.flatten(),
-        })
+        }, index=result_index)
+
+        df_raw.index.name = "datetime"
+
+        print("Simulation finished.")    
         return df_raw
-print("Simulation finished.")    
 
 # print(f"total heating power = {output_heating_power_sum} MWh")
 # print(f"total cooling power = {output_cooling_power_sum} MWh")
