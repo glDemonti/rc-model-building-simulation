@@ -586,7 +586,7 @@ with ui.nav_panel("Simulationsresultate"):
         ui.card_header("Debug:Timeseries")
         @render.data_frame
         def debug_timeseries_wide():
-            df = timeseries_wide()
+            df = timeseries_B()
             if df is None:
                 # Noch nix geladen
                 return pd.DataFrame({"info": ["timeseries_all is None (noch nicht geladen)"]})

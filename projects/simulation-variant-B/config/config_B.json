@@ -222,14 +222,14 @@
     },
     "simulation_parameters": {
         "cooling_setpoint": {
-            "expression": "28",
+            "expression": "24",
             "unit": "°C",
-            "value": 28.0
+            "value": 24.0
         },
         "heating_setpoint": {
-            "expression": "19",
+            "expression": "20",
             "unit": "°C",
-            "value": 19.0
+            "value": 20.0
         },
         "surface_heat_transfer_external": {
             "expression": "23.0",
