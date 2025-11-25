@@ -7,7 +7,7 @@ class RCEngine:
     def __init__(self):
         pass
 
-    def run(self, params: RCParams,weather_df: pd.DataFrame):
+    def run(self, params: RCParams, weather_df: pd.DataFrame):
         
                 
         # =======================================================
@@ -81,6 +81,7 @@ class RCEngine:
         surface_vector_south = np.array([0, -1, 0])  # South facade
         surface_vector_west = np.array([-1, 0, 0])   # West facade
         surface_vector_roof = np.array([0, 0, 1])   # Roof
+
         # todo: make it with Pandas DataFrame? or a multipl vactor array?
 
         # height of the building (needed for air temperature calculations)
@@ -171,9 +172,9 @@ class RCEngine:
         thermal_bridges = params.thermal_bridges  # thermal bridges [W/K]
 
         # difference power input [W] 
-        occupancy_power = 70.0 * 0.033 * floor_area * 3.0
-        lighting_power = 2.7 * floor_area * 3.0
-        equipment_power = 8.0 * floor_area * 3.0
+        occupancy_power = params.occupancy_power_per_area * floor_area  # occupancy power [W]
+        lighting_power = params.lighting_power_per_area * floor_area    # lighting power [W]
+        equipment_power = params.equipment_power_per_area * floor_area  # equipment power [W]
 
         # shedules [0..1] for occupancy, lighting and equipment (24 values for 24 hours)
         occupancy_schedule = params.occupancy_schedule
@@ -188,56 +189,13 @@ class RCEngine:
         # ======================================================
         # region: Load weather data from file
         # ======================================================
-        # load weather data from .mat file
-        weather_data = sio.loadmat('basel_dry_ver2.mat', squeeze_me=True, struct_as_record=False) # load .mat file
-            #squeeze_me=True removes single-dimensional entries from the shape of an array. 
-            # struct_as_record=False loads MATLAB structs as numpy structured arrays instead of numpy object arrays.
-
-        '''
-        Read weather file from .mat file. 
-        The data starts from "00:00 18.12.2018" and ends at "23:00 31.12.2019".
-
-        The file contains a table with the following columns:
-            First column - Time of the year, [hours]
-            Second column - air temperature, [C]
-            Third column - relative humidity, [%] (currently not used)
-            Fourth column - wind speed in X-direction, [m/s] (currently not used)
-            Fifth column - wind speed in Y-direction, [m/s] (currently not used)
-            Sixth column - direct sun radiation, [W/m^2]
-            Seventh column - diffuse sun radiation, [W/m^2]
-            Eighth column - sky cover, [] (currently not used)
-            Ninth column - sun elevation, [°]
-            Tenth column - sun azimuth, [°]
-        '''
-
-        # Extract the main table from the loaded data
-        table = np.asarray(weather_data['basel_dry'])  # Convert to numpy array for easier handling
-
-        # access the weather data with validation
-        try: 
-            ambient_temp = np.asarray(table[:, 1], dtype=float).ravel()      # Ambient temperature  [°C]
-            beam_radiation = np.asarray(table[:, 5], dtype=float).ravel()    # Beam radiation       [W/m²]
-            diff_radiation = np.asarray(table[:, 6], dtype=float).ravel()    # Diffuse radiation    [W/m²]
-            sun_elevation = np.asarray(table[:, 8], dtype=float).ravel()     # Sun elevation        [°]
-            sun_azimuth = np.asarray(table[:, 9], dtype=float).ravel()       # Sun azimuth          [°]
-                # weather data arrays as floats and raveled with ravel() to 1D arrays
-
-            print("\nSuccessfully loaded data:")
-            print(f"Ambient temperature shape: {ambient_temp.shape}")
-            print(f"First few values:")
-            print(f"- Temperature: {ambient_temp[:5]}")
-            print(f"- Beam radiation: {beam_radiation[:5]}")
-            print(f"- Diffuse radiation: {diff_radiation[:5]}")
-            # todo: remove print statements after debugging
-
-        except IndexError as e:
-            print(f"Error accessing data: {e}")
-            print("Please check the structure of the loaded .mat file.")
-            print("possible causes:")
-            print("- Table has fewer columns than expected")
-            print("- Data structure is not as expected")
-
-        # endregion
+        
+        # access weather data from DataFrame
+        ambient_temp = weather_df['air_temperature'].to_numpy(dtype=float)              # Ambient temperature  [°C]
+        beam_radiation = weather_df['solar_radiation_direct'].to_numpy(dtype=float)     # Beam radiation       [W/m²]
+        diff_radiation = weather_df['solar_radiation_diffuse'].to_numpy(dtype=float)    # Diffuse radiation    [W/m²]
+        sun_elevation = weather_df['sun_elevation'].to_numpy(dtype=float)               # Sun elevation        [°]
+        sun_azimuth = weather_df['sun_azimuth'].to_numpy(dtype=float)                   # Sun azimuth          [°]
 
         # ------------------------------------------------------
         # region: Calculation of sun vector and global radiation
