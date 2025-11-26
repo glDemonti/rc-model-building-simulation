@@ -1059,7 +1059,7 @@ with ui.nav_panel("Einstellungen"):
                     cfg_A = copy.deepcopy(current_cfg)
 
                     # safe weather file if uploaded
-                    file_info = input.weather_file()
+                    file_info = input.input_weather_file()
                     if file_info:
                         info = file_info[0]
                         temp_path = info["datapath"]
@@ -1080,7 +1080,7 @@ with ui.nav_panel("Einstellungen"):
                     cfg_B = copy.deepcopy(current_cfg)
                     
                     # safe weather file if uploaded
-                    file_info = input.weather_file()
+                    file_info = input.input_weather_file()
                     if file_info:
                         info = file_info[0]
                         temp_path = info["datapath"]
