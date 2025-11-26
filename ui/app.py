@@ -453,7 +453,7 @@ def _compute_timeseries_wide():
         columns="variant_id",
         values=[
             "temp_air_room",
-            "temp_outside",
+            "temp_outdoor_air",
             "heating_power",
             "cooling_power",
         ],
@@ -594,7 +594,9 @@ with ui.nav_panel("Simulationsresultate"):
                 x="ts_ms",
                 y=[
                     "temp_air_room_A",
+                    "temp_outdoor_air_A",
                     "temp_air_room_B",
+                    "temp_outdoor_air_B",
                    ],
                 labels={
                     "ts_ms": "Zeit",
@@ -613,28 +615,8 @@ with ui.nav_panel("Simulationsresultate"):
                 yaxis_title="Temperatur [°C]",
                 )
             return fig
-        
-        # plot with matplotlib
 
-        # @render.plot()
-        # def plot_matplotlib_example():
-        #     df_temp = sim_io_mock.make_df_temperatures()
 
-        #     fig, ax  = plt.subplots()
-        #     ax.plot(
-        #         df_temp["datetime"],
-        #         df_temp["Innenlufttemperatur"],
-        #     )
-        #     ax.plot(
-        #         df_temp["datetime"],
-        #         df_temp["Aussenlufttemperatur"],)
-        #     ax.set_title("Beispiel Matplotlib Plot")
-        #     ax.set_xlabel("Innenlufttemperatur [°C]")
-        #     ax.set(ylim=(-10, 35), yticks=np.arange(-10, 35, 5))
-
-        #     # plt.show()
-        #     return fig
-        
         with ui.layout_column_wrap():
             with ui.value_box(
                 id="value_box_overheating_hours_A",
@@ -660,8 +642,8 @@ with ui.nav_panel("Simulationsresultate"):
                 y=[
                     "cooling_power_A",
                     "heating_power_A",
-                    "cooling_power_B",
-                    "heating_power_B",
+                    # "cooling_power_B",
+                    # "heating_power_B",
                     ],
                 labels={
                     "ts_ms": "Zeit", 
@@ -670,7 +652,7 @@ with ui.nav_panel("Simulationsresultate"):
                 },
                 ).update_xaxes(
                     type="date",
-                    tickformat="%d-%m %H:%M",
+                    tickformat="%d-%m-%y %H:%M",
                     tickangle=45,
                     showgrid=True,
             ).update_layout(
@@ -693,7 +675,6 @@ with ui.nav_panel("Simulationsresultate"):
         with ui.layout_column_wrap():
             with ui.value_box(
                 id="value_box_heating_demand",
-                # value=heating_energy,
                 width=4,
             ):
                 "Jährlicher Heizwärmebedarf"
