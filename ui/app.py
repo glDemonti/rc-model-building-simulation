@@ -635,8 +635,8 @@ with ui.nav_panel("Simulationsresultate"):
                 y=[
                     "cooling_power_A",
                     "heating_power_A",
-                    # "cooling_power_B",
-                    # "heating_power_B",
+                    "cooling_power_B",
+                    "heating_power_B",
                     ],
                 labels={
                     "ts_ms": "Zeit", 
