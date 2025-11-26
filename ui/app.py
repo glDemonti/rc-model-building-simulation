@@ -1830,12 +1830,16 @@ with ui.nav_panel("Einstellungen"):
                 with ui.card():
                     ui.card_header("Wetterdaten-Datei (.mat)")
                     ui.input_file(
-                        "weather_file",
+                        "input_weather_file",
                         "Laden Sie die .mat Wetterdatei hoch",
-                        accept=".mat",
+                        # accept=".mat",
                         width="600px",
                         multiple=False
                     )
+
+                    @render.text
+                    def weather_file_properties():
+                        return input.input_weather_file()
 
             with ui.nav_panel("Erweiterte Einstellungen"):
 

@@ -17,6 +17,15 @@ class WeatherRepository:
         
         return sio.loadmat(self.raw_path)
     
+    def read_processed(self):
+        """
+        Reads the processed weather data from a file.
+        Path is defined in bootstrap.py
+        """
+        if not self.processed_path.exists():
+            return None
+        
+        return pd.read_parquet(self.processed_path)
 
     def write_processed(self, df) -> None:
         """
