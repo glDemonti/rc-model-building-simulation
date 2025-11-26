@@ -48,6 +48,17 @@ class ConfigFacade:
         context = self._analytics.compute_all(project_id, variant_id)
         return context
 
+
+    def update_weather_file(self, temp_path: str, original_name: str) -> None:
+        """
+        Updates the weather data file in the repository by copying it from a temporary location.
+        Also saves the original name of the uploaded file.
+        """
+        self._repo.write_raw(temp_path)
+        self._repo.save_original_name(original_name)
+        self._weather_service.process_and_store_weather()
+
+
     def run_simulation(self, project_id: str, variant_id: str, *, force: bool = False) -> RunReport:
         """quick and dirty implementation of start simulation
         """
