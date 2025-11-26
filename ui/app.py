@@ -453,7 +453,7 @@ def _compute_timeseries_wide():
         columns="variant_id",
         values=[
             "temp_air_room",
-            # "temp_outside",
+            "temp_outside",
             "heating_power",
             "cooling_power",
         ],
@@ -557,26 +557,6 @@ with ui.nav_panel("Simulationsresultate"):
                  
     with ui.card():
         ui.card_header("Debug: Summary Heizung/Kühlung Variante A")
-
-        @render.data_frame
-        def debug_summary_A():
-                df = summary_A()
-                if df is None:
-                    # Noch nix geladen
-                    return pd.DataFrame({"info": ["summary_A is None (noch nicht geladen)"]})
-                if isinstance(df, pd.DataFrame) and df.empty:
-                    return pd.DataFrame({"info": ["summary_A ist ein leerer DataFrame"]})
-                return df
-        
-        @render.data_frame
-        def debug_summary_B():
-                df = summary_B()
-                if df is None:
-                    # Noch nix geladen
-                    return pd.DataFrame({"info": ["summary_B is None (noch nicht geladen)"]})
-                if isinstance(df, pd.DataFrame) and df.empty:
-                    return pd.DataFrame({"info": ["summary_B ist ein leerer DataFrame"]})
-                return df
         
         @render.data_frame
         def debug_summary_all():

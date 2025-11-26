@@ -13,6 +13,7 @@ class TemperatureTimeseriesAdapter(BaseAdapter):
         self.required_raw_columns = {
             # "datetime",
             "temperature_air_room",
+            "temperature_outdoor_air",
         }
 
     def compute(self, context:SimulationContext) -> dict:
@@ -22,7 +23,8 @@ class TemperatureTimeseriesAdapter(BaseAdapter):
             "datetime": df_raw.index,
             "project_id": context.project_id,
             "variant_id": context.variant_id,
-            "temp_air_room": df_raw["temperature_air_room"]
+            "temp_air_room": df_raw["temperature_air_room"],
+            "temp_outdoor_air": df_raw["temperature_outdoor_air"]
         })
 
         return {"timeseries": df_ts_temp}

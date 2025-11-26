@@ -1403,11 +1403,13 @@ class RCEngine:
                 output_temperatures[out_idx, :] = initial_temperatures
 
 
-        output_heating_power_sum = output_heating_power.sum() / 1e6
-        output_cooling_power_sum = output_cooling_power.sum() / 1e6
-        output_lighting_electricity_sum = output_lighting_electricity.sum() / 1e6
-        output_equipment_electricity_sum = output_equipment_electricity.sum() / 1e6
+        # output_heating_power_sum = output_heating_power.sum() / 1e6
+        # output_cooling_power_sum = output_cooling_power.sum() / 1e6
+        # output_lighting_electricity_sum = output_lighting_electricity.sum() / 1e6
+        # output_equipment_electricity_sum = output_equipment_electricity.sum() / 1e6
         # endregion
+
+        Temp_outside_air = ambient_temp[-8760:]
 
         if isinstance(weather_df.index, pd.DatetimeIndex):
             # takes the datetime index form the last year of the weather data.
@@ -1419,59 +1421,60 @@ class RCEngine:
 
         #  return results as a DataFrame
         df_raw = pd.DataFrame({
-            'temperature_air_room': output_temperatures[:, 0],
-            'temperature_in_glazing_north': output_temperatures[:, 1],
-            'temperature_in_glazing_east': output_temperatures[:, 2],
-            'temperature_in_glazing_south': output_temperatures[:, 3],
-            'temperature_in_glazing_west': output_temperatures[:, 4],
-            'temperature_out_glazing_north': output_temperatures[:, 5],
-            'temperature_out_glazing_east': output_temperatures[:, 6],
-            'temperature_out_glazing_south': output_temperatures[:, 7],
-            'temperature_out_glazing_west': output_temperatures[:, 8],
-            'temperature_in_frame_north': output_temperatures[:, 9],
-            'temperature_in_frame_east': output_temperatures[:, 10],
-            'temperature_in_frame_south': output_temperatures[:, 11],
-            'temperature_in_frame_west': output_temperatures[:, 12],
-            'temperature_out_frame_north': output_temperatures[:, 13],
-            'temperature_out_frame_east': output_temperatures[:, 14],
-            'temperature_out_frame_south': output_temperatures[:, 15],
-            'temperature_out_frame_west': output_temperatures[:, 16],
-            'temperature_wall_n_1': output_temperatures[:, 17],
-            'temperature_wall_e_1': output_temperatures[:, 18],
-            'temperature_wall_s_1': output_temperatures[:, 19],
-            'temperature_wall_w_1': output_temperatures[:, 20],
-            'temperature_roof_1': output_temperatures[:, 21],
-            'temperature_floor_1': output_temperatures[:, 22],
-            'temperature_int_wall_1': output_temperatures[:, 23],
-            'temperature_int_ceiling_1': output_temperatures[:, 24],
-            'temperature_wall_n_2': output_temperatures[:, 25],
-            'temperature_wall_e_2': output_temperatures[:, 26],
-            'temperature_wall_s_2': output_temperatures[:, 27],
-            'temperature_wall_w_2': output_temperatures[:, 28],
-            'temperature_roof_2': output_temperatures[:, 29],
-            'temperature_floor_2': output_temperatures[:, 30],
-            'temperature_int_wall_2': output_temperatures[:, 31],
-            'temperature_int_ceiling_2': output_temperatures[:, 32],
-            'temperature_wall_n_3': output_temperatures[:, 33],
-            'temperature_wall_e_3': output_temperatures[:, 34],
-            'temperature_wall_s_3': output_temperatures[:, 35],
-            'temperature_wall_w_3': output_temperatures[:, 36],
-            'temperature_roof_3': output_temperatures[:, 37],
-            'temperature_floor_3': output_temperatures[:, 38],
-            'temperature_int_wall_3': output_temperatures[:, 39],
-            'temperature_int_ceiling_3': output_temperatures[:, 40],
-            'temperature_wall_n_4': output_temperatures[:, 41],
-            'temperature_wall_e_4': output_temperatures[:, 42],
-            'temperature_wall_s_4': output_temperatures[:, 43],
-            'temperature_wall_w_4': output_temperatures[:, 44],
-            'temperature_roof_4': output_temperatures[:, 45],
-            'temperature_floor_4': output_temperatures[:, 46],
-            'temperature_int_wall_4': output_temperatures[:, 47],
-            'temperature_int_ceiling_4': output_temperatures[:, 48],
-            'output_heating_power': output_heating_power.flatten(),
-            'output_cooling_power': output_cooling_power.flatten(),
-            'output_lighting_electricity': output_lighting_electricity.flatten(),
-            'output_equipment_electricity': output_equipment_electricity.flatten(),
+            'temperature_outdoor_air': ambient_temp[-output_temperatures.shape[0]:],    # [°C]
+            'temperature_air_room': output_temperatures[:, 0],                          # [°C]
+            'temperature_in_glazing_north': output_temperatures[:, 1],                  # [°C]
+            'temperature_in_glazing_east': output_temperatures[:, 2],                   # [°C]
+            'temperature_in_glazing_south': output_temperatures[:, 3],                  # [°C]
+            'temperature_in_glazing_west': output_temperatures[:, 4],                   # [°C]
+            'temperature_out_glazing_north': output_temperatures[:, 5],                 # [°C]
+            'temperature_out_glazing_east': output_temperatures[:, 6],                  # [°C]
+            'temperature_out_glazing_south': output_temperatures[:, 7],                 # [°C]
+            'temperature_out_glazing_west': output_temperatures[:, 8],                  # [°C]
+            'temperature_in_frame_north': output_temperatures[:, 9],                    # [°C]
+            'temperature_in_frame_east': output_temperatures[:, 10],                    # [°C]
+            'temperature_in_frame_south': output_temperatures[:, 11],                   # [°C]
+            'temperature_in_frame_west': output_temperatures[:, 12],                    # [°C]
+            'temperature_out_frame_north': output_temperatures[:, 13],                  # [°C]
+            'temperature_out_frame_east': output_temperatures[:, 14],                   # [°C]
+            'temperature_out_frame_south': output_temperatures[:, 15],                  # [°C]
+            'temperature_out_frame_west': output_temperatures[:, 16],                   # [°C]
+            'temperature_wall_n_1': output_temperatures[:, 17],                         # [°C]
+            'temperature_wall_e_1': output_temperatures[:, 18],                         # [°C]
+            'temperature_wall_s_1': output_temperatures[:, 19],                         # [°C]
+            'temperature_wall_w_1': output_temperatures[:, 20],                         # [°C]
+            'temperature_roof_1': output_temperatures[:, 21],                           # [°C]
+            'temperature_floor_1': output_temperatures[:, 22],                          # [°C]
+            'temperature_int_wall_1': output_temperatures[:, 23],                       # [°C]
+            'temperature_int_ceiling_1': output_temperatures[:, 24],                    # [°C]
+            'temperature_wall_n_2': output_temperatures[:, 25],                         # [°C]
+            'temperature_wall_e_2': output_temperatures[:, 26],                         # [°C]
+            'temperature_wall_s_2': output_temperatures[:, 27],                         # [°C]
+            'temperature_wall_w_2': output_temperatures[:, 28],                         # [°C]
+            'temperature_roof_2': output_temperatures[:, 29],                           # [°C]
+            'temperature_floor_2': output_temperatures[:, 30],                          # [°C]
+            'temperature_int_wall_2': output_temperatures[:, 31],                       # [°C]
+            'temperature_int_ceiling_2': output_temperatures[:, 32],                    # [°C]
+            'temperature_wall_n_3': output_temperatures[:, 33],                         # [°C]
+            'temperature_wall_e_3': output_temperatures[:, 34],                         # [°C]
+            'temperature_wall_s_3': output_temperatures[:, 35],                         # [°C]
+            'temperature_wall_w_3': output_temperatures[:, 36],                         # [°C]
+            'temperature_roof_3': output_temperatures[:, 37],                           # [°C]
+            'temperature_floor_3': output_temperatures[:, 38],                          # [°C]
+            'temperature_int_wall_3': output_temperatures[:, 39],                       # [°C]
+            'temperature_int_ceiling_3': output_temperatures[:, 40],                    # [°C]
+            'temperature_wall_n_4': output_temperatures[:, 41],                         # [°C]
+            'temperature_wall_e_4': output_temperatures[:, 42],                         # [°C]
+            'temperature_wall_s_4': output_temperatures[:, 43],                         # [°C]
+            'temperature_wall_w_4': output_temperatures[:, 44],                         # [°C]
+            'temperature_roof_4': output_temperatures[:, 45],                           # [°C]
+            'temperature_floor_4': output_temperatures[:, 46],                          # [°C]
+            'temperature_int_wall_4': output_temperatures[:, 47],                       # [°C]
+            'temperature_int_ceiling_4': output_temperatures[:, 48],                    # [°C]
+            'output_heating_power': output_heating_power.flatten(),                     # [W]
+            'output_cooling_power': output_cooling_power.flatten(),                     # [W]
+            'output_lighting_electricity': output_lighting_electricity.flatten(),       # [W]
+            'output_equipment_electricity': output_equipment_electricity.flatten(),     # [W]
         }, index=result_index)
 
         df_raw.index.name = "datetime"
