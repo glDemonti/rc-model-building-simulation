@@ -227,9 +227,9 @@
             "value": 26.0
         },
         "heating_setpoint": {
-            "expression": "21",
+            "expression": "21.5",
             "unit": "°C",
-            "value": 21.0
+            "value": 21.5
         },
         "surface_heat_transfer_external": {
             "expression": "23.0",

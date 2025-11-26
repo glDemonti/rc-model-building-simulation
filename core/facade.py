@@ -13,7 +13,7 @@ class ConfigFacade:
     """
     
     """
-    def __init__(self, repo, engine, result, evaluator=None, validator=None, mapper=None, analytics=None, weather_service=None):
+    def __init__(self, repo, engine, result, evaluator=None, validator=None, mapper=None, analytics=None, weather_service=None, weather_repo=None):
         self._repo = repo
         self._engine = engine
         self._evaluator = evaluator
@@ -22,6 +22,7 @@ class ConfigFacade:
         self._result = result
         self._analytics = analytics
         self._weather_service = weather_service
+        self._weather_repo = weather_repo
 
     def load_config(self, project_id) -> dict:
         cfg = self._repo.read_raw()
@@ -54,8 +55,8 @@ class ConfigFacade:
         Updates the weather data file in the repository by copying it from a temporary location.
         Also saves the original name of the uploaded file.
         """
-        self._repo.write_raw(temp_path)
-        self._repo.save_original_name(original_name)
+        self._weather_repo.write_raw(temp_path)
+        self._weather_repo.save_original_name(original_name)
         self._weather_service.process_and_store_weather()
 
 

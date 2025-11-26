@@ -321,9 +321,6 @@ def attach_numeric_guard(
     return last_error, error_log
 
 
-df_results = facade_A.get_timeseries(PROJECT_ID_VAR_A, "A")
-df_weather = facade_A.load_weatherdata(PROJECT_ID_VAR_A)
-
 summary_A = reactive.Value(None)
 summary_B = reactive.Value(None)
 timeseries_A = reactive.Value(None)
@@ -549,11 +546,7 @@ with ui.nav_panel("Simulationsresultate"):
             timeseries_A.set(facade_A.get_timeseries(PROJECT_ID_VAR_A, "A"))
             timeseries_B.set(facade_B.get_timeseries(PROJECT_ID_VAR_B, "B"))
 
-    # with ui.card():
-        #     @ render.data_frame
-        #     def weather_data_table():
-        #         return df_weather
-        # with ui.card():
+
                  
     with ui.card():
         ui.card_header("Debug: Summary Heizung/Kühlung Variante A")
@@ -1064,6 +1057,19 @@ with ui.nav_panel("Einstellungen"):
                 if ok:
                     global cfg_A
                     cfg_A = copy.deepcopy(current_cfg)
+
+                    # safe weather file if uploaded
+                    file_info = input.weather_file()
+                    if file_info:
+                        info = file_info[0]
+                        temp_path = info["datapath"]
+                        original_name = info["name"]
+
+                        try:
+                            facade_A.update_weather_file(temp_path, original_name)
+                            ui.notification_show(f"Wetterdatei '{original_name}' erfolgreich hochgeladen.", type="success", duration=4)
+                        except Exception as e:
+                            ui.notification_show(f"Fehler beim Hochladen der Wetterdatei für Variante {current_variant}: {e}", type="error", duration=6)
                 else:
                     ui.notification_show(f"Fehler beim Speichern von Variante A: {msg}", type="error", duration=6)
                     return
@@ -1072,10 +1078,27 @@ with ui.nav_panel("Einstellungen"):
                 if ok:
                     global cfg_B
                     cfg_B = copy.deepcopy(current_cfg)
+                    
+                    # safe weather file if uploaded
+                    file_info = input.weather_file()
+                    if file_info:
+                        info = file_info[0]
+                        temp_path = info["datapath"]
+                        original_name = info["name"]
+
+                        try:
+                            facade_B.update_weather_file(temp_path, original_name)
+                            ui.notification_show(f"Wetterdatei '{original_name}' erfolgreich hochgeladen.", type="success", duration=4)
+                        except Exception as e:
+                            ui.notification_show(f"Fehler beim Hochladen der Wetterdatei für Variante {current_variant}: {e}", type="error", duration=6)
+
                 else:
                     ui.notification_show(f"Fehler beim Speichern von Variante B: {msg}", type="error", duration=6)
                     return
-                
+
+
+
+
             unsaved_changes.set(False)
             ui.notification_show(f"Einstellungen für Variante {current_variant} erfolgreich gespeichert.", type="success", duration=4)
         except Exception as e:

@@ -15,6 +15,7 @@ from core.weather_service import WeatherService
 from core.storage.weather_repo import WeatherRepository
 
 
+
 """
 Bootstrap module to create and configure the ConfigFacade with all necessary components.
 This allows to import a fully set up facade instance directly for use in the application.
@@ -59,6 +60,7 @@ def create_facade(project_id: str, variant_id) -> ConfigFacade:
         mapper=ModelMapper(),
         result=result_repo,
         analytics=analytics,
-        weather_service=WeatherService(weather_repo)
+        weather_service=WeatherService(weather_repo),
+        weather_repo=weather_repo
     )
 
