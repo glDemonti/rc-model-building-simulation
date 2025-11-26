@@ -9,16 +9,18 @@ class WeatherService:
     def load_weather(self) -> pd.DataFrame:
         df = self._repo.read_processed()
         if df is None:
-            raise RuntimeError(f"Weather data file not found at {self._repo.raw_path}")
-        
-        # weather_df = self._to_dataframe(df)
-
-        # # Save processed data for future use
-        # self._repo.write_processed(weather_df)
-
+            raise RuntimeError(f"Weather data file not found at {self._repo.processed_path}")
         return df
     
-    
+    def process_and_store_weather(self) -> pd.DataFrame:
+        raw = self._repo.read_raw_mat()
+        if raw is None:
+            raise RuntimeError(f"Raw weather data file not found at {self._repo.raw_path}")
+        
+        df = self._to_dataframe(raw)
+        self._repo.write_processed(df)
+        return df
+
     def _to_dataframe(self, raw) -> pd.DataFrame:
         # Extract table from mat file
         table= raw['basel_dry']

@@ -8,19 +8,18 @@ class WeatherRepository:
         self.raw_path = path_raw
         self.processed_path = path_processed
 
-    def write_raw(self, file_obj: Path) -> None:
+    def write_raw(self, temp_path: Path) -> None:
         """
         Copies the raw input wather data file from temporary location to the repository location.
         Temp path is provided by the upload component in the UI.
         Path of the repository is defined in bootstrap.py
         """
-        path_temp = file_obj.datapath() # get temp path from the upload component
-
+        self.raw_path.parent.mkdir(parents=True, exist_ok=True)
         try:
-            shutil.copy(path_temp, self.raw_path)
+            shutil.copy(temp_path, self.raw_path)
             print(f"Copied weather data file to {self.raw_path}")
         except FileNotFoundError:
-            print (f"Error: Source file not found at {path_temp}")
+            print (f"Error: Source file not found at {temp_path}")
         except PermissionError:
             print (f"Error: Permission denied when copying to {self.raw_path}")
                
