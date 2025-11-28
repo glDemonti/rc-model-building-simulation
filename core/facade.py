@@ -55,7 +55,7 @@ class ConfigFacade:
         Updates the weather data file in the repository by copying it from a temporary location.
         Also saves the original name of the uploaded file.
         """
-        self._weather_repo.write_raw(temp_path)
+        self._weather_repo.write_raw(Path(temp_path))
         self._weather_repo.save_original_name(original_name)
         self._weather_service.process_and_store_weather()
 

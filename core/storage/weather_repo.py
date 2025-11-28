@@ -44,7 +44,7 @@ class WeatherRepository:
         
         return pd.read_parquet(self.processed_path)
 
-    def write_processed(self, df) -> None:
+    def write_processed(self, df: pd.DataFrame) -> None:
         """
         Writes the processed weather data to a file.
         Path is defined in bootstrap.py

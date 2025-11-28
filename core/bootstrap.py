@@ -32,7 +32,7 @@ def create_facade(project_id: str, variant_id) -> ConfigFacade:
     cfg_file = Root / "projects" / project_id / "config" / f"config_{variant_id}.json"
     schema = Root / "projects" / "schema" / "config" / f"config_{variant_id}.schema.json"
     # res_file = Root / "projects" / project_id / "results" / f"raw_results_{variant_id}.parquet"
-    weath_file_raw = Root / "projects" / project_id / "weather" / "raw" / "basel_dry_ver2.mat"
+    weath_file_raw = Root / "projects" / project_id / "weather" / "raw" / f"weather_{variant_id}_raw.mat"
     weath_file_proc = Root / "projects" / project_id / "weather" / "processed" / f"weather_{variant_id}.parquet"
 
     repo = ConfigRepository(str(cfg_file))

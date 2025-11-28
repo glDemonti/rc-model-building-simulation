@@ -23,7 +23,8 @@ class WeatherService:
 
     def _to_dataframe(self, raw) -> pd.DataFrame:
         # Extract table from mat file
-        table= raw['basel_dry']
+        key = next(k for k in raw.keys() if not k.startswith("__"))
+        table = raw[key]
 
         # define column names
         columns = [
