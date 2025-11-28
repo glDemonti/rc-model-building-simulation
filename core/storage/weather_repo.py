@@ -11,11 +11,14 @@ class WeatherRepository:
     def write_raw(self, temp_path: Path) -> None:
         """
         Copies the raw input wather data file from temporary location to the repository location.
+        If a file already exists at the destination, it will be deleated first.
         Temp path is provided by the upload component in the UI.
         Path of the repository is defined in bootstrap.py
         """
         self.raw_path.parent.mkdir(parents=True, exist_ok=True)
         try:
+            if self.raw_path.exists():
+                self.raw_path.unlink() # delete existing file
             shutil.copy(temp_path, self.raw_path)
             print(f"Copied weather data file to {self.raw_path}")
         except FileNotFoundError:
