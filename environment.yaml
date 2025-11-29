@@ -13,4 +13,4 @@ dependencies:
   - shinywidgets
   - anywidget
   - pytest
-
+  - pyarrow

@@ -1,0 +1,10 @@
+services:
+  simulation-app:
+    build: .
+    container_name: simulation-app
+    ports:
+      - "8050:8050"
+    volumes:
+      - ./projects:/app/projects
+    environment:
+      - VM2_DATA_DIR=/app/data
