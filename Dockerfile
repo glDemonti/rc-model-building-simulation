@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-From python:3.12
+From continuumio/miniconda3
 
 # Set working directory
 WORKDIR /app
@@ -13,4 +13,3 @@ RUN apt-get update && \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-    
