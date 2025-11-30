@@ -3,6 +3,7 @@ import pytest
 
 from core.facade import ConfigFacade
 
+
 class FakeRepo:
     def __init__(self):
         self.writes = []
@@ -29,10 +30,11 @@ class FakeValidatorOK:
 def test_save_happy_path(sample_cfg):
     repo = FakeRepo()
     facade = ConfigFacade(
-        repo=repo,
+        config_repo=repo,
         engine=None,
         evaluator=FakeEvaluatorOK(),
         validator=FakeValidatorOK(),
+        result=None,
         mapper=None,
     )
     ok , msg = facade.save("demo", sample_cfg)
@@ -44,10 +46,11 @@ def test_save_happy_path(sample_cfg):
 def test_safe_evaluator_error_blocks_write(sample_cfg):
     repo = FakeRepo()
     facade = ConfigFacade(
-        repo=repo,
+        config_repo=repo,
         engine=None,
         evaluator=FakeEvaluatorWithError(),
         validator=FakeValidatorOK(),
+        result=None,
         mapper=None,
     )
     ok , msg = facade.save("demo", sample_cfg)

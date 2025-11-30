@@ -12,7 +12,7 @@ class AnalyticsService:
         # load config
         cfg = self._config_repo.read_raw()
         # load raw results
-        df_raw = self._result_repo.load_raw(project_id, variant_id)
+        df_raw = self._result_repo.load_raw()
         if df_raw is None:
             raise RuntimeError(
                 f"Keine Rohresultate für Projekt {project_id} und Variante {variant_id} gefunden."

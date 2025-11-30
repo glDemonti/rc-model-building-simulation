@@ -2,22 +2,27 @@ from pathlib import Path
 import pandas as pd
 
 class ResultRepository:
-    def save_raw(self, project_id: str, variant_id: str, df: pd.DataFrame) -> None:
-        
+    def __init__(self, path) -> None:
+        self._path = path
+
+    def save_raw(self, df: pd.DataFrame) -> None:
+        """
+        Saves the raw simulation results (DataFrame) to a parquet file.
+        Path is defined in bootstrap.py
+        """
         df_raw = df
 
-        # build paths
-        base_dir = Path("projects") / project_id / "results"
-        base_dir.mkdir(parents=True, exist_ok=True)
-
-        out_path = base_dir / f"raw_results_{variant_id}.parquet"
-
         # save results
-        df_raw.to_parquet(out_path, compression="snappy")
+        self._path.parent.mkdir(parents=True, exist_ok=True)
+        df_raw.to_parquet(self._path)
 
 
-    def load_raw(self, project_id: str, variant_id: str) -> pd.DataFrame | None:
-        path = Path("projects") / project_id / "results" / f"raw_results_{variant_id}.parquet"
+    def load_raw(self) -> pd.DataFrame | None:
+        """
+        Loads the raw simulation results from a parquet file.
+        Path is defined in bootstrap.py
+        """
+        path = self._path
         if not path.exists():
             return None
         df_raw = pd.read_parquet(path)
