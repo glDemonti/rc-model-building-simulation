@@ -1003,16 +1003,20 @@ with ui.nav_panel("Vergleich mit Messdaten"):
             label="Messtdaten laden",
             disabled=False,
         )
+        @render.text
+        def measurement_file_properties():
+            return input.file_input_measured_data()
+
         @reactive.effect
         @reactive.event(input.button_load_measured_data)
         def on_load_measure_clicked():
             file_info = input.file_input_measured_data()
             if file_info:
                 info = file_info[0]
-                path = file_info["datapath"]
-                original_name = file_info["name"]
+                path = info["datapath"]
+                original_name = info["name"]
                 try:
-                    facade_A.update_measurement_file(path, name)
+                    facade_A.update_measurement_file(path, original_name)
                     ui.notification_show(f"Messdaten '{original_name}' erfolgreich hochgeladen.", type="success", duration=4)
                 except Exception as e: 
                     ui.notification_show(F"Fehler beim hochladen der Messdaten: {e}", type="error", duration=6)
