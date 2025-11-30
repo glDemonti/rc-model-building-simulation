@@ -989,6 +989,7 @@ with ui.nav_panel("Simulationsresultate"):
                 width=6,
             ):
                 "Gesamte jährliche CO2-Emissionen [kg CO2]"
+
 with ui.nav_panel("Vergleich mit Messdaten"):
     with ui.card():
         ui.card_header("Einlesen von Messtdaten")
@@ -997,6 +998,24 @@ with ui.nav_panel("Vergleich mit Messdaten"):
             label="Wählen Sie eine Datei mit Messtdaten aus",
             accept=[".csv"],
         )
+        ui.input_action_button(
+            id="button_load_measured_data",
+            label="Messtdaten laden",
+            disabled=False,
+        )
+        @reactive.effect
+        @reactive.event(input.button_load_measured_data)
+        def on_load_measure_clicked():
+            file_info = input.file_input_measured_data()
+            if file_info:
+                info = file_info[0]
+                path = file_info["datapath"]
+                original_name = file_info["name"]
+                try:
+                    facade_A.update_measurement_file(path, name)
+                    ui.notification_show(f"Messdaten '{original_name}' erfolgreich hochgeladen.", type="success", duration=4)
+                except Exception as e: 
+                    ui.notification_show(F"Fehler beim hochladen der Messdaten: {e}", type="error", duration=6)
 # ===================================================================
 # region: Settings Panel
 # ===================================================================

@@ -61,6 +61,12 @@ class ConfigFacade:
         self._weather_service.process_and_store_weather()
 
 
+    def update_measurement_file(self, temp_path: str, orgianl_name: str):
+        """
+        
+        """
+        self._measure_repo.write_raw(Path(temp_path))
+
     def run_simulation(self, project_id: str, variant_id: str, *, force: bool = False) -> RunReport:
         """quick and dirty implementation of start simulation
         """
