@@ -1403,6 +1403,13 @@ with ui.nav_panel("Einstellungen"):
                     with ui.card():
                         ui.card_header("Andere Gebäudeflächen und Abmessungen")
                         ui.input_text(
+                            id="ebf_area",
+                            label="Energiebezugsfläche (EBF) [m²]",
+                            value=cfg0['building_geometry']['enclosure']['ebf_area']['expression'],
+                            width="600px",
+                            placeholder="Geben Sie eine Zahl ein",
+                        )
+                        ui.input_text(
                             id="roof_area",
                             label="Dachfläche [m²]",
                             value=cfg0['building_geometry']['enclosure']['roof_area']['expression'],

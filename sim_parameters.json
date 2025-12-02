@@ -169,6 +169,11 @@
                     }
                 }
             },
+            "ebf_area": {
+                "expression": "313.8 * 3.0",
+                "value": 941.4,
+                "unit": "m2"
+            },
             "wall_to_unheated_area": {
                 "expression": "(21.5 + 12.5 + 5.3) * 3.0",
                 "value": 135.6,
