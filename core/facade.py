@@ -63,7 +63,8 @@ class ConfigFacade:
 
     def update_measurement_file(self, temp_path: str, orgianl_name: str):
         """
-        
+        Updates the measurement data file in the repository by copying it from a temporary location.
+
         """
         self._measure_repo.write_raw(Path(temp_path))
 
