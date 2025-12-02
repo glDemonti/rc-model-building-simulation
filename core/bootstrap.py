@@ -14,6 +14,7 @@ from core.analytics.adapters.heating_cooling_timeseries import HeatingCoolingTim
 from core.weather_service import WeatherService
 from core.storage.weather_repo import WeatherRepository
 from core.storage.measurements_repo import MeasurementsRepository
+from core.measure_service import MeasureService
 
 
 
@@ -47,6 +48,7 @@ def create_facade(project_id: str, variant_id) -> ConfigFacade:
     validator = ConfigValidator(schema_path=str(schema))
     mapper = ModelMapper()
     weather_service = WeatherService(weather_repo)
+    measure_service = MeasureService(measure_repo)
 
     adapters = [
         HeatingCoolingSummaryAdapter(),
@@ -69,6 +71,7 @@ def create_facade(project_id: str, variant_id) -> ConfigFacade:
         result=result_repo,
         analytics=analytics,
         weather_service=weather_service,
+        measure_service=measure_service,
         weather_repo=weather_repo,
         measure_repo=measure_repo
     )

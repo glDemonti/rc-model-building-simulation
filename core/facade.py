@@ -13,7 +13,10 @@ class ConfigFacade:
     """
     
     """
-    def __init__(self, config_repo, engine, result, evaluator=None, validator=None, mapper=None, analytics=None, weather_service=None, weather_repo=None, measure_repo=None):
+    def __init__(
+        self, config_repo, engine, result, evaluator=None, validator=None, mapper=None, analytics=None,
+        weather_service=None, measure_service=None, weather_repo=None, measure_repo=None
+    ):
         self._config_repo = config_repo
         self._engine = engine
         self._evaluator = evaluator
@@ -22,6 +25,7 @@ class ConfigFacade:
         self._result = result
         self._analytics = analytics
         self._weather_service = weather_service
+        self._measure_service = measure_service
         self._weather_repo = weather_repo
         self._measure_repo = measure_repo
 
@@ -61,12 +65,13 @@ class ConfigFacade:
         self._weather_service.process_and_store_weather()
 
 
-    def update_measurement_file(self, temp_path: str, orgianl_name: str):
+    def update_measurement_file(self, temp_path: str, original_name: str):
         """
         Updates the measurement data file in the repository by copying it from a temporary location.
 
         """
         self._measure_repo.write_raw(Path(temp_path))
+        self._measure_repo.save_original_name(original_name)
 
     def run_simulation(self, project_id: str, variant_id: str, *, force: bool = False) -> RunReport:
         """quick and dirty implementation of start simulation
@@ -96,3 +101,7 @@ class ConfigFacade:
     def get_timeseries(self, project_id:str, variant_id: str):
         result = self._analytics.compute_all(project_id, variant_id)
         return result["timeseries"]
+
+    def get_measurements(self):
+        measurement = self._measure_service.process_and_store_measurements()
+        return measurement

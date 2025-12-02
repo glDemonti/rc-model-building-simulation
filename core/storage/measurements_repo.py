@@ -20,4 +20,18 @@ class MeasurementsRepository:
         except PermissionError:
             print(f"Error: Permission denied when copying to {self.path_raw}")
 
-    
+    def read_raw(self):
+        if not self.path_raw.exists():
+            return None
+        return pd.read_csv(self.path_raw)
+
+    def safe_original_name(self, name):
+        """
+        Saves the original name of the uploaded measurements data file to a text file.
+        Path is defined in bootstrap.py
+
+
+        """
+        orig_name_path = self.path_raw.with_suffix('.txt')
+        with open(orig_name_path, 'w') as f:
+            f.write(name)
