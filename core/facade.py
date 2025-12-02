@@ -105,3 +105,4 @@ class ConfigFacade:
     def get_measurements(self):
         measurement = self._measure_service.process_and_store_measurements()
         return measurement
+    

@@ -23,7 +23,8 @@ class MeasurementsRepository:
     def read_raw(self):
         if not self.path_raw.exists():
             return None
-        return pd.read_csv(self.path_raw)
+        df = pd.read_csv(self.path_raw, sep=";")
+        return df
 
     def safe_original_name(self, name):
         """

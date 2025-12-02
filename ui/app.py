@@ -335,7 +335,7 @@ def _load_initial_results():
         summary_B.set(facade_B.get_summary(PROJECT_ID_VAR_B, "B"))
         timeseries_A.set(facade_A.get_timeseries(PROJECT_ID_VAR_A, "A"))
         timeseries_B.set(facade_B.get_timeseries(PROJECT_ID_VAR_B, "B"))
-        measurements.set(facade_A.get_measurements)
+        measurements.set(facade_A.get_measurements())
     except RuntimeError:
         pass
 
@@ -1024,15 +1024,15 @@ with ui.nav_panel("Vergleich mit Messdaten"):
                 except Exception as e: 
                     ui.notification_show(F"Fehler beim hochladen der Messdaten: {e}", type="error", duration=6)
     
-    # with ui.card():
-        # @render.data_frame
-        # def measurements_df():
-        #     df = measurements()
-        #     if df is None:
-        #         return pd.DataFrame({"info:"["measurements ist None (noch nicht geladen)"]})
-        #     if isinstance(df, pd.DataFrame) and df.empty:
-        #         return pd.DataFrame({"info:" ["measurements ist ein leerer DataFrame"]})
-        #     return df
+    with ui.card():
+        @render.data_frame
+        def measurements_df():
+            df = measurements()
+            if df is None:
+                return pd.DataFrame({"info:"["measurements ist None (noch nicht geladen)"]})
+            if isinstance(df, pd.DataFrame) and df.empty:
+                return pd.DataFrame({"info:" ["measurements ist ein leerer DataFrame"]})
+            return df
 # ===================================================================
 # region: Settings Panel
 # ===================================================================
