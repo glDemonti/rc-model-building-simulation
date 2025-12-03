@@ -37,9 +37,10 @@ class HeatingCoolingSummaryAdapter(BaseAdapter):
 
         # max heating power
         max_heating_power = df_raw.loc[:,'output_heating_power'].max() / 1e3 # in kW
-
+        timestamp_max_heating = df_raw.loc[:,'output_heating_power'].idxmax()
         # max cooling power
         max_cooling_power = df_raw.loc[:,'output_cooling_power'].max() / 1e3 # in kW
+        timestamp_max_cooling = df_raw.loc[:,'output_cooling_power'].idxmax()
 
         # specifig heating power
         Q_spec_heat = max_heating_power / cfg['building_geometry']['enclosure']['ebf_area']['value'] # in kWh/m²
@@ -56,6 +57,8 @@ class HeatingCoolingSummaryAdapter(BaseAdapter):
             {"project_id": project_id, "variant_id": variant_id, "end_use": "cooling", "metric": "energy_year", "value": E_cooling_kWh, "unit": "kWh"},
             {"project_id": project_id, "variant_id": variant_id, "end_use": "heating", "metric":"power_max", "value": max_heating_power, "unit": "kW"},
             {"project_id": project_id, "variant_id": variant_id, "end_use": "cooling", "metric":"power_max", "value": max_cooling_power, "unit": "kW"},
+            {"project_id": project_id, "variant_id": variant_id, "end_use": "heating", "metric":"power_max_timestamp", "value": timestamp_max_heating, "unit": "timestamp"},
+            {"project_id": project_id, "variant_id": variant_id, "end_use": "cooling", "metric":"power_max_timestamp", "value": timestamp_max_cooling, "unit": "timestamp"},
             {"project_id": project_id, "variant_id": variant_id, "end_use": "heating", "metric":"energy_specific", "value": E_spec_heat, "unit": "kWh/m²"},
             {"project_id": project_id, "variant_id": variant_id, "end_use": "cooling", "metric":"energy_specific", "value": E_spec_cool, "unit": "kWh/m²"},
             {"project_id": project_id, "variant_id": variant_id, "end_use": "heating", "metric":"load_specific", "value": Q_spec_heat, "unit": "kW/m²"},

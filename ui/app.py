@@ -549,8 +549,9 @@ with ui.nav_panel("Simulationsresultate"):
             timeseries_A.set(facade_A.get_timeseries(PROJECT_ID_VAR_A, "A"))
             timeseries_B.set(facade_B.get_timeseries(PROJECT_ID_VAR_B, "B"))
 
-
-                 
+    # -------------------------
+    # debuging cards DataFrames
+    # -------------------------          
     with ui.card():
         ui.card_header("Debug: Summary Heizung/Kühlung Variante A")
         
@@ -696,11 +697,26 @@ with ui.nav_panel("Simulationsresultate"):
                 width=4,
             ):
                 "Maximale Heizleistung [W]"
+
                 @render.text
                 def max_heating_power_value():
-                    value = get_summary_values(summary_all(), variant=input.power_variant_selector(), end_use="heating", metric="power_max")
+                    value = get_summary_values(
+                        summary_all(),
+                        variant=input.power_variant_selector(),
+                        end_use="heating",
+                        metric="power_max",
+                    )
                     return f"{value} kW"
-                "am 15.01.2023 14:00"
+                @render.text
+                def max_heating_power_timestamp():
+                    ts = get_summary_values(
+                        summary_all(),
+                        variant=input.power_variant_selector(),
+                        end_use="heating",
+                        metric="power_max_timestamp",
+                    )
+                    return f"am {ts}"
+
 
             with ui.value_box(
                 id="value_box_max_cooling_power",
@@ -709,9 +725,22 @@ with ui.nav_panel("Simulationsresultate"):
                 "Maximale Kühlleistung [W]"
                 @render.text
                 def max_cooling_power_value():
-                    value = get_summary_values(summary_all(), variant=input.power_variant_selector(), end_use="cooling", metric="power_max")
-                    return f"{value} kW"                
-                "am 15.01.2023 14:00"
+                    value = get_summary_values(
+                        summary_all(),
+                        variant=input.power_variant_selector(),
+                        end_use="cooling",
+                        metric="power_max")
+                    return f"{value} kW"
+                @render.text
+                def max_cooling_power_timestamp():
+                    ts = get_summary_values(
+                        summary_all(),
+                        variant=input.power_variant_selector(),
+                        end_use="cooling",
+                        metric="power_max_timestamp",
+                    )
+                    return f"am {ts}"
+
 
             with ui.value_box(
                 id="value_box_spec_heating_load",
