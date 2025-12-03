@@ -1033,6 +1033,21 @@ with ui.nav_panel("Vergleich mit Messdaten"):
             if isinstance(df, pd.DataFrame) and df.empty:
                 return pd.DataFrame({"info:" ["measurements ist ein leerer DataFrame"]})
             return df
+        
+        @render_plotly
+        def plot_measurements():
+            df = measurements()
+            if df is None:
+                return go.Figure()
+            fig = px.line(
+                df,
+                x="Unnamed: 0",
+                y=[
+                    "Raumtemperatur S235",
+                    "Raumtemperatur N235"
+                ]
+            )
+            return fig
 # ===================================================================
 # region: Settings Panel
 # ===================================================================
