@@ -717,21 +717,43 @@ with ui.nav_panel("Simulationsresultate"):
                 id="value_box_spec_heating_load",
                 width=4,
             ):
-                "Spezifische Heizlast [W/m²]"
+                "Spezifische Heizlast [kW/m²]"
                 @render.text
                 def spec_heating_load_value():
                     value = get_summary_values(summary_all(), variant=input.power_variant_selector(), end_use="heating", metric="load_specific")
-                    return f"{value} W/m²"
+                    return f"{value} kW/m²"
 
             with ui.value_box(
                 id="value_box_spec_cooling_load",
                 width=4,
             ):
-                "Spezifische Kühllast [W/m²]"
+                "Spezifische Kühllast [kW/m²]"
                 @render.text
                 def spec_cooling_load_value():
                     value = get_summary_values(summary_all(), variant=input.power_variant_selector(), end_use="cooling", metric="load_specific")
-                    return f"{value} W/m²"
+                    return f"{value} kW/m²"
+                
+            with ui.value_box(
+                id="value_box_spec_heating_energy",
+                width=4,
+            ):
+                "Spezifischer Heizenergiebedarf [kWh/m²]"
+                @render.text
+                def spec_heating_energy_value():
+                    value = get_summary_values(summary_all(), variant=input.power_variant_selector(), end_use="heating", metric="energy_specific")
+                    return f"{value} kWh/m²"
+            
+                 
+            with ui.value_box(
+                id="value_box_spec_cooling_energy",
+                width=4,
+            ):
+                "Spezifischer Kühlenergiebedarf [kWh/m²]"
+                @render.text
+                def spec_cooling_energy_value():
+                    value = get_summary_values(summary_all(), variant=input.power_variant_selector(), end_use="cooling", metric="energy_specific")
+                    return f"{value} kWh/m²"
+           
 
             with ui.value_box(
                 id="value_box_total_energy_costs_heating",
