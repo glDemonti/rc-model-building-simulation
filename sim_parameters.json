@@ -254,50 +254,50 @@
                     "unit": "W/mK"
                 },
                 "capacity_density_wall_inside": {
-                    "expression": "2400 * 1000",
-                    "value": 2400000,
+                    "expression": "2400 * 1100",
+                    "value": 2640000,
                     "unit": "J/m3K"
                 },
                 "capacity_density_roof_inside": {
-                    "expression": "2400 * 1000",
-                    "value": 2400000,
+                    "expression": "2400 * 1100",
+                    "value": 2640000,
                     "unit": "J/m3K"
                 },
                 "capacity_density_floor_inside": {
-                    "expression": "2400 * 1000",
-                    "value": 2400000,
+                    "expression": "2400 * 1100",
+                    "value": 2640000,
                     "unit": "J/m3K"
                 }
             },
             "outside_layer": {
                 "lambda_wall_outside": {
-                    "expression": "0.04",
-                    "value": 0.04,
+                    "expression": "0.031",
+                    "value": 0.031,
                     "unit": "W/mK"
                 },
                 "lambda_roof_outside": {
-                    "expression": "0.04",
-                    "value": 0.04,
+                    "expression": "0.02",
+                    "value": 0.02,
                     "unit": "W/mK"
                 },
                 "lambda_floor_outside": {
-                    "expression": "0.04",
-                    "value": 0.04,
+                    "expression": "0.03",
+                    "value": 0.03,
                     "unit": "W/mK"
                 },
                 "capacity_density_wall_outside": {
-                    "expression": "2400 * 1000",
-                    "value": 2400000,
+                    "expression": "16 * 1400",
+                    "value": 22400,
                     "unit": "J/m3K"
                 },
                 "capacity_density_roof_outside": {
-                    "expression": "2400 * 1000",
-                    "value": 2400000,
+                    "expression": "30 * 1400",
+                    "value": 42000,
                     "unit": "J/m3K"
                 },
                 "capacity_density_floor_outside": {
-                    "expression": "2400 * 1000",
-                    "value": 2400000,
+                    "expression": "18 * 1400",
+                    "value": 25200,
                     "unit": "J/m3K"
                 }
             },
