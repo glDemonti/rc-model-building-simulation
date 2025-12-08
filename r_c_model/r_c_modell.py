@@ -428,10 +428,13 @@ class RCEngine:
         # ------------------------------------------------------
 
         # air temperature equation
-        left_matrix[line_air, line_air] = (building_height * floor_area * 1006 * 1.185 +
-            surf_htc_in * total_area_constructions *time_step + 
-            (thermal_bridges + wall_against_unheated_u_value * wall_against_unheated_area) * time_step +
-            (infiltration_rate + air_ventilation_rate * (1.0 - heat_exchanger_efficiency)) * 1006 * 1.185 * time_step)
+        left_matrix[line_air, line_air] = (
+            building_height * floor_area * 1006 * 1.185
+            + surf_htc_in * total_area_constructions *time_step 
+            + (thermal_bridges + wall_against_unheated_u_value * wall_against_unheated_area) * time_step
+            + (infiltration_rate + air_ventilation_rate * (1.0 - heat_exchanger_efficiency)) * 1006 * 1.185 * time_step
+            )
+        
         left_matrix[line_air, line_in_glazing_n] = -surf_htc_in * time_step * glazing_area_n
         left_matrix[line_air, line_in_glazing_e] = -surf_htc_in * time_step * glazing_area_e
         left_matrix[line_air, line_in_glazing_s] = -surf_htc_in * time_step * glazing_area_s
@@ -1392,7 +1395,7 @@ class RCEngine:
                     for j in range(5):
                         heating_power += (
                             left_matrix[line_air, line_air] 
-                            * (heating_setpoint - initial_temperatures[line_air].item())
+                            * (heating_setpoint - initial_temperatures[line_air])
                             / time_step
                         )
                         right_matrix[line_air] = (
@@ -1410,7 +1413,7 @@ class RCEngine:
                     for j in range(5):
                         cooling_power += (
                             left_matrix[line_air, line_air] 
-                            * (cooling_setpoint - initial_temperatures[line_air].item()) 
+                            * (initial_temperatures[line_air]- cooling_setpoint) 
                             / time_step
                         )
                         right_matrix[line_air] = (
@@ -1419,30 +1422,29 @@ class RCEngine:
                             + thermal_bridges * time_step * interpolated_amb_temp
                             + (infiltration_rate + air_ventilation_rate * (1 - heat_exchanger_efficiency)) * 1006 * 1.185 * time_step * interpolated_amb_temp
                             + int_heat_gain_to_air_coef * int_heat_gain * time_step
-                            + cooling_power * time_step
+                            - cooling_power * time_step
                         )
                         initial_temperatures = inverse_matrix @ right_matrix
 
                 if hour_counter >= start_output_hour:
-                    heating_energy_hour += heating_power * time_step / 3600
-                    cooling_energy_hour += cooling_power * time_step / 3600
-                    lighting_energy_hour += (
+                    out_idx = hour_counter - start_output_hour
+                    output_heating_power[out_idx] += heating_power * time_step / 3600
+                    output_cooling_power[out_idx] += cooling_power * time_step / 3600
+                    output_lighting_electricity[out_idx] += (
                         (int_heat_gain - occ * occupancy_power - eqp * equipment_power) 
                         * time_step / 3600
                     )
-                    equipment_energy_hour += (
+                    output_equipment_electricity[out_idx] += (
                         eqp * equipment_power * time_step / 3600
                     )
+                    
                 # if i > weather_file_size - 8760:
                 #     out_idx = i -1 - weather_file_size + 8760
                 #     output_heating_power[out_idx] += heating_power * time_step / 3600
             if hour_counter >= start_output_hour:
-                idx = hour_counter - start_output_hour      # index for output arrays 0..8759
-                output_temperatures[idx, :] = initial_temperatures
-                output_heating_power[idx] = heating_energy_hour
-                output_cooling_power[idx] = cooling_energy_hour
-                output_lighting_electricity[idx] = lighting_energy_hour
-                output_equipment_electricity[idx] = equipment_energy_hour
+                out_idx = hour_counter - start_output_hour
+                output_temperatures[out_idx, :] = initial_temperatures
+
 
 
 
