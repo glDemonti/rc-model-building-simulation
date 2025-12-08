@@ -8,7 +8,7 @@
             "north": {
                 "unshaded_glazing_area": {
                     "expression": "0.825 * (2.3 * 12 + 1.2 * 6 + 3 * 2.07)",
-                    "value": 42.3,
+                    "value": 33.83325,
                     "unit": "m2"
                 },
                 "shaded_glazing_area": {
@@ -18,7 +18,7 @@
                 },
                 "unshaded_frame_area": {
                     "expression": "0.175 * (2.3 * 12 + 1.2 * 6 + 3 * 2.07)",
-                    "value": 9.0,
+                    "value": 7.176749999999999,
                     "unit": "m2"
                 },
                 "shaded_frame_area": {
@@ -30,66 +30,66 @@
             "east": {
                 "unshaded_glazing_area": {
                     "expression": "0.825 * (3.45 * 3 + 2.3 * 3 + 1.98 * 1)",
-                    "value": 14.1,
+                    "value": 15.864749999999999,
                     "unit": "m2"
                 },
                 "shaded_glazing_area": {
                     "expression": "0.825 * (1.98 * 2)",
-                    "value": 3.3,
+                    "value": 3.267,
                     "unit": "m2"
                 },
                 "unshaded_frame_area": {
                     "expression": "0.175 * (3.45 * 3 + 2.3 * 3 + 1.98 * 1)",
-                    "value": 3.0,
+                    "value": 3.36525,
                     "unit": "m2"
                 },
                 "shaded_frame_area": {
                     "expression": "0.175 * (1.98 * 2)",
-                    "value": 0.7,
+                    "value": 0.693,
                     "unit": "m2"
                 }
             },
             "south": {
                 "unshaded_glazing_area": {
                     "expression": "0.825 * (1.73 * 2 + 5.18 * 2 + 1.98 * 4 + 1.2 * 6 + 2.07 * 1)",
-                    "value": 45.6,
+                    "value": 25.58325,
                     "unit": "m2"
                 },
                 "shaded_glazing_area": {
                     "expression": "0.825 * (1.73 * 4 + 5.18 * 4 + 1.98 * 8 + 2.07 * 2)",
-                    "value": 61.2,
+                    "value": 39.286500000000004,
                     "unit": "m2"
                 },
                 "unshaded_frame_area": {
                     "expression": "0.175 * (1.73 * 2 + 5.18 * 2 + 1.98 * 4 + 1.2 * 6 + 2.07 * 1)",
-                    "value": 9.6,
+                    "value": 5.42675,
                     "unit": "m2"
                 },
                 "shaded_frame_area": {
                     "expression": "0.175 * (1.73 * 4 + 5.18 * 4 + 1.98 * 8 + 2.07 * 2)",
-                    "value": 13.0,
+                    "value": 8.3335,
                     "unit": "m2"
                 }
             },
             "west": {
                 "unshaded_glazing_area": {
                     "expression": "0.825 * (3.45 * 3 + 2.3 * 3 + 2.07 * 1)",
-                    "value": 14.4,
+                    "value": 15.939,
                     "unit": "m2"
                 },
                 "shaded_glazing_area": {
                     "expression": "0.825 * (2.07 * 2)",
-                    "value": 3.4,
+                    "value": 3.4154999999999998,
                     "unit": "m2"
                 },
                 "unshaded_frame_area": {
                     "expression": "0.175 * (3.45 * 3 + 2.3 * 3 + 2.07 * 1)",
-                    "value": 3.1,
+                    "value": 3.381,
                     "unit": "m2"
                 },
                 "shaded_frame_area": {
                     "expression": "0.175 * (2.07 * 2)",
-                    "value": 0.7,
+                    "value": 0.7244999999999999,
                     "unit": "m2"
                 }
             }
@@ -98,7 +98,7 @@
             "outside_wall_areas": {
                 "north": {
                     "expression": "2.5 * 3 * (32.6 + 1.6 - 6.0)",
-                    "value": 82.5,
+                    "value": 211.50000000000003,
                     "unit": "m2"
                 },
                 "east": {
@@ -108,12 +108,12 @@
                 },
                 "south": {
                     "expression": "2.5 * 3 * (32.6 + 1.6)",
-                    "value": 107.5,
+                    "value": 256.5,
                     "unit": "m2"
                 },
                 "west": {
                     "expression": "2.5 * 3 * (32.6 + 1.6 - 6.0)",
-                    "value": 82.5,
+                    "value": 211.50000000000003,
                     "unit": "m2"
                 },
                 "thickness": {
@@ -171,17 +171,17 @@
             },
             "ebf_area": {
                 "expression": "313.8 * 3.0",
-                "value": 941.4,
+                "value": 941.4000000000001,
                 "unit": "m2"
             },
             "wall_to_unheated_area": {
                 "expression": "(21.5 + 12.5 + 5.3) * 3.0",
-                "value": 135.6,
+                "value": 117.89999999999999,
                 "unit": "m2"
             },
             "int_wall_area": {
                 "expression": "(72.975 + 91.9 + 2.0 *19.75) * 3.0",
-                "value": 549.6,
+                "value": 613.125,
                 "unit": "m2",
                 "thickness": {
                     "explenation": "drywall",
@@ -234,7 +234,7 @@
         "enclosure": {
             "u_value_wall_against_unheated": {
                 "expression": "1 / (2 / 8.0 + 0.17 / 0.79)",
-                "value": 1.2,
+                "value": 2.149659863945578,
                 "unit": "W/m2K"
             },
             "inside_layer": {
@@ -326,12 +326,12 @@
         },
         "infiltration_rate_specific": {
             "expression": "0.194444 * 0.001 * 3.0",
-            "value": 0.000583,
+            "value": 0.000583332,
             "unit": "1/(h*m2)"
         },
         "air_ventilation_rate_specific": {
             "expression": "0.278 * 0.001 * 3.0",
-            "value": 0.000834,
+            "value": 0.0008340000000000001,
             "unit": "1/(h*m2)"
         },
         "heat_exchanger_efficiency": {
@@ -352,7 +352,7 @@
             },
             "lighting_power_per_area": {
                 "expression": "2.7 * 3.0",
-                "value": 81.0,
+                "value": 8.100000000000001,
                 "unit": "W/m2"
             },
             "equipment_power_per_area": {
@@ -432,10 +432,10 @@
                 "14:00": 0.1,
                 "15:00": 0.1,
                 "16:00": 0.1,
-                "17:00": 0.1,
-                "18:00": 0.2,
-                "19:00": 0.8,
-                "20:00": 1.0,
+                "17:00": 0.2,
+                "18:00": 0.8,
+                "19:00": 1.0,
+                "20:00": 0.2,
                 "21:00": 0.2,
                 "22:00": 0.2,
                 "23:00": 0.1
@@ -461,28 +461,28 @@
         "heating_setpoint": {
             "expression": "21.0",
             "value": 21.0,
-            "unit": "°C"
+            "unit": "\u00b0C"
         },
         "cooling_setpoint": {
             "expression": "26.0",
             "value": 26.0,
-            "unit": "°C"
+            "unit": "\u00b0C"
         }
     },
     "economic_parameters": {
         "electricity_price": {
             "expression": "0.30",
-            "value": 0.30,
+            "value": 0.3,
             "unit": "CHF/kWh"
         },
         "heating_price": {
             "expression": "0.10",
-            "value": 0.10,
+            "value": 0.1,
             "unit": "CHF/kWh"
         },
         "cooling_price": {
             "expression": "0.10",
-            "value": 0.10,
+            "value": 0.1,
             "unit": "CHF/kWh"
         }
     }
