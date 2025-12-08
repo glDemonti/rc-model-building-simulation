@@ -1387,8 +1387,9 @@ class RCEngine:
                         )
                         initial_temperatures = inverse_matrix @ right_matrix
 
-                if i > weather_file_size - 8760:
-                    out_idx = i -1 - weather_file_size + 8760
+                skip_hours = weather_file_size - 8760 # to store only the last year of the simulation results
+                if i > skip_hours:
+                    out_idx = i - skip_hours
                     output_heating_power[out_idx] += heating_power * time_step / 3600
                     output_cooling_power[out_idx] += cooling_power * time_step / 3600
                     output_lighting_electricity[out_idx] += (
@@ -1397,9 +1398,12 @@ class RCEngine:
                     output_equipment_electricity[out_idx] += (
                         equipment_schedule[hour - 1] * equipment_power * time_step / 3600
                     )
-
-            if i > weather_file_size - 8760:
-                out_idx = i -1 - weather_file_size + 8760
+                # if i > weather_file_size - 8760:
+                #     out_idx = i -1 - weather_file_size + 8760
+                #     output_heating_power[out_idx] += heating_power * time_step / 3600
+            skip_hours = weather_file_size - 8760
+            if i > skip_hours:
+                out_idx = i - skip_hours
                 output_temperatures[out_idx, :] = initial_temperatures
 
 
