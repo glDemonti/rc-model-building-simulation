@@ -973,10 +973,10 @@ class RCEngine:
         # --------------------------------------------------------------
         initial_temperatures = np.full(49, 20.0) # initial temperature vector (49 temperatures)
         output_temperatures = np.zeros((8760, 49))
-        output_heating_power = np.zeros((8760, 1))
-        output_cooling_power = np.zeros((8760, 1))
-        output_lighting_electricity = np.zeros((8760, 1))
-        output_equipment_electricity = np.zeros((8760, 1))
+        output_heating_power = np.zeros((8760))
+        output_cooling_power = np.zeros((8760))
+        output_lighting_electricity = np.zeros((8760))
+        output_equipment_electricity = np.zeros((8760))
 
         #  --------------------------------------------------------------
         # region: run the simulation for the number of hours in the weather data
@@ -984,15 +984,28 @@ class RCEngine:
         right_matrix = np.zeros(49, dtype=float)
 
         steps_per_hour = int(3600 / time_step)
+        n_hours = len(ambient_temp) # number of hours in the weather data
+
+        start_output_hour = n_hours-8760
 
         # hour_counter = 1
 
-        for i in range(1, weather_file_size): # loop over all hours in the weather data. i = 1..N-1 (actual hour)
-            hour = (i % 24) or 24 # hour = 1..24 (ensure hour is between 1 and 24) (modulo and fallback operation)
-            for k in range(steps_per_hour): # loop over all time steps in one hour. k = 0..steps_per_hour-1
-                alpha = (k + 1) * time_step / 3600 # alpha = 0..1 (fraction of the hour)
-                i_prev = i - 1 # index for previous hour
-                i_curr = i     # index for current hour
+        for hour_counter in range(1, n_hours):  # loop over all hours in the weather data. i = 1..N-1 (actual hour)
+            hour_of_day = hour_counter % 24   # hour of the day 0..23
+            occ = occupancy_schedule[hour_of_day]
+            lig = lighting_schedule[hour_of_day]
+            eqp = equipment_schedule[hour_of_day]
+
+            # energy sums hourly (summation over all time steps in one hour)
+            heating_energy_hour = 0.0
+            cooling_energy_hour = 0.0
+            lighting_energy_hour = 0.0
+            equipment_energy_hour = 0.0
+
+            for k in range(steps_per_hour):     # loop over all time steps in one hour k = 0..steps_per_hour-1
+                alpha = (k + 1) * time_step / 3600  # alpha = 0..1 (fraction of the hour)
+                i_prev = hour_counter - 1 # index for previous hour
+                i_curr = hour_counter     # index for current hour
 
 
                 # interpolation of wather data
@@ -1045,28 +1058,41 @@ class RCEngine:
                     + shading_value_unshaded_windows_west * unshaded_glazing_area_w * interpolated_sun_flux_w 
                     + shading_value_shaded_windows_west * shaded_glazing_area_w * interpolated_shading_flux
                 )
+                # internal heat gains from occupants and equipment
+                int_heat_gain = occ * occupancy_power + eqp * equipment_power
 
-                int_heat_gain = occupancy_schedule[hour-1] * occupancy_power + equipment_schedule[hour-1] * equipment_power
-
-                if lighting_schedule[hour-1] > 0:
-                    if ((shading_value_unshaded_windows_north * unshaded_glazing_area_n * interpolated_sun_flux_n
-                        + shading_value_shaded_windows_north * shaded_glazing_area_n * interpolated_shading_flux) / glazing_area_n) < 15.0:
-                            int_heat_gain = int_heat_gain + lighting_schedule[hour-1] * lighting_power * lighting_north_side
+                if lig > 0:
+                    # north side
+                    if glazing_area_n > 0 and (
+                        (shading_value_unshaded_windows_north * unshaded_glazing_area_n * interpolated_sun_flux_n
+                         + shading_value_shaded_windows_north * shaded_glazing_area_n * interpolated_shading_flux)
+                        / glazing_area_n
+                    ) < 15.0:
+                        int_heat_gain += lig * lighting_power * lighting_north_side
                     
-                    if ((
-                        shading_value_unshaded_windows_east * unshaded_glazing_area_e * interpolated_sun_flux_e
-                        + shading_value_shaded_windows_east * shaded_glazing_area_e * interpolated_shading_flux) / glazing_area_e) < 15.0:
-                            int_heat_gain = int_heat_gain + lighting_schedule[hour-1] * lighting_power * lighting_east_side
+                    # east side
+                    if glazing_area_e > 0 and (
+                        (shading_value_unshaded_windows_east * unshaded_glazing_area_e * interpolated_sun_flux_e
+                         + shading_value_shaded_windows_east * shaded_glazing_area_e * interpolated_shading_flux) 
+                        / glazing_area_e
+                    ) < 15.0:
+                        int_heat_gain += lig * lighting_power * lighting_east_side
                     
-                    if ((
-                        shading_value_unshaded_windows_south * unshaded_glazing_area_s * interpolated_sun_flux_s 
-                        + shading_value_shaded_windows_south * shaded_glazing_area_s * interpolated_shading_flux) / glazing_area_s) < 15.0:
-                            int_heat_gain = int_heat_gain + lighting_schedule[hour-1] * lighting_power * lighting_south_side
+                    # south side
+                    if glazing_area_s > 0 and (
+                        (shading_value_unshaded_windows_south * unshaded_glazing_area_s * interpolated_sun_flux_s 
+                         + shading_value_shaded_windows_south * shaded_glazing_area_s * interpolated_shading_flux)
+                        / glazing_area_s
+                    ) < 15.0:
+                        int_heat_gain += lig * lighting_power * lighting_south_side
 
-                    if ((
-                        shading_value_unshaded_windows_west * unshaded_glazing_area_w * interpolated_sun_flux_w
-                        + shading_value_shaded_windows_west * shaded_glazing_area_w * interpolated_shading_flux) / glazing_area_w) < 15.0:
-                            int_heat_gain = int_heat_gain + lighting_schedule[hour-1] * lighting_power * lighting_west_side
+                    # west side
+                    if glazing_area_w > 0 and (
+                        (shading_value_unshaded_windows_west * unshaded_glazing_area_w * interpolated_sun_flux_w
+                         + shading_value_shaded_windows_west * shaded_glazing_area_w * interpolated_shading_flux)
+                        / glazing_area_w
+                    ) < 15.0:
+                        int_heat_gain += lig * lighting_power * lighting_west_side
                 
                 # air temperature equation
                 right_matrix[line_air] = (
@@ -1361,9 +1387,14 @@ class RCEngine:
                 heating_power = 0.0
                 cooling_power = 0.0
 
+                # heating
                 if initial_temperatures[line_air] < heating_setpoint:
                     for j in range(5):
-                        heating_power = heating_power + left_matrix[line_air, line_air] * (heating_setpoint - initial_temperatures[line_air].item()) / time_step
+                        heating_power += (
+                            left_matrix[line_air, line_air] 
+                            * (heating_setpoint - initial_temperatures[line_air].item())
+                            / time_step
+                        )
                         right_matrix[line_air] = (
                             building_height * floor_area * 1006 * 1.185 * initial_temperatures[line_air].item()
                             + wall_against_unheated_u_value * wall_against_unheated_area * time_step * interpolated_unheated_temp
@@ -1373,38 +1404,46 @@ class RCEngine:
                             + heating_power * time_step
                         )
                         initial_temperatures = inverse_matrix @ right_matrix
-
+                
+                # cooling
                 elif initial_temperatures[line_air] > cooling_setpoint:
                     for j in range(5):
-                        cooling_power = cooling_power + left_matrix[line_air, line_air] * (initial_temperatures[line_air].item() - cooling_setpoint) / time_step
+                        cooling_power += (
+                            left_matrix[line_air, line_air] 
+                            * (cooling_setpoint - initial_temperatures[line_air].item()) 
+                            / time_step
+                        )
                         right_matrix[line_air] = (
                             building_height * floor_area * 1006 * 1.185 * initial_temperatures[line_air].item()
                             + wall_against_unheated_u_value * wall_against_unheated_area * time_step * interpolated_unheated_temp
                             + thermal_bridges * time_step * interpolated_amb_temp
                             + (infiltration_rate + air_ventilation_rate * (1 - heat_exchanger_efficiency)) * 1006 * 1.185 * time_step * interpolated_amb_temp
                             + int_heat_gain_to_air_coef * int_heat_gain * time_step
-                            - cooling_power * time_step
+                            + cooling_power * time_step
                         )
                         initial_temperatures = inverse_matrix @ right_matrix
 
-                skip_hours = weather_file_size - 8760 # to store only the last year of the simulation results
-                if i > skip_hours:
-                    out_idx = i - skip_hours
-                    output_heating_power[out_idx] += heating_power * time_step / 3600
-                    output_cooling_power[out_idx] += cooling_power * time_step / 3600
-                    output_lighting_electricity[out_idx] += (
-                        (int_heat_gain - occupancy_schedule[hour - 1] * occupancy_power - equipment_schedule[hour - 1] * equipment_power) * time_step / 3600
+                if hour_counter >= start_output_hour:
+                    heating_energy_hour += heating_power * time_step / 3600
+                    cooling_energy_hour += cooling_power * time_step / 3600
+                    lighting_energy_hour += (
+                        (int_heat_gain - occ * occupancy_power - eqp * equipment_power) 
+                        * time_step / 3600
                     )
-                    output_equipment_electricity[out_idx] += (
-                        equipment_schedule[hour - 1] * equipment_power * time_step / 3600
+                    equipment_energy_hour += (
+                        eqp * equipment_power * time_step / 3600
                     )
                 # if i > weather_file_size - 8760:
                 #     out_idx = i -1 - weather_file_size + 8760
                 #     output_heating_power[out_idx] += heating_power * time_step / 3600
-            skip_hours = weather_file_size - 8760
-            if i > skip_hours:
-                out_idx = i - skip_hours
-                output_temperatures[out_idx, :] = initial_temperatures
+            if hour_counter >= start_output_hour:
+                idx = hour_counter - start_output_hour      # index for output arrays 0..8759
+                output_temperatures[idx, :] = initial_temperatures
+                output_heating_power[idx] = heating_energy_hour
+                output_cooling_power[idx] = cooling_energy_hour
+                output_lighting_electricity[idx] = lighting_energy_hour
+                output_equipment_electricity[idx] = equipment_energy_hour
+
 
 
         # output_heating_power_sum = output_heating_power.sum() / 1e6
