@@ -986,6 +986,7 @@ class RCEngine:
         #  --------------------------------------------------------------
         right_matrix = np.zeros(49, dtype=float)
 
+
         steps_per_hour = int(3600 / time_step)
         n_hours = len(ambient_temp) # number of hours in the weather data
 
@@ -994,7 +995,7 @@ class RCEngine:
         # hour_counter = 1
 
         for hour_counter in range(1, n_hours):  # loop over all hours in the weather data. i = 1..N-1 (actual hour)
-            hour_of_day = hour_counter % 24   # hour of the day 0..23
+            hour_of_day = (hour_counter - 1) % 24   # hour of the day 0..23 (MATLAB uses 1-24, adjusting for 0-based indexing)
             occ = occupancy_schedule[hour_of_day]
             lig = lighting_schedule[hour_of_day]
             eqp = equipment_schedule[hour_of_day]
@@ -1390,6 +1391,7 @@ class RCEngine:
                 heating_power = 0.0
                 cooling_power = 0.0
 
+                # MARKER: File Version Check - 2025-12-08
                 # heating
                 if initial_temperatures[line_air] < heating_setpoint:
                     for j in range(5):
@@ -1413,7 +1415,7 @@ class RCEngine:
                     for j in range(5):
                         cooling_power += (
                             left_matrix[line_air, line_air] 
-                            * (initial_temperatures[line_air]- cooling_setpoint) 
+                            * (cooling_setpoint - initial_temperatures[line_air])
                             / time_step
                         )
                         right_matrix[line_air] = (
@@ -1422,7 +1424,7 @@ class RCEngine:
                             + thermal_bridges * time_step * interpolated_amb_temp
                             + (infiltration_rate + air_ventilation_rate * (1 - heat_exchanger_efficiency)) * 1006 * 1.185 * time_step * interpolated_amb_temp
                             + int_heat_gain_to_air_coef * int_heat_gain * time_step
-                            - cooling_power * time_step
+                            + cooling_power * time_step
                         )
                         initial_temperatures = inverse_matrix @ right_matrix
 
