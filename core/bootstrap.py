@@ -37,7 +37,7 @@ def create_facade(project_id: str, variant_id) -> ConfigFacade:
     weath_file_raw = Root / "projects" / project_id / "weather" / "raw" / f"weather_{variant_id}_raw.mat"
     weath_file_proc = Root / "projects" / project_id / "weather" / "processed" / f"weather_{variant_id}.parquet"
     measr_file_raw = Root / "projects" / "measurements" / "raw" / "measurement_raw.csv"
-    measr_file_proc = Root / "projects" / "measuremtnts" / "processed" / f"measurements.parquet"
+    measr_file_proc = Root / "projects" / "measurements" / "processed" / f"measurements.parquet"
     config_repo = ConfigRepository(str(cfg_file))
     result_repo = ResultRepository(res_file)
     weather_repo = WeatherRepository(weath_file_raw, weath_file_proc)
