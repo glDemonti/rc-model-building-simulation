@@ -485,5 +485,22 @@
             "value": 0.1,
             "unit": "CHF/kWh"
         }
+    },
+    "Co2_emission_factors": {
+        "electricity": {
+            "expression": "0.2",
+            "value": 0.2,
+            "unit": "kgCO2/kWh"
+        },
+        "heating": {
+            "expression": "0.25",
+            "value": 0.25,
+            "unit": "kgCO2/kWh"
+        },
+        "cooling": {
+            "expression": "0.15",
+            "value": 0.15,
+            "unit": "kgCO2/kWh"
+        }
     }
 }
