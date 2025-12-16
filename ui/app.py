@@ -555,15 +555,15 @@ with ui.nav_panel("Simulationsresultate"):
     # with ui.card():
     #     ui.card_header("Debug: Summary Heizung/Kühlung Variante A")
         
-    #     @render.data_frame
-    #     def debug_summary_all():
-    #             df = summary_all()
-    #             if df is None:
-    #                 # Noch nix geladen
-    #                 return pd.DataFrame({"info": ["summary_all is None (noch nicht geladen)"]})
-    #             if isinstance(df, pd.DataFrame) and df.empty:
-    #                 return pd.DataFrame({"info": ["summary_all ist ein leerer DataFrame"]})
-    #             return df
+        @render.data_frame
+        def debug_summary_all():
+                df = summary_all()
+                if df is None:
+                    # Noch nix geladen
+                    return pd.DataFrame({"info": ["summary_all is None (noch nicht geladen)"]})
+                if isinstance(df, pd.DataFrame) and df.empty:
+                    return pd.DataFrame({"info": ["summary_all ist ein leerer DataFrame"]})
+                return df
     #     ui.card_header("Debug:Timeseries")
     #     @render.data_frame
     #     def debug_timeseries_wide():
@@ -1012,37 +1012,73 @@ with ui.nav_panel("Simulationsresultate"):
                 
     with ui.card():
         ui.card_header("CO2-Emissionen")
-        with ui.layout_column_wrap():
-            with ui.value_box(
-                id="value_box_co2_emissions_heating",
-                value="234.56",
-                width=6,
-            ):
-                "Jährliche CO2-Emissionen Heizung [kg CO2]"
-            with ui.value_box(
-                id="value_box_co2_emissions_cooling",
-                value="345.67",
-                width=6,
-            ):
-                "Jährliche CO2-Emissionen Kühlung [kg CO2]"
-            with ui.value_box(
-                id="value_box_elektricity_light_co2",
-                value="456.78",
-                width=6,
-            ):
-                "Jährliche CO2-Emissionen Stromverbrauch(Beleuchtung) [kg CO2]"
-            with ui.value_box(
-                id="value_box_elektricity_equip_co2",
-                value="567.89",
-                width=6,
-            ):
-                "Jährliche CO2-Emissionen Stromverbrauch(Geräte) [kg CO2]"
-            with ui.value_box(
-                id="value_box_total_co2_emissions",
-                value="1604.90",
-                width=6,
-            ):
-                "Gesamte jährliche CO2-Emissionen [kg CO2]"
+        with ui.card():
+            ui.card_header("Variante A")
+            with ui.layout_column_wrap():
+                with ui.value_box(
+                    id="value_box_co2_emissions_heating_A",
+                    width=4,
+                ):
+                    "Jährliche CO2-Emissionen Heizung [kg CO2]"
+                    @render.text
+                    def co2_emissions_heating_value_A():
+                        value = get_summary_values(summary_all(), variant=VARIANT_ID_A, end_use="heating", metric="co2_year")
+                        return f"{value} kg CO2"
+
+                with ui.value_box(
+                    id="value_box_co2_emissions_cooling_A",
+                    width=4,
+                ):
+                    "Jährliche CO2-Emissionen Kühlung [kg CO2]"
+                    @render.text
+                    def co2_emissions_cooling_value_A():
+                        value = get_summary_values(summary_all(), variant=VARIANT_ID_A, end_use="cooling", metric="co2_year")
+                        return f"{value} kg CO2"
+                    
+                with ui.value_box(
+                    id="value_box_total_co2_emissions_A",
+                    width=4,
+                ):
+                    "Gesamte jährliche CO2-Emissionen [kg CO2]"
+                    @render.text
+                    def total_co2_emissions_value_A():
+                        value = get_summary_values(summary_all(), variant=VARIANT_ID_A, end_use="total", metric="co2_total_year")
+                        return f"{value} kg CO2"
+        
+        with ui.card():
+            ui.card_header("Variante B")
+            with ui.layout_column_wrap():
+                with ui.value_box(
+                    id="value_box_co2_emissions_heating_B",
+                    width=4,
+                ):
+                    "Jährliche CO2-Emissionen Heizung [kg CO2]"
+                    @render.text
+                    def co2_emissions_heating_value_B():
+                        value = get_summary_values(summary_all(), variant=VARIANT_ID_B, end_use="heating", metric="co2_year")
+                        return f"{value} kg CO2"
+
+                with ui.value_box(
+                    id="value_box_co2_emissions_cooling_B",
+                    width=4,
+                ):
+                    "Jährliche CO2-Emissionen Kühlung [kg CO2]"
+                    @render.text
+                    def co2_emissions_cooling_value_B():
+                        value = get_summary_values(summary_all(), variant=VARIANT_ID_B, end_use="cooling", metric="co2_year")
+                        return f"{value} kg CO2"
+                    
+                with ui.value_box(
+                    id="value_box_total_co2_emissions_B",
+                    width=4,
+                ):
+                    "Gesamte jährliche CO2-Emissionen [kg CO2]"
+                    @render.text
+                    def total_co2_emissions_value_B():
+                        value = get_summary_values(summary_all(), variant=VARIANT_ID_B, end_use="total", metric="co2_total_year")
+                        return f"{value} kg CO2"
+
+
 
 with ui.nav_panel("Vergleich mit Messdaten"):
     with ui.card():
