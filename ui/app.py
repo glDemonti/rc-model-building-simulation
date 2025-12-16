@@ -750,7 +750,7 @@ with ui.nav_panel("Simulationsresultate"):
                 @render.text
                 def spec_heating_load_value():
                     value = get_summary_values(summary_all(), variant=input.power_variant_selector(), end_use="heating", metric="load_specific")
-                    return f"{value} kW/m²"
+                    return f"{value} W/m²"
 
             with ui.value_box(
                 id="value_box_spec_cooling_load",
@@ -760,7 +760,7 @@ with ui.nav_panel("Simulationsresultate"):
                 @render.text
                 def spec_cooling_load_value():
                     value = get_summary_values(summary_all(), variant=input.power_variant_selector(), end_use="cooling", metric="load_specific")
-                    return f"{value} kW/m²"
+                    return f"{value} W/m²"
                 
             with ui.value_box(
                 id="value_box_spec_heating_energy",

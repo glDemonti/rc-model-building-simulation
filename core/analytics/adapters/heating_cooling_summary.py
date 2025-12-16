@@ -17,11 +17,14 @@ class HeatingCoolingSummaryAdapter(BaseAdapter):
         }
 
     def compute(self, context: SimulationContext) -> dict:
-        df_raw = context.df_raw
+        df_raw = context.df_raw.copy()
         dt_hours = context.dt_hours
         cfg = context.cfg
         project_id = context.project_id
         variant_id = context.variant_id
+
+        # ensure positive values for cooling power
+        df_raw['output_cooling_power'] = df_raw['output_cooling_power'].abs()
     
         # summ heating load
         E_heating_kWh = (df_raw.loc[:,'output_heating_power'] * dt_hours).sum() / 1e3 # in kWh
@@ -43,10 +46,10 @@ class HeatingCoolingSummaryAdapter(BaseAdapter):
         timestamp_max_cooling = df_raw.loc[:,'output_cooling_power'].idxmax()
 
         # specifig heating power
-        Q_spec_heat = max_heating_power / cfg['building_geometry']['enclosure']['ebf_area']['value'] # in kWh/m²
+        Q_spec_heat = max_heating_power * 1e3 / cfg['building_geometry']['enclosure']['ebf_area']['value'] # in W/m²
 
         # specifig heating power
-        Q_spec_cool = max_cooling_power / cfg['building_geometry']['enclosure']['ebf_area']['value'] # in kWh/m²
+        Q_spec_cool = max_cooling_power * 1e3 / cfg['building_geometry']['enclosure']['ebf_area']['value'] # in W/m²
 
         # anual costs (heating + cooling)
         anual_heating_cost = E_heating_kWh * cfg['economic_parameters']['heating_price']['value']    # in CHF
@@ -61,8 +64,8 @@ class HeatingCoolingSummaryAdapter(BaseAdapter):
             {"project_id": project_id, "variant_id": variant_id, "end_use": "cooling", "metric":"power_max_timestamp", "value": timestamp_max_cooling, "unit": "timestamp"},
             {"project_id": project_id, "variant_id": variant_id, "end_use": "heating", "metric":"energy_specific", "value": E_spec_heat, "unit": "kWh/m²"},
             {"project_id": project_id, "variant_id": variant_id, "end_use": "cooling", "metric":"energy_specific", "value": E_spec_cool, "unit": "kWh/m²"},
-            {"project_id": project_id, "variant_id": variant_id, "end_use": "heating", "metric":"load_specific", "value": Q_spec_heat, "unit": "kW/m²"},
-            {"project_id": project_id, "variant_id": variant_id, "end_use": "cooling", "metric":"load_specific", "value": Q_spec_cool, "unit": "kW/m²"},
+            {"project_id": project_id, "variant_id": variant_id, "end_use": "heating", "metric":"load_specific", "value": Q_spec_heat, "unit": "W/m²"},
+            {"project_id": project_id, "variant_id": variant_id, "end_use": "cooling", "metric":"load_specific", "value": Q_spec_cool, "unit": "W/m²"},
             {"project_id": project_id, "variant_id": variant_id, "end_use": "heating", "metric":"costs_year", "value": anual_heating_cost, "unit": "CHF"},
             {"project_id": project_id, "variant_id": variant_id, "end_use": "cooling", "metric":"costs_year", "value": anual_cooling_cost, "unit": "CHF"},
         ])
