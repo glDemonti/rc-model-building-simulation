@@ -555,15 +555,15 @@ with ui.nav_panel("Simulationsresultate"):
     # with ui.card():
     #     ui.card_header("Debug: Summary Heizung/Kühlung Variante A")
         
-        @render.data_frame
-        def debug_summary_all():
-                df = summary_all()
-                if df is None:
-                    # Noch nix geladen
-                    return pd.DataFrame({"info": ["summary_all is None (noch nicht geladen)"]})
-                if isinstance(df, pd.DataFrame) and df.empty:
-                    return pd.DataFrame({"info": ["summary_all ist ein leerer DataFrame"]})
-                return df
+        # @render.data_frame
+        # def debug_summary_all():
+        #         df = summary_all()
+        #         if df is None:
+        #             # Noch nix geladen
+        #             return pd.DataFrame({"info": ["summary_all is None (noch nicht geladen)"]})
+        #         if isinstance(df, pd.DataFrame) and df.empty:
+        #             return pd.DataFrame({"info": ["summary_all ist ein leerer DataFrame"]})
+        #         return df
     #     ui.card_header("Debug:Timeseries")
     #     @render.data_frame
     #     def debug_timeseries_wide():
