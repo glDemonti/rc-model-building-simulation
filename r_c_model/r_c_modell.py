@@ -290,7 +290,7 @@ class RCEngine:
         # heating and cooling setpoints
         heating_setpoint = params.heating_setpoint  # heating setpoint temperature [°C]
         cooling_setpoint = params.cooling_setpoint  # cooling setpoint temperature [°C]
-        enable_cooling = params.enable_cooling # flag to enable or disable cooling []
+        enable_cooling = bool(params.enable_cooling) # enable or disable cooling
 
         # distribution of internal heat gains to air and building constructions
         int_heat_gain_to_air_coef = 0.6
@@ -1412,7 +1412,7 @@ class RCEngine:
                         initial_temperatures = inverse_matrix @ right_matrix
                 
                 # cooling
-                elif initial_temperatures[line_air] > cooling_setpoint and enable_cooling == True:
+                elif initial_temperatures[line_air] > cooling_setpoint and enable_cooling:
                     for j in range(5):
                         cooling_power += (
                             left_matrix[line_air, line_air] 
