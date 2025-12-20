@@ -87,6 +87,7 @@ class RCParams:
     surf_htc_out: float
     heating_setpoint: float
     cooling_setpoint: float
+    enable_cooling: bool
 
 
 class ModelMapper:
@@ -195,6 +196,7 @@ class ModelMapper:
         surf_htc_out = cfg["simulation_parameters"]["surface_heat_transfer_external"]["value"]
         heating_setpoint = cfg["simulation_parameters"]["heating_setpoint"]["value"]
         cooling_setpoint = cfg["simulation_parameters"]["cooling_setpoint"]["value"]
+        enable_cooling = cfg["simulation_parameters"]["enable_cooling"]["value"]
 
         return RCParams(
             unshaded_glazing_area_n=unshaded_glazing_area_n,
@@ -275,5 +277,6 @@ class ModelMapper:
             surf_htc_out=surf_htc_out,
             heating_setpoint=heating_setpoint,
             cooling_setpoint=cooling_setpoint,
+            enable_cooling=enable_cooling,
         )
                                                                           

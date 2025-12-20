@@ -244,9 +244,9 @@
     },
     "simulation_parameters": {
         "cooling_setpoint": {
-            "expression": "26.0",
+            "expression": "24",
             "unit": "°C",
-            "value": 26.0
+            "value": 24.0
         },
         "enable_cooling": {
             "unit": "-",
