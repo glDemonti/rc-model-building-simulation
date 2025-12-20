@@ -467,6 +467,10 @@
             "expression": "26.0",
             "value": 26.0,
             "unit": "\u00b0C"
+        },
+        "enable_cooling": {
+            "value": true,
+            "unit": "-"
         }
     },
     "economic_parameters": {

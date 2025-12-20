@@ -144,6 +144,7 @@ BINDINGS = {
     "equipment_power": ("thermal_properties.power_input.equipment_power_per_area.expression", str),
     "heating_setpoint": ("simulation_parameters.heating_setpoint.expression", str),
     "cooling_setpoint": ("simulation_parameters.cooling_setpoint.expression", str),
+    "enable_cooling": ("simulation_parameters.enable_cooling.value", bool),
     "sim_timestep": ("simulation_parameters.time_step.expression", str),
     "surface_heat_transfer_in" : ("simulation_parameters.surface_heat_transfer_internal.expression", str),
     "surface_heat_transfer_out" : ("simulation_parameters.surface_heat_transfer_external.expression", str),
@@ -229,7 +230,15 @@ def _register_binding(input_id: str, path: str, cast):
     def _on_change():
         raw = getattr(input, input_id)()
         try:
-            val = cast(raw) if cast else raw
+            if cast is bool:
+                if isinstance(raw, bool):
+                    val = raw
+                elif isinstance(raw, str):
+                    val = raw.lower() in ("1", "true", "yes", "y", "on")
+                else:
+                    val = bool(raw)
+            else:
+                val = cast(raw) if cast else raw
         except Exception:
             # Optional: Validation/Fehlerfeedback
             ui.notification_show(f"Ungültiger Wert für {input_id}: {raw}", type="warning", duration=4)
@@ -1287,6 +1296,14 @@ with ui.nav_panel("Einstellungen"):
         schedule_equipment.set(_schedule_df_from_cfg(cur_cfg, 'equipment_schedule'))
 
         _push_inputs_from_cfg()
+        try:
+            ui.update_switch(
+                "enable_cooling",
+                value=bool(_deep_get(cfg_state(), "simulation_parameters.enable_cooling.value"))
+            )
+        except Exception:
+            pass  # skip if cannot be updated    
+            
         _refresh_schedules_from_cfg()
 
     @render.text
@@ -1312,6 +1329,11 @@ with ui.nav_panel("Einstellungen"):
                     value=cfg0['simulation_parameters']['cooling_setpoint']['expression'],
                     width="600px",
                     placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_switch(
+                    id="enable_cooling",
+                    label="Kühlung aktivieren",
+                    value=cfg0['simulation_parameters']['enable_cooling']['value'],
                 )
             with ui.card():
                 ui.card_header("Primärenergiefaktoren")
