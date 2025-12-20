@@ -22,10 +22,15 @@ class TemperatureSummaryAdapter(BaseAdapter):
         project_id = context.project_id
         variant_id = context.variant_id
 
-        # overheating hours roomtemperature
+        #overheatin hours room temperature
+        setpoint_sia = 26.0  # SIA 2024 cooling setpoint
         temperature_air_room = df_raw.loc[:,'temperature_air_room']
-        temperatur_setpoint_cooling = cfg['simulation_parameters']['cooling_setpoint']['value']
-        overheating_hours = (temperature_air_room > temperatur_setpoint_cooling).sum()*dt_hours # [h]
+        overheating_hours = (temperature_air_room > setpoint_sia).sum()*dt_hours # [h]
+
+        # # hours over coling setpoint
+        # temperature_air_room = df_raw.loc[:,'temperature_air_room']
+        # temperatur_setpoint_cooling = cfg['simulation_parameters']['cooling_setpoint']['value']
+        # overheating_hours = (temperature_air_room > temperatur_setpoint_cooling).sum()*dt_hours # [h]
 
         df_summary = pd.DataFrame([
             {"project_id":project_id, "variant_id":variant_id, "end_use":"temperature", "metric":"overheating_hours", "value":overheating_hours, "unit":"h"},
