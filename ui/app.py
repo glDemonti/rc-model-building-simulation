@@ -480,37 +480,38 @@ def _compute_timeseries_wide():
 
     timeseries_wide.set(wide)
 
-# monthly_timeseries_all = reactive.Value(None)
+monthly_timeseries_all = reactive.Value(None)
 
-# def _compute_monthly_combined_timeseries():
-#     a = monthly_timeseries_A()
-#     b = monthly_timeseries_B()
+@reactive.effect
+def _compute_monthly_combined_timeseries():
+    a = monthly_timeseries_A()
+    b = monthly_timeseries_B()
 
-#     if a is None and b is None:
-#         monthly_timeseries_all.set(None)
-#         return
+    if a is None and b is None:
+        monthly_timeseries_all.set(None)
+        return
     
-#     dfs = []
-#     # Variant A
-#     if isinstance(a, pd.DataFrame) and not a.empty:
-#         da = a.copy()
-#         if 'variant_id' not in da.columns:
-#             da["variant_id"] = "A"
-#         dfs.append(da)
-#     # Variant B
-#     if isinstance(b, pd.DataFrame) and not b.empty:
-#         db = b.copy()
-#         if 'variant_id' not in db.columns:
-#             db["variant_id"] = "B"
-#         dfs.append(db)
+    dfs = []
+    # Variant A
+    if isinstance(a, pd.DataFrame) and not a.empty:
+        da = a.copy()
+        if 'variant_id' not in da.columns:
+            da["variant_id"] = "A"
+        dfs.append(da)
+    # Variant B
+    if isinstance(b, pd.DataFrame) and not b.empty:
+        db = b.copy()
+        if 'variant_id' not in db.columns:
+            db["variant_id"] = "B"
+        dfs.append(db)
 
-#     if not dfs:
-#         monthly_timeseries_all.set(pd.DataFrame())
-#         return
+    if not dfs:
+        monthly_timeseries_all.set(pd.DataFrame())
+        return
     
-#     combined = pd.concat(dfs, axis=0)
-#     combined = combined.sort_index()
-#     monthly_timeseries_all.set(combined)
+    combined = pd.concat(dfs, axis=0)
+    combined = combined.sort_index()
+    monthly_timeseries_all.set(combined)
 
 
 def get_summary_values(summary_df, *, variant: str, end_use: str, metric: str, default="-"):
@@ -623,7 +624,7 @@ with ui.nav_panel("Simulationsresultate"):
         ui.card_header("Debug: Monatliche Zeitreihen")
         @render.data_frame
         def monthly_timeseries_energy():
-            df = monthly_timeseries_A()
+            df = monthly_timeseries_all()
             if df is None:
                 # Noch nix geladen
                 return pd.DataFrame({"info": ["monthly_timeseries_all is None (noch nicht geladen)"]})
