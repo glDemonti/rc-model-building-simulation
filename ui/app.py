@@ -335,6 +335,8 @@ summary_B = reactive.Value(None)
 timeseries_A = reactive.Value(None)
 timeseries_B = reactive.Value(None)
 measurements = reactive.Value(None)
+monthly_timeseries_A = reactive.Value(None)
+monthly_timeseries_B = reactive.Value(None)
 
 
 @reactive.effect
@@ -345,6 +347,8 @@ def _load_initial_results():
         timeseries_A.set(facade_A.get_timeseries(PROJECT_ID_VAR_A, "A"))
         timeseries_B.set(facade_B.get_timeseries(PROJECT_ID_VAR_B, "B"))
         measurements.set(facade_A.get_measurements())
+        monthly_timeseries_A.set(facade_A.get_monthly_timeseries(PROJECT_ID_VAR_A, "A"))
+        monthly_timeseries_B.set(facade_B.get_monthly_timeseries(PROJECT_ID_VAR_B, "B"))
     except RuntimeError:
         pass
 
@@ -446,7 +450,7 @@ def _compute_combined_timeseries():
     combined = pd.concat(dfs, axis=0)
     combined = combined.sort_index()
     timeseries_all.set(combined)
-    
+
 timeseries_wide = reactive.Value(None)
 
 @reactive.effect
@@ -475,6 +479,38 @@ def _compute_timeseries_wide():
     wide = wide.reset_index()
 
     timeseries_wide.set(wide)
+
+# monthly_timeseries_all = reactive.Value(None)
+
+# def _compute_monthly_combined_timeseries():
+#     a = monthly_timeseries_A()
+#     b = monthly_timeseries_B()
+
+#     if a is None and b is None:
+#         monthly_timeseries_all.set(None)
+#         return
+    
+#     dfs = []
+#     # Variant A
+#     if isinstance(a, pd.DataFrame) and not a.empty:
+#         da = a.copy()
+#         if 'variant_id' not in da.columns:
+#             da["variant_id"] = "A"
+#         dfs.append(da)
+#     # Variant B
+#     if isinstance(b, pd.DataFrame) and not b.empty:
+#         db = b.copy()
+#         if 'variant_id' not in db.columns:
+#             db["variant_id"] = "B"
+#         dfs.append(db)
+
+#     if not dfs:
+#         monthly_timeseries_all.set(pd.DataFrame())
+#         return
+    
+#     combined = pd.concat(dfs, axis=0)
+#     combined = combined.sort_index()
+#     monthly_timeseries_all.set(combined)
 
 
 def get_summary_values(summary_df, *, variant: str, end_use: str, metric: str, default="-"):
@@ -561,28 +597,39 @@ with ui.nav_panel("Simulationsresultate"):
     # # -------------------------
     # # debuging cards DataFrames
     # # -------------------------          
-    # with ui.card():
-    #     ui.card_header("Debug: Summary Heizung/Kühlung Variante A")
+    with ui.card():
+        ui.card_header("Debug: Summary Heizung/Kühlung Variante A")
+        @render.data_frame
+        def debug_summary_all():
+            df = summary_all()
+            if df is None:
+                # Noch nix geladen
+                return pd.DataFrame({"info": ["summary_all is None (noch nicht geladen)"]})
+            if isinstance(df, pd.DataFrame) and df.empty:
+                return pd.DataFrame({"info": ["summary_all ist ein leerer DataFrame"]})
+            return df
         
-        # @render.data_frame
-        # def debug_summary_all():
-        #         df = summary_all()
-        #         if df is None:
-        #             # Noch nix geladen
-        #             return pd.DataFrame({"info": ["summary_all is None (noch nicht geladen)"]})
-        #         if isinstance(df, pd.DataFrame) and df.empty:
-        #             return pd.DataFrame({"info": ["summary_all ist ein leerer DataFrame"]})
-        #         return df
-    #     ui.card_header("Debug:Timeseries")
-    #     @render.data_frame
-    #     def debug_timeseries_wide():
-    #         df = timeseries_wide()
-    #         if df is None:
-    #             # Noch nix geladen
-    #             return pd.DataFrame({"info": ["timeseries_all is None (noch nicht geladen)"]})
-    #         if isinstance(df, pd.DataFrame) and df.empty:
-    #             return pd.DataFrame({"info": ["timeseries_all ist ein leerer DataFrame"]})
-    #         return df
+        ui.card_header("Debug:Timeseries")
+        @render.data_frame
+        def debug_timeseries_wide():
+            df = timeseries_wide()
+            if df is None:
+                # Noch nix geladen
+                return pd.DataFrame({"info": ["timeseries_all is None (noch nicht geladen)"]})
+            if isinstance(df, pd.DataFrame) and df.empty:
+                return pd.DataFrame({"info": ["timeseries_all ist ein leerer DataFrame"]})
+            return df
+        
+        ui.card_header("Debug: Monatliche Zeitreihen")
+        @render.data_frame
+        def monthly_timeseries_energy():
+            df = monthly_timeseries_A()
+            if df is None:
+                # Noch nix geladen
+                return pd.DataFrame({"info": ["monthly_timeseries_all is None (noch nicht geladen)"]})
+            if isinstance(df, pd.DataFrame) and df.empty:
+                return pd.DataFrame({"info": ["monthly_timeseries_all ist ein leerer DataFrame"]})
+            return df
         
     with ui.card():
 

@@ -11,6 +11,7 @@ from core.analytics.adapters.heating_cooling_summary import HeatingCoolingSummar
 from core.analytics.adapters.temperature_summary import TemperatureSummaryAdapter
 from core.analytics.adapters.temperature_timeseries import TemperatureTimeseriesAdapter
 from core.analytics.adapters.heating_cooling_timeseries import HeatingCoolingTimeseriesAdapter
+from core.analytics.adapters.heating_cooling_month_timeseries import HeatingCoolingMonthTimeseriesAdapter
 from core.analytics.adapters.Co2_summary import Co2SummaryAdapter
 from core.weather_service import WeatherService
 from core.storage.weather_repo import WeatherRepository
@@ -56,6 +57,7 @@ def create_facade(project_id: str, variant_id) -> ConfigFacade:
         TemperatureSummaryAdapter(),
         TemperatureTimeseriesAdapter(),
         HeatingCoolingTimeseriesAdapter(),
+        HeatingCoolingMonthTimeseriesAdapter(),
         Co2SummaryAdapter(),
         ]
     analytics = AnalyticsService(

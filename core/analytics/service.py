@@ -34,6 +34,7 @@ class AnalyticsService:
         # summary adapters
         all_summaries = []
         all_timeseries = []
+        all_monthly_timeseries = []
 
         for adapter in self._adapters:
             missing_cols = adapter.required_raw_columns - set(context.df_raw.columns)
@@ -52,6 +53,11 @@ class AnalyticsService:
             if df_timeseries is not None and not df_timeseries.empty:
                 all_timeseries.append(df_timeseries)
 
+            df_monthly_timeseries = results.get("monthly_timeseries")
+            if df_monthly_timeseries is not None and not df_monthly_timeseries.empty:
+                all_monthly_timeseries.append(df_monthly_timeseries)
+
+        print(df_monthly_timeseries)
         if all_summaries:
             summary_df = pd.concat(all_summaries, ignore_index=True)
         else:
@@ -64,9 +70,15 @@ class AnalyticsService:
         else:
             timeseries_df = pd.DataFrame()
 
+        if all_monthly_timeseries:
+            mt = pd.concat(all_monthly_timeseries, axis=1, join="inner")
+            mt = mt.loc[:, ~mt.columns.duplicated()]
+            monthly_timeseries_df = mt
+
 
         return {
             "context": context,
             "summary": summary_df,
             "timeseries": timeseries_df,
+            "monthly_timeseries": monthly_timeseries_df
         }

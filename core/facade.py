@@ -98,11 +98,15 @@ class ConfigFacade:
         result = self._analytics.compute_all(project_id, variant_id)
         return result["summary"]
     
-    def get_timeseries(self, project_id:str, variant_id: str):
+    def get_timeseries(self, project_id: str, variant_id: str):
         result = self._analytics.compute_all(project_id, variant_id)
         return result["timeseries"]
 
     def get_measurements(self):
         measurement = self._measure_service.process_and_store_measurements()
         return measurement
+    
+    def get_monthly_timeseries(self, project_id: str, variant_id: str):
+        result = self._analytics.compute_all(project_id, variant_id)
+        return result["monthly_timeseries"]
     
