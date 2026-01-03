@@ -513,6 +513,32 @@ def _compute_monthly_combined_timeseries():
     combined = combined.sort_index()
     monthly_timeseries_all.set(combined)
 
+monthly_timeseries_wide = reactive.Value(None)
+
+@reactive.effect
+def _compute_monthly_timeseries_wide():
+    df = monthly_timeseries_all()
+    if df is None or not isinstance(df, pd.DataFrame) or df.empty:
+        monthly_timeseries_wide.set(pd.DataFrame())
+        return
+    
+    # transform from long to wide format
+    wide = df.pivot(
+        index="datetime",
+        columns="variant_id",
+        values=[
+            "heating_energy_MWh",
+            "cooling_energy_MWh",
+        ],
+    )
+
+    # flatten multiindex columns
+    wide.columns = [f"{var}_{variant}" for (var, variant) in wide.columns]
+
+    wide = wide.sort_index()
+    wide = wide.reset_index()
+
+    monthly_timeseries_wide.set(wide)
 
 def get_summary_values(summary_df, *, variant: str, end_use: str, metric: str, default="-"):
     """
@@ -632,6 +658,17 @@ with ui.nav_panel("Simulationsresultate"):
                 return pd.DataFrame({"info": ["monthly_timeseries_all ist ein leerer DataFrame"]})
             return df
         
+        ui.card_header("Debug: monthly_timeseries_wide")
+        @render.data_frame
+        def debug_monthly_timeseries_wide():
+            df = monthly_timeseries_wide()
+            if df is None:
+                # Noch nix geladen
+                return pd.DataFrame({"info": ["monthly_timeseries_wide is None (noch nicht geladen)"]})
+            if isinstance(df, pd.DataFrame) and df.empty:
+                return pd.DataFrame({"info": ["monthly_timeseries_wide ist ein leerer DataFrame"]})
+            return df
+        
     with ui.card():
 
         @render_plotly
@@ -714,6 +751,52 @@ with ui.nav_panel("Simulationsresultate"):
                 xaxis_title="Zeit [h]",
                 yaxis_title="Leistung [W]",
                 )
+            return fig
+        
+        @render_widget
+        def plot_coling_heating_energy():
+            df_monthly = monthly_timeseries_wide()
+
+            if df_monthly is None or df_monthly.empty:
+                return go.Figure()
+
+            # Ensure datetime is datetime type and convert to string for display
+            df_monthly["datetime"] = pd.to_datetime(df_monthly["datetime"]).dt.strftime("%Y-%m")
+
+            # Prepare data with heating and cooling combined
+            data = []
+            for _, row in df_monthly.iterrows():
+                month = row["datetime"]
+                data.append({"Monat": month, "Variante": "A", "Energie [MWh]": row["heating_energy_MWh_A"], "Typ": "Heizung"})
+                data.append({"Monat": month, "Variante": "B", "Energie [MWh]": row["heating_energy_MWh_B"], "Typ": "Heizung"})
+                data.append({"Monat": month, "Variante": "A", "Energie [MWh]": row["cooling_energy_MWh_A"], "Typ": "Kühlung"})
+                data.append({"Monat": month, "Variante": "B", "Energie [MWh]": row["cooling_energy_MWh_B"], "Typ": "Kühlung"})
+            
+            df_long = pd.DataFrame(data)
+
+            fig = px.bar(
+                df_long,
+                x="Monat",
+                y="Energie [MWh]",
+                color="Variante",
+                pattern_shape="Typ",
+                barmode="group",
+                labels={
+                    "Monat": "Monat",
+                    "Energie [MWh]": "Energie [MWh]",
+                    "Variante": "Variante",
+                },
+                ).update_xaxes(
+                    tickangle=45,
+                    showgrid=True,
+            ).update_layout(
+                title="Monatlicher Heiz- und Kühlenergiebedarf",
+                xaxis_title="Monat",
+                yaxis_title="Energie [MWh]",
+                height=600,
+                bargap=0.2,
+                bargroupgap=0.1,
+            )
             return fig
         
         ui.input_radio_buttons(

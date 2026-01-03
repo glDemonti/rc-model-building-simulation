@@ -57,7 +57,6 @@ class AnalyticsService:
             if df_monthly_timeseries is not None and not df_monthly_timeseries.empty:
                 all_monthly_timeseries.append(df_monthly_timeseries)
 
-        print(df_monthly_timeseries)
         if all_summaries:
             summary_df = pd.concat(all_summaries, ignore_index=True)
         else:
@@ -74,7 +73,8 @@ class AnalyticsService:
             mt = pd.concat(all_monthly_timeseries, axis=1, join="inner")
             mt = mt.loc[:, ~mt.columns.duplicated()]
             monthly_timeseries_df = mt
-
+        else:
+            monthly_timeseries_df = pd.DataFrame()
 
         return {
             "context": context,
