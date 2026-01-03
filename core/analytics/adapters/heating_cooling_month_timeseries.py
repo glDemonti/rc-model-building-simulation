@@ -29,4 +29,4 @@ class HeatingCoolingMonthTimeseriesAdapter(BaseAdapter):
             "cooling_energy_kWh": monthly_cool.values
         })
 
-        return {"month_timeseries": df_ts_pow_monthly}
+        return {"monthly_timeseries": df_ts_pow_monthly}
