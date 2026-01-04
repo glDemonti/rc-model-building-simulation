@@ -7,9 +7,11 @@ import numpy as np
 import copy
 
 from shiny import reactive
+from shiny import ui as base_ui
 from shiny.express import input, render, ui
 from shiny.ui import page_navbar, nav_panel, navset_pill_list
 from shinywidgets import render_widget, render_plotly
+from datetime import datetime
 
 from core.bootstrap import create_facade # imports the connection to the midlayer
 
@@ -621,7 +623,17 @@ with ui.nav_panel("Simulationsresultate"):
             summary_B.set(facade_B.get_summary(PROJECT_ID_VAR_B, "B"))
             timeseries_A.set(facade_A.get_timeseries(PROJECT_ID_VAR_A, "A"))
             timeseries_B.set(facade_B.get_timeseries(PROJECT_ID_VAR_B, "B"))
+            monthly_timeseries_A.set(facade_A.get_monthly_timeseries(PROJECT_ID_VAR_A, "A"))
+            monthly_timeseries_B.set(facade_B.get_monthly_timeseries(PROJECT_ID_VAR_B, "B"))
 
+
+        @render.download(
+            filename=lambda: f"raw_results_{active_variant.get()}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.parquet",
+            media_type="application/octet-stream",
+        )
+        def dl_raw_results():
+            data = facade_A.download_raw_results()
+            yield data
     # # -------------------------
     # # debuging cards DataFrames
     # # -------------------------          

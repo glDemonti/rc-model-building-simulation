@@ -27,3 +27,13 @@ class ResultRepository:
             return None
         df_raw = pd.read_parquet(path)
         return df_raw
+    
+    def load_raw_bites(self) -> bytes | None:
+        """
+        Loads the raw simulation results from a parquet file as bytes.
+        Path is defined in bootstrap.py
+        """
+        path = self._path
+        if not path.exists():
+            return None
+        return path.read_bytes()

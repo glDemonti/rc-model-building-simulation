@@ -110,3 +110,8 @@ class ConfigFacade:
         result = self._analytics.compute_all(project_id, variant_id)
         return result["monthly_timeseries"]
     
+    def download_raw_results(self) -> bytes:
+        data = self._result.load_raw_bites()
+        if data is None:
+            raise FileNotFoundError("No raw results found to download.")
+        return data
