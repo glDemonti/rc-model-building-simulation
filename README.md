@@ -4,19 +4,19 @@ Eine interaktive Webanwendung zur Simulation und Analyse eines RC-Gebäudemodell
 
 ## Features
 
-- 🏢 **RC-Gebäudemodell-Simulation** mit stündlicher Zeitauflösung
-- 📊 **Interaktive Visualisierung** von Temperaturen, Heiz-/Kühlleistung und Energieverbrauch
-- 🔄 **Varianten-Vergleich** zwischen Simulationsvarianten A und B
-- 📈 **Monatliche Energieanalyse** mit Heiz- und Kühlbedarf in MWh
-- ⚙️ **Parameter-Anpassung** für Gebäudeeigenschaften und Simulationseinstellungen
-- 🔍 **Messdaten-Vergleich** mit Simulationsergebnissen
-- 📉 **CO2-Emissionsberechnung**
+- **RC-Gebäudemodell-Simulation** mit stündlicher Zeitauflösung
+- **Interaktive Visualisierung** von Temperaturen, Heiz-/Kühlleistung und Energieverbrauch
+- **Varianten-Vergleich** zwischen Simulationsvarianten A und B
+- **Monatliche Energieanalyse** mit Heiz- und Kühlbedarf in MWh
+- **Parameter-Anpassung** für Gebäudeeigenschaften und Simulationseinstellungen
+- **Messdaten-Vergleich** mit Simulationsergebnissen
+- **CO2-Emissionsberechnung**
 
 ## Installation
 
 ### Option 1: Docker (Vorkompiliertes Image von GitHub)
 
-Wenn du das Image nicht selbst bauen möchtest, kannst du es direkt von GitHub Container Registry herunterladen:
+Wenn das Image nicht selber erstellt werden möchte, kann das Image über den Github Container Registry heruntergeladen werden:
 
 **Einzeln starten:**
 ```bash
