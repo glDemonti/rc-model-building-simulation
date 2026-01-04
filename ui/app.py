@@ -336,6 +336,8 @@ summary_B = reactive.Value(None)
 timeseries_A = reactive.Value(None)
 timeseries_B = reactive.Value(None)
 measurements = reactive.Value(None)
+monthly_timeseries_A = reactive.Value(None)
+monthly_timeseries_B = reactive.Value(None)
 
 
 @reactive.effect
@@ -346,6 +348,8 @@ def _load_initial_results():
         timeseries_A.set(facade_A.get_timeseries(PROJECT_ID_VAR_A, "A"))
         timeseries_B.set(facade_B.get_timeseries(PROJECT_ID_VAR_B, "B"))
         measurements.set(facade_A.get_measurements())
+        monthly_timeseries_A.set(facade_A.get_monthly_timeseries(PROJECT_ID_VAR_A, "A"))
+        monthly_timeseries_B.set(facade_B.get_monthly_timeseries(PROJECT_ID_VAR_B, "B"))
     except RuntimeError:
         pass
 
@@ -447,7 +451,7 @@ def _compute_combined_timeseries():
     combined = pd.concat(dfs, axis=0)
     combined = combined.sort_index()
     timeseries_all.set(combined)
-    
+
 timeseries_wide = reactive.Value(None)
 
 @reactive.effect
@@ -477,6 +481,65 @@ def _compute_timeseries_wide():
 
     timeseries_wide.set(wide)
 
+monthly_timeseries_all = reactive.Value(None)
+
+@reactive.effect
+def _compute_monthly_combined_timeseries():
+    a = monthly_timeseries_A()
+    b = monthly_timeseries_B()
+
+    if a is None and b is None:
+        monthly_timeseries_all.set(None)
+        return
+    
+    dfs = []
+    # Variant A
+    if isinstance(a, pd.DataFrame) and not a.empty:
+        da = a.copy()
+        if 'variant_id' not in da.columns:
+            da["variant_id"] = "A"
+        dfs.append(da)
+    # Variant B
+    if isinstance(b, pd.DataFrame) and not b.empty:
+        db = b.copy()
+        if 'variant_id' not in db.columns:
+            db["variant_id"] = "B"
+        dfs.append(db)
+
+    if not dfs:
+        monthly_timeseries_all.set(pd.DataFrame())
+        return
+    
+    combined = pd.concat(dfs, axis=0)
+    combined = combined.sort_index()
+    monthly_timeseries_all.set(combined)
+
+monthly_timeseries_wide = reactive.Value(None)
+
+@reactive.effect
+def _compute_monthly_timeseries_wide():
+    df = monthly_timeseries_all()
+    if df is None or not isinstance(df, pd.DataFrame) or df.empty:
+        monthly_timeseries_wide.set(pd.DataFrame())
+        return
+    
+    # transform from long to wide format
+    wide = df.pivot(
+        index="datetime",
+        columns="variant_id",
+        values=[
+            "heating_energy_MWh",
+            "cooling_energy_MWh",
+        ],
+    )
+
+    # flatten multiindex columns
+    wide.columns = [f"{var}_{variant}" for (var, variant) in wide.columns]
+
+    wide = wide.sort_index()
+    wide = wide.reset_index()
+
+    monthly_timeseries_wide.set(wide)
 
 def get_summary_values(summary_df, *, variant: str, end_use: str, metric: str, default="-"):
     """
@@ -564,16 +627,16 @@ with ui.nav_panel("Simulationsresultate"):
     # # -------------------------          
     # with ui.card():
     #     ui.card_header("Debug: Summary Heizung/Kühlung Variante A")
+    #     @render.data_frame
+    #     def debug_summary_all():
+    #         df = summary_all()
+    #         if df is None:
+    #             # Noch nix geladen
+    #             return pd.DataFrame({"info": ["summary_all is None (noch nicht geladen)"]})
+    #         if isinstance(df, pd.DataFrame) and df.empty:
+    #             return pd.DataFrame({"info": ["summary_all ist ein leerer DataFrame"]})
+    #         return df
         
-        # @render.data_frame
-        # def debug_summary_all():
-        #         df = summary_all()
-        #         if df is None:
-        #             # Noch nix geladen
-        #             return pd.DataFrame({"info": ["summary_all is None (noch nicht geladen)"]})
-        #         if isinstance(df, pd.DataFrame) and df.empty:
-        #             return pd.DataFrame({"info": ["summary_all ist ein leerer DataFrame"]})
-        #         return df
     #     ui.card_header("Debug:Timeseries")
     #     @render.data_frame
     #     def debug_timeseries_wide():
@@ -585,8 +648,29 @@ with ui.nav_panel("Simulationsresultate"):
     #             return pd.DataFrame({"info": ["timeseries_all ist ein leerer DataFrame"]})
     #         return df
         
+    #     ui.card_header("Debug: Monatliche Zeitreihen")
+    #     @render.data_frame
+    #     def monthly_timeseries_energy():
+    #         df = monthly_timeseries_all()
+    #         if df is None:
+    #             # Noch nix geladen
+    #             return pd.DataFrame({"info": ["monthly_timeseries_all is None (noch nicht geladen)"]})
+    #         if isinstance(df, pd.DataFrame) and df.empty:
+    #             return pd.DataFrame({"info": ["monthly_timeseries_all ist ein leerer DataFrame"]})
+    #         return df
+        
+    #     ui.card_header("Debug: monthly_timeseries_wide")
+    #     @render.data_frame
+    #     def debug_monthly_timeseries_wide():
+    #         df = monthly_timeseries_wide()
+    #         if df is None:
+    #             # Noch nix geladen
+    #             return pd.DataFrame({"info": ["monthly_timeseries_wide is None (noch nicht geladen)"]})
+    #         if isinstance(df, pd.DataFrame) and df.empty:
+    #             return pd.DataFrame({"info": ["monthly_timeseries_wide ist ein leerer DataFrame"]})
+    #         return df
+        
     with ui.card():
-
         @render_plotly
         def plot_temperatures():
             df_temp = timeseries_wide()
@@ -623,51 +707,145 @@ with ui.nav_panel("Simulationsresultate"):
                 )
             return fig
 
+        ui.input_radio_buttons(
+            id="temp_variant_selector",
+            label="Variante auswählen",
+            choices={
+                "A": "Variante A",
+                "B": "Variante B",
+            },
+            selected="A",
+        )
 
         with ui.layout_column_wrap():
             with ui.value_box(
-                id="value_box_overheating_hours_A",
+                id="value_box_overheating_hours",
                 width=4,
             ):
-                "Überhitzungsstunden [h]"
+                "Überhitzungsstunden"
                 @render.text
                 def overheating_hour_value():
-                    value_overheating = get_summary_values(summary_all(), variant="A", end_use="temperature", metric="overheating_hours")
-                    return value_overheating
+                    value = get_summary_values(summary_all(), variant=input.temp_variant_selector(), end_use="temperature", metric="overheating_hours")
+                    return f"{value} h"
+                
+            with ui.value_box(
+                id="value_box_outdoor_temp_min",
+                width=4,
+            ):
+                "Minimale Aussentemperatur"
+                @render.text
+                def outdoor_temp_min_value():
+                    value = get_summary_values(summary_all(), variant=input.temp_variant_selector(), end_use="temperature", metric="temp_outdoor_min")
+                    return f"{value} °C"
+                @render.text
+                def min_outdoor_temp_timestamp():
+                    ts = get_summary_values(
+                        summary_all(),
+                        variant=input.temp_variant_selector(),
+                        end_use="temperature",
+                        metric="timestamp_temp_outdoor_min",
+                    )
+                    return f"am {ts}" 
+            
+            with ui.value_box(
+                id="value_box_outdoor_temp_max",
+                width=4,
+            ):
+                "Maximale Aussentemperatur"
+                @render.text
+                def outdoor_temp_max_value():
+                    value = get_summary_values(summary_all(), variant=input.temp_variant_selector(), end_use="temperature", metric="temp_outdoor_max")
+                    return f"{value} °C"
+                @render.text
+                def max_outdoor_temp_timestamp():
+                    ts = get_summary_values(
+                        summary_all(),
+                        variant=input.temp_variant_selector(),
+                        end_use="temperature",
+                        metric="timestamp_temp_outdoor_max",
+                    )
+                    return f"am {ts}"
 
     with ui.card():
-        @render_widget
-        def plot_cooling_heating_power():
-            df_load = timeseries_wide()
+        with ui.navset_card_tab(id="heating_cooling_tabs"):
+            with ui.nav_panel("Heiz- und Kühlleistung"):
+                @render_widget
+                def plot_cooling_heating_power():
+                    df_load = timeseries_wide()
 
-            # time stamp in ms
-            df_load["ts_ms"] = ts_ms(df_load["datetime"])
+                    # time stamp in ms
+                    df_load["ts_ms"] = ts_ms(df_load["datetime"])
 
-            fig = px.line(
-                df_load,
-                x="ts_ms",
-                y=[
-                    "cooling_power_A",
-                    "heating_power_A",
-                    "cooling_power_B",
-                    "heating_power_B",
-                    ],
-                labels={
-                    "ts_ms": "Zeit", 
-                    "value": "Leistung [W]",
-                    "variable": "Legende",
-                },
-                ).update_xaxes(
-                    type="date",
-                    tickformat="%d-%m-%y %H:%M",
-                    tickangle=45,
-                    showgrid=True,
-            ).update_layout(
-                title="Heiz- und Kühlleistung",
-                xaxis_title="Zeit [h]",
-                yaxis_title="Leistung [W]",
-                )
-            return fig
+                    fig = px.line(
+                        df_load,
+                        x="ts_ms",
+                        y=[
+                            "cooling_power_A",
+                            "heating_power_A",
+                            "cooling_power_B",
+                            "heating_power_B",
+                            ],
+                        labels={
+                            "ts_ms": "Zeit", 
+                            "value": "Leistung [W]",
+                            "variable": "Legende",
+                        },
+                        ).update_xaxes(
+                            type="date",
+                            tickformat="%d-%m-%y %H:%M",
+                            tickangle=45,
+                            showgrid=True,
+                    ).update_layout(
+                        title="Heiz- und Kühlleistung",
+                        xaxis_title="Zeit [h]",
+                        yaxis_title="Leistung [W]",
+                        )
+                    return fig
+                
+            with ui.nav_panel("Heiz- und Kühlenergie"):        
+                @render_widget
+                def plot_coling_heating_energy():
+                    df_monthly = monthly_timeseries_wide()
+                    if df_monthly is None or df_monthly.empty:
+                        return go.Figure()
+
+                    # Ensure datetime is datetime type and convert to string for display
+                    df_monthly["datetime"] = pd.to_datetime(df_monthly["datetime"]).dt.strftime("%Y-%m")
+
+                    # Prepare data with heating and cooling combined
+                    data = []
+                    for _, row in df_monthly.iterrows():
+                        month = row["datetime"]
+                        data.append({"Monat": month, "Variante": "A", "Energie [MWh]": row["heating_energy_MWh_A"], "Typ": "Heizung"})
+                        data.append({"Monat": month, "Variante": "B", "Energie [MWh]": row["heating_energy_MWh_B"], "Typ": "Heizung"})
+                        data.append({"Monat": month, "Variante": "A", "Energie [MWh]": row["cooling_energy_MWh_A"], "Typ": "Kühlung"})
+                        data.append({"Monat": month, "Variante": "B", "Energie [MWh]": row["cooling_energy_MWh_B"], "Typ": "Kühlung"})
+                    
+                    df_long = pd.DataFrame(data)
+
+                    fig = px.bar(
+                        df_long,
+                        x="Monat",
+                        y="Energie [MWh]",
+                        color="Variante",
+                        pattern_shape="Typ",
+                        barmode="group",
+                        labels={
+                            "Monat": "Monat",
+                            "Energie [MWh]": "Energie [MWh]",
+                            "Variante": "Variante",
+                        },
+                    ).update_xaxes(
+                        tickangle=45,
+                        showgrid=True,
+                    ).update_layout(
+                        title="Monatlicher Heiz- und Kühlenergiebedarf",
+                        xaxis_title="Monat",
+                        yaxis_title="Energie [MWh]",
+                        bargap=0.2,
+                        bargroupgap=0.1,
+                    )
+                    return fig
         
         ui.input_radio_buttons(
             id="power_variant_selector",

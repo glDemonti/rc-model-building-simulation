@@ -201,6 +201,58 @@
                     "unit": "m"
                 }
             }
+        }
+    },
+    "economic_parameters": {
+        "cooling_price": {
+            "expression": "0.10",
+            "unit": "CHF/kWh",
+            "value": 0.1
+        },
+        "electricity_price": {
+            "expression": "0.30",
+            "unit": "CHF/kWh",
+            "value": 0.3
+        },
+        "heating_price": {
+            "expression": "0.10",
+            "unit": "CHF/kWh",
+            "value": 0.1
+        }
+    },
+    "metadata": {
+        "created_at": "2025-10-23T10:00:00+01:00",
+        "description": "Simulation parameters for the R-C-Model"
+    },
+    "simulation_parameters": {
+        "cooling_setpoint": {
+            "expression": "26",
+            "unit": "°C",
+            "value": 26.0
+        },
+        "enable_cooling": {
+            "unit": "-",
+            "value": false
+        },
+        "heating_setpoint": {
+            "expression": "21.0",
+            "unit": "°C",
+            "value": 21.0
+        },
+        "surface_heat_transfer_external": {
+            "expression": "23.0",
+            "unit": "W/m2K",
+            "value": 23.0
+        },
+        "surface_heat_transfer_internal": {
+            "expression": "4.5",
+            "unit": "W/m2K",
+            "value": 4.5
+        },
+        "time_step": {
+            "expression": "5*60",
+            "unit": "s",
+            "value": 300.0
         },
         "building_height": {
             "expression": "2.5 * 3",
