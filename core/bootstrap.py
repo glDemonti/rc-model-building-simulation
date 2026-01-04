@@ -77,6 +77,8 @@ def create_facade(project_id: str, variant_id) -> ConfigFacade:
         weather_service=weather_service,
         measure_service=measure_service,
         weather_repo=weather_repo,
-        measure_repo=measure_repo
+        measure_repo=measure_repo,
+        config_file_path=cfg_file,
+        result_file_path=res_file
     )
 

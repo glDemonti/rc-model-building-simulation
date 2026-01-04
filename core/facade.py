@@ -2,6 +2,9 @@ import copy
 from dataclasses import dataclass
 import pandas as pd
 from pathlib import Path
+import json
+import io
+import zipfile
 
 @dataclass
 class RunReport:
@@ -15,7 +18,8 @@ class ConfigFacade:
     """
     def __init__(
         self, config_repo, engine, result, evaluator=None, validator=None, mapper=None, analytics=None,
-        weather_service=None, measure_service=None, weather_repo=None, measure_repo=None
+        weather_service=None, measure_service=None, weather_repo=None, measure_repo=None,
+        config_file_path=None, result_file_path=None
     ):
         self._config_repo = config_repo
         self._engine = engine
@@ -28,6 +32,8 @@ class ConfigFacade:
         self._measure_service = measure_service
         self._weather_repo = weather_repo
         self._measure_repo = measure_repo
+        self._config_file_path = config_file_path  # Path to config JSON file
+        self._result_file_path = result_file_path  # Path to result parquet file
 
     def load_config(self, project_id) -> dict:
         cfg = self._config_repo.read_raw()
@@ -115,3 +121,48 @@ class ConfigFacade:
         if data is None:
             raise FileNotFoundError("No raw results found to download.")
         return data
+    
+    def download_all_results_zip(self, variant_id: str) -> bytes:
+        """
+        Creates a ZIP file containing:
+        - Parameter JSON file (config_{variant_id}.json)
+        - Raw results as parquet (raw_results_{variant_id}.parquet)
+        - Raw results as CSV (raw_results_{variant_id}.csv)
+        
+        Reads files from the project directory.
+        
+        Args:
+            variant_id: The variant identifier (e.g., "A" or "B")
+            
+        Returns:
+            bytes: The ZIP file as bytes
+        """
+        # Create a BytesIO object to hold the zip file in memory
+        zip_buffer = io.BytesIO()
+        
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            # Add config JSON file if it exists
+            if self._config_file_path and Path(self._config_file_path).exists():
+                config_filename = f"config_{variant_id}.json"
+                config_path = Path(self._config_file_path)
+                zip_file.write(config_path, arcname=config_filename)
+            
+            # Add results as parquet if it exists
+            if self._result_file_path and Path(self._result_file_path).exists():
+                parquet_filename = f"raw_results_{variant_id}.parquet"
+                result_path = Path(self._result_file_path)
+                zip_file.write(result_path, arcname=parquet_filename)
+                
+                # Also add results as CSV by reading parquet and converting
+                try:
+                    df = pd.read_parquet(result_path)
+                    csv_filename = f"raw_results_{variant_id}.csv"
+                    csv_buffer = io.BytesIO()
+                    df.to_csv(csv_buffer, index=False)
+                    zip_file.writestr(csv_filename, csv_buffer.getvalue())
+                except Exception as e:
+                    # If conversion fails, just skip the CSV
+                    pass
+        
+        zip_buffer.seek(0)
+        return zip_buffer.getvalue()
