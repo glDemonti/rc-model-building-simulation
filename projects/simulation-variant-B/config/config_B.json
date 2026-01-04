@@ -466,20 +466,16 @@
         "cooling_setpoint": {
             "expression": "26.0",
             "value": 26.0,
-<<<<<<< HEAD
-            "unit": "\u00b0C"
-        },
-        "enable_cooling": {
-            "value": true,
-            "unit": "-"
-=======
             "unit": "°C"
         },
         "overheating_threshold": {
             "expression": "26.0",
             "value": 26.0,
             "unit": "°C"
->>>>>>> feature/adapt-overheating-hours
+        },
+        "enable_cooling": {
+            "value": true,
+            "unit": "-"
         }
     },
     "economic_parameters": {

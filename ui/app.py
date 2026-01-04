@@ -145,6 +145,7 @@ BINDINGS = {
     "heating_setpoint": ("simulation_parameters.heating_setpoint.expression", str),
     "cooling_setpoint": ("simulation_parameters.cooling_setpoint.expression", str),
     "enable_cooling": ("simulation_parameters.enable_cooling.value", bool),
+    "overheating_threshold": ("simulation_parameters.overheating_threshold.expression", str),
     "sim_timestep": ("simulation_parameters.time_step.expression", str),
     "surface_heat_transfer_in" : ("simulation_parameters.surface_heat_transfer_internal.expression", str),
     "surface_heat_transfer_out" : ("simulation_parameters.surface_heat_transfer_external.expression", str),
