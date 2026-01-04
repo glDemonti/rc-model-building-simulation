@@ -706,17 +706,64 @@ with ui.nav_panel("Simulationsresultate"):
                 )
             return fig
 
+        ui.input_radio_buttons(
+            id="temp_variant_selector",
+            label="Variante auswählen",
+            choices={
+                "A": "Variante A",
+                "B": "Variante B",
+            },
+            selected="A",
+        )
 
         with ui.layout_column_wrap():
             with ui.value_box(
-                id="value_box_overheating_hours_A",
+                id="value_box_overheating_hours",
                 width=4,
             ):
-                "Überhitzungsstunden [h]"
+                "Überhitzungsstunden"
                 @render.text
                 def overheating_hour_value():
-                    value_overheating = get_summary_values(summary_all(), variant="A", end_use="temperature", metric="overheating_hours")
-                    return value_overheating
+                    value = get_summary_values(summary_all(), variant=input.temp_variant_selector(), end_use="temperature", metric="overheating_hours")
+                    return f"{value} h"
+                
+            with ui.value_box(
+                id="value_box_outdoor_temp_min",
+                width=4,
+            ):
+                "Minimale Aussentemperatur"
+                @render.text
+                def outdoor_temp_min_value():
+                    value = get_summary_values(summary_all(), variant=input.temp_variant_selector(), end_use="temperature", metric="temp_outdoor_min")
+                    return f"{value} °C"
+                @render.text
+                def min_outdoor_temp_timestamp():
+                    ts = get_summary_values(
+                        summary_all(),
+                        variant=input.temp_variant_selector(),
+                        end_use="temperature",
+                        metric="timestamp_temp_outdoor_min",
+                    )
+                    return f"am {ts}" 
+            
+            with ui.value_box(
+                id="value_box_outdoor_temp_max",
+                width=4,
+            ):
+                "Maximale Aussentemperatur"
+                @render.text
+                def outdoor_temp_max_value():
+                    value = get_summary_values(summary_all(), variant=input.temp_variant_selector(), end_use="temperature", metric="temp_outdoor_max")
+                    return f"{value} °C"
+                @render.text
+                def max_outdoor_temp_timestamp():
+                    ts = get_summary_values(
+                        summary_all(),
+                        variant=input.temp_variant_selector(),
+                        end_use="temperature",
+                        metric="timestamp_temp_outdoor_max",
+                    )
+                    return f"am {ts}"
 
     with ui.card():
         with ui.navset_card_tab(id="heating_cooling_tabs"):
