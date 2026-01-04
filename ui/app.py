@@ -626,7 +626,7 @@ with ui.nav_panel("Simulationsresultate"):
             monthly_timeseries_A.set(facade_A.get_monthly_timeseries(PROJECT_ID_VAR_A, "A"))
             monthly_timeseries_B.set(facade_B.get_monthly_timeseries(PROJECT_ID_VAR_B, "B"))
 
-
+        
         @render.download(
             filename=lambda: f"raw_results_{active_variant.get()}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.parquet",
             media_type="application/octet-stream",
