@@ -2025,12 +2025,14 @@ with ui.nav_panel("Einstellungen"):
 
             with ui.nav_panel("Erweiterte Einstellungen"):
 
+
+                    
                 with ui.card():
-                    ui.card_header("Anfangsbedingungen")
+                    ui.card_header("Grenzwert Überhitzung ")
                     ui.input_text(
-                        id="initial_temperature",
-                        label="Anfangstemperatur [°C]",
-                        value="20.0",
+                        id="overheating_threshold",
+                        label="Temperaturgrenzwert für Überhitzung [°C]",
+                        value="26.0",
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
