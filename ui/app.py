@@ -2032,7 +2032,7 @@ with ui.nav_panel("Einstellungen"):
                     ui.input_text(
                         id="overheating_threshold",
                         label="Temperaturgrenzwert für Überhitzung [°C]",
-                        value="26.0",
+                        value=cfg0['simulation_parameters']['overheating_threshold']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
