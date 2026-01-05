@@ -1530,17 +1530,3 @@ class RCEngine:
         print("Simulation finished.")    
         return df_raw
 
-# print(f"total heating power = {output_heating_power_sum} MWh")
-# print(f"total cooling power = {output_cooling_power_sum} MWh")
-# print(f"total lighting electricity = {output_lighting_electricity_sum} MWh")
-# print(f"total equipment electricity = {output_equipment_electricity_sum} MWh")
-
-# # save results as a binary file
-# np.savez(
-#     'py_out.npz', 
-#     output_temperatures=output_temperatures, 
-#     output_heating_power=output_heating_power, 
-#     output_cooling_power=output_cooling_power, 
-#     output_lighting_electricity=output_lighting_electricity, 
-#     output_equipment_electricity=output_equipment_electricity,
-#     left_matrix=left_matrix)

@@ -24,8 +24,8 @@ class HeatingCoolingTimeseriesAdapter(BaseAdapter):
             "datetime": df_raw.index,
             "project_id": context.project_id,
             "variant_id": context.variant_id,
-            "heating_power": df_raw["output_heating_power"],
-            "cooling_power": df_raw["output_cooling_power"]
+            "heating_power": df_raw["output_heating_power"],   # heating power [W]
+            "cooling_power": df_raw["output_cooling_power"]    # cooling power [W]
         })
 
         return {"timeseries": df_ts_power}

@@ -195,14 +195,23 @@ class ConfigFacade:
             units_text = """Units Description for RC Model Results
 =====================================
 
-RAW RESULTS (Timeseries):
+RAW RESULTS (Timeseries from r_c_modell.py):
 - datetime: Timestamp
-- temp_air_room: Room air temperature [°C]
-- temp_outdoor_air: Outdoor air temperature [°C]
-- heating_power: Heating power [W]
-- cooling_power: Cooling power [W]
-- heating_energy: Heating energy [Wh]
-- cooling_energy: Cooling energy [Wh]
+- temperature_outdoor_air: Outdoor air temperature [°C]
+- temperature_air_room: Room air temperature [°C]
+- temperature_in_glazing_north/east/south/west: Inside glazing temperatures [°C]
+- temperature_out_glazing_north/east/south/west: Outside glazing temperatures [°C]
+- temperature_in_frame_north/east/south/west: Inside frame temperatures [°C]
+- temperature_out_frame_north/east/south/west: Outside frame temperatures [°C]
+- temperature_wall_{n,e,s,w}_1..4: Wall layer node temperatures (north/east/south/west) [°C]
+- temperature_roof_1..4: Roof layer node temperatures [°C]
+- temperature_floor_1..4: Floor layer node temperatures [°C]
+- temperature_int_wall_1..4: Internal wall node temperatures [°C]
+- temperature_int_ceiling_1..4: Internal ceiling node temperatures [°C]
+- output_heating_power: Heating power [W]
+- output_cooling_power: Cooling power [W]
+- output_lighting_electricity: Lighting electricity [W]
+- output_equipment_electricity: Equipment electricity [W]
 
 PROCESSED TIMESERIES (timeseries_*.csv):
 - datetime: Timestamp
@@ -216,7 +225,7 @@ SUMMARY RESULTS:
 Heating:
 - energy_year: Annual heating energy demand [kWh]
 - energy_specific: Specific heating energy demand [kWh/m²]
-- power_max: Maximum heating power [W]
+- power_max: Maximum heating power [kW]
 - load_specific: Specific heating load [W/m²]
 - costs_year: Annual heating costs [CHF]
 - co2_year: Annual CO2 emissions from heating [kg CO2]
@@ -224,7 +233,7 @@ Heating:
 Cooling:
 - energy_year: Annual cooling energy demand [kWh]
 - energy_specific: Specific cooling energy demand [kWh/m²]
-- power_max: Maximum cooling power [W]
+- power_max: Maximum cooling power [kW]
 - load_specific: Specific cooling load [W/m²]
 - costs_year: Annual cooling costs [CHF]
 - co2_year: Annual CO2 emissions from cooling [kg CO2]
