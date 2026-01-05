@@ -51,7 +51,22 @@ class WeatherRepository:
         """
         if not self.raw_path.exists():
             return None
-        return pd.read_csv(self.raw_path)
+        # Auto-detect separator/decimal: assume either ';' with decimal ',' or ',' with decimal '.'
+        sample = ''
+        try:
+            with open(self.raw_path, 'r', encoding='utf-8', errors='ignore') as f:
+                sample = ''.join(next(f, '') for _ in range(5))
+        except StopIteration:
+            pass
+
+        semi = sample.count(';')
+        comma = sample.count(',')
+        if semi > comma:
+            sep, decimal = ';', ','
+        else:
+            sep, decimal = ',', '.'
+
+        return pd.read_csv(self.raw_path, sep=sep, decimal=decimal, engine='python')
     
     def read_raw_epw(self):
         """
@@ -70,8 +85,16 @@ class WeatherRepository:
     
     def read_raw(self):
         """Auto-detects file format and reads raw weather data"""
+        # If the configured path does not exist (e.g., after restart), try to find a file
+        # with the same stem but any supported suffix in the same folder.
         if not self.raw_path.exists():
-            return None
+            candidates = list(self.raw_path.parent.glob(self.raw_path.stem + ".*"))
+            for cand in candidates:
+                if cand.suffix.lower() in [".mat", ".csv", ".epw"]:
+                    self.raw_path = cand
+                    break
+            if not self.raw_path.exists():
+                return None
         
         file_extension = self.raw_path.suffix.lower()
         
