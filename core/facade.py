@@ -191,7 +191,7 @@ class ConfigFacade:
                     # If summary generation fails, just skip it
                     pass
             
-            # 5. Add units description file
+            # Add units description file
             units_text = """Units Description for RC Model Results
 =====================================
 
