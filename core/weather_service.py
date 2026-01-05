@@ -101,42 +101,65 @@ class WeatherService:
         return df
 
     def _epw_to_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Convert EnergyPlus .epw DataFrame to standardized format"""
+        """Convert EnergyPlus .epw DataFrame to standardized format (per EPW spec)."""
         import numpy as np
-        
-        # EPW files have 35 columns; extract required columns at specific positions
-        # Column indices (0-based): 4-5=hour/minute, 8=temp, 11=humidity, 13-14=solar, 19-20=wind
-        timestamp = df.iloc[:, 4] + df.iloc[:, 5] / 60.0  # Hour + Minute/60
-        air_temperature = df.iloc[:, 8]
-        relative_humidity = df.iloc[:, 11]
-        wind_speed = df.iloc[:, 19]
+
+        # Column mapping (0-based indices per EPW spec)
+        # 0 Year, 1 Month, 2 Day, 3 Hour(1-24), 4 Minute,
+        # 6 Dry Bulb Temp [°C], 8 Rel. Humidity [%],
+        # 14 Direct Normal Radiation [W/m²], 15 Diffuse Horizontal Radiation [W/m²],
+        # 20 Wind Direction [deg], 21 Wind Speed [m/s],
+        # 22 Total Sky Cover [%] (fallback if needed)
+
+        year = df.iloc[:, 0]
+        month = df.iloc[:, 1]
+        day = df.iloc[:, 2]
+        hour = df.iloc[:, 3]
+        minute = df.iloc[:, 4]
+
+        air_temperature = df.iloc[:, 6]
+        relative_humidity = df.iloc[:, 8]
+        solar_radiation_direct = df.iloc[:, 14]
+        solar_radiation_diffuse = df.iloc[:, 15]
         wind_direction = df.iloc[:, 20]
-        solar_radiation_direct = df.iloc[:, 13]
-        solar_radiation_diffuse = df.iloc[:, 14]
-        sky_cover = df.iloc[:, 21]
-        
+        wind_speed = df.iloc[:, 21]
+        sky_cover = df.iloc[:, 22] if df.shape[1] > 22 else 0
+
+        # Convert to datetime; EPW hours are 1-24 -> shift to 0-23 by subtracting 1 hour
+        dt = pd.to_datetime(
+            {
+                "year": year.astype(int),
+                "month": month.astype(int),
+                "day": day.astype(int),
+                "hour": (hour.astype(int) - 1).clip(lower=0),
+                "minute": minute.astype(int),
+            },
+            errors="coerce",
+        )
+
         # Calculate wind components from speed and direction
         wind_direction_rad = np.radians(wind_direction)
         wind_speed_x = wind_speed * np.cos(wind_direction_rad)
         wind_speed_y = wind_speed * np.sin(wind_direction_rad)
-        
-        # Create standardized DataFrame
-        df_weather = pd.DataFrame({
-            "timestamp": timestamp,
-            "air_temperature": air_temperature,
-            "relative_humidity": relative_humidity,
-            "wind_speed_x": wind_speed_x,
-            "wind_speed_y": wind_speed_y,
-            "solar_radiation_direct": solar_radiation_direct,
-            "solar_radiation_diffuse": solar_radiation_diffuse,
-            "sky_cover": sky_cover,
-            "sun_elevation": 0.0,  # Not available in standard EPW
-            "sun_azimuth": 0.0     # Not available in standard EPW
-        })
-        
-        # Convert timestamp to datetime
-        start = pd.Timestamp("2018-12-18 00:00:00")
-        df_weather['datetime'] = pd.date_range(start=start, periods=len(df_weather), freq='h')
-        df_weather = df_weather.set_index('datetime')
-        
+
+        # Build standardized DataFrame
+        df_weather = pd.DataFrame(
+            {
+                "timestamp": np.arange(len(df)),  # sequential hours
+                "air_temperature": air_temperature,
+                "relative_humidity": relative_humidity,
+                "wind_speed_x": wind_speed_x,
+                "wind_speed_y": wind_speed_y,
+                "solar_radiation_direct": solar_radiation_direct,
+                "solar_radiation_diffuse": solar_radiation_diffuse,
+                "sky_cover": sky_cover,
+                "sun_elevation": 0.0,  # not present in EPW
+                "sun_azimuth": 0.0,    # not present in EPW
+                "datetime": dt,
+            }
+        )
+
+        # Set datetime as index; drop rows with invalid datetime
+        df_weather = df_weather.dropna(subset=["datetime"]).set_index("datetime")
+
         return df_weather
