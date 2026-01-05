@@ -2260,7 +2260,7 @@ with ui.nav_panel("Einstellungen"):
         # settings for weather data input       
         with ui.nav_panel("Wetterdaten"):
             with ui.card():
-                ui.card_header("Wetterdaten-Datei (.mat)")
+                ui.card_header("Wetterdaten-Datei (.mat, .csv, .epw)")
                 ui.markdown("**Erforderliche Spalten (in dieser Reihenfolge):**")
                 ui.markdown("""
 | Spalte | Einheit | Beschreibung |
@@ -2277,14 +2277,14 @@ with ui.nav_panel("Einstellungen"):
 | sun_azimuth | ° | Sonnenazimut |
                 """)
                 ui.markdown("**Wichtig: Nur die Spaltenreihenfolge zählt!** Die Spaltennamen werden ignoriert. Die Positionen der Spalten müssen exakt dieser Tabelle entsprechen.")
-                ui.markdown("**Format:** MATLAB .mat-Datei mit numerischer Tabelle (erste nicht-`__` Variable wird verwendet)")
+                ui.markdown("**Unterstützte Formate:** MATLAB .mat-Datei mit numerischer Tabelle (erste nicht-`__` Variable wird verwendet), CSV-Dateien, oder EnergyPlus .epw-Dateien")
                 ui.markdown("**Zeitauflösung:** Stundenwerte, lückenlos aufeinanderfolgend")
                 ui.markdown("**Settling-in Phase:** Falls die Wetterdatei länger als ein Jahr (>8760 h) ist, wird das RC-Modell über die zusätzlichen Stunden durchlaufen, um ein thermisches Gleichgewicht zu erreichen. Nur das letzte Jahr wird in den Ergebnissen ausgegeben.")
                 
                 ui.input_file(
                     "input_weather_file",
                     "Wetterdatei hochladen",
-                    # accept=".mat",
+                    accept=".mat,.csv,.epw",
                     width="600px",
                     multiple=False
                 )
