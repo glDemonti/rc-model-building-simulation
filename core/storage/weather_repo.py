@@ -55,10 +55,10 @@ class WeatherRepository:
         # EPW files have a header of 8 lines, skip them
         return pd.read_csv(
             self.raw_path,
-            skiprows=8
-            header=True,
-            name=list/range(35) # EPW files have 35 columns
-            )
+            skiprows=8,
+            header=None,
+            names=list(range(35))  # EPW files have 35 columns
+        )
     
     def read_raw(self):
         """Auto-detects file format and reads raw weather data"""
