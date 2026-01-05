@@ -1532,16 +1532,13 @@ with ui.nav_panel("Einstellungen"):
             
         _refresh_schedules_from_cfg()
 
-    @render.text
-    def variant_description():
-        return input.radio_variant_selection()
 
     with ui.navset_pill_list(id="tab"):
         
         # Basic Settings tab
         with ui.nav_panel("Grundeinstellungen"):
             with ui.card():
-                ui.card_header("Setpoints")
+                ui.card_header("Sollwerte für Heizen und Kühlen")
                 ui.input_text(
                     id="heating_setpoint",
                     label="Heizsollwert [°C]",
@@ -1586,13 +1583,13 @@ with ui.nav_panel("Einstellungen"):
             
             with ui.card():
                 ui.card_header("Energiekosten")
-                ui.input_text(
-                    id="electricity_price",
-                    label="Strompreis [CHF/kWh]",
-                    value=cfg0['economic_parameters']['electricity_price']['expression'],
-                    width="600px",
-                    placeholder="Geben Sie eine Zahl ein",
-                )
+                # ui.input_text(
+                #     id="electricity_price",
+                #     label="Strompreis [CHF/kWh]",
+                #     value=cfg0['economic_parameters']['electricity_price']['expression'],
+                #     width="600px",
+                #     placeholder="Geben Sie eine Zahl ein",
+                # )
                 ui.input_text(
                     id="heating_price",
                     label="Preis Heizen [CHF/kWh]",
@@ -2115,6 +2112,10 @@ with ui.nav_panel("Einstellungen"):
 
             # Settings for scheduled parameters
             with ui.nav_panel("Zeitpläne"):
+                base_ui.tags.p(
+                    "Tragen Sie stündliche Werte zwischen 0 und 1 ein (entspricht 0–100 %). 0 = aus, 1 = volle Nutzung.",
+                    class_="text-muted"
+                )
                     
                 with ui.card():
                     ui.card_header("Belegungszeitplan")
@@ -2259,17 +2260,33 @@ with ui.nav_panel("Einstellungen"):
             with ui.nav_panel("Wetterdaten"):
                 with ui.card():
                     ui.card_header("Wetterdaten-Datei (.mat)")
+                    ui.markdown("**Erforderliche Spalten (in dieser Reihenfolge):**")
+                    ui.markdown("""
+| Spalte | Einheit | Beschreibung |
+|--------|---------|-------------|
+| timestamp | Stunden | Zeit ab Jahresbeginn (z.B. 0–8760 h) |
+| air_temperature | °C | Außenlufttemperatur |
+| relative_humidity | % | Relative Luftfeuchte |
+| wind_speed_x | m/s | Windgeschwindigkeit X-Richtung |
+| wind_speed_y | m/s | Windgeschwindigkeit Y-Richtung |
+| solar_radiation_direct | W/m² | Direkte Sonneneinstrahlung |
+| solar_radiation_diffuse | W/m² | Diffuse Sonneneinstrahlung |
+| sky_cover | % | Bewölkung |
+| sun_elevation | ° | Sonnenelevationswinkel |
+| sun_azimuth | ° | Sonnenazimut |
+                    """)
+                    ui.markdown("**Wichtig: Nur die Spaltenreihenfolge zählt!** Die Spaltennamen werden ignoriert. Die Positionen der Spalten müssen exakt dieser Tabelle entsprechen.")
+                    ui.markdown("**Format:** MATLAB .mat-Datei mit numerischer Tabelle (erste nicht-`__` Variable wird verwendet)")
+                    ui.markdown("**Zeitauflösung:** Stundenwerte, lückenlos aufeinanderfolgend")
+                    ui.markdown("**Settling-in Phase:** Falls die Wetterdatei länger als ein Jahr (>8760 h) ist, wird das RC-Modell über die zusätzlichen Stunden durchlaufen, um ein thermisches Gleichgewicht zu erreichen. Nur das letzte Jahr wird in den Ergebnissen ausgegeben.")
+                    
                     ui.input_file(
                         "input_weather_file",
-                        "Laden Sie die .mat Wetterdatei hoch",
+                        "Wetterdatei hochladen",
                         # accept=".mat",
                         width="600px",
                         multiple=False
                     )
-
-                    @render.text
-                    def weather_file_properties():
-                        return input.input_weather_file()
 
             with ui.nav_panel("Erweiterte Einstellungen"):
 
