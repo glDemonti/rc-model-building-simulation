@@ -122,17 +122,21 @@ class ConfigFacade:
             raise FileNotFoundError("No raw results found to download.")
         return data
     
-    def download_all_results_zip(self, variant_id: str) -> bytes:
+    def download_all_results_zip(self, variant_id: str, project_id: str = None) -> bytes:
         """
         Creates a ZIP file containing:
         - Parameter JSON file (config_{variant_id}.json)
         - Raw results as parquet (raw_results_{variant_id}.parquet)
         - Raw results as CSV (raw_results_{variant_id}.csv)
+        - Processed timeseries CSV (timeseries_{variant_id}.csv)
+        - Summary results with key metrics (summary_{variant_id}.csv)
+        - Units description file (units_description.txt)
         
         Reads files from the project directory.
         
         Args:
             variant_id: The variant identifier (e.g., "A" or "B")
+            project_id: Optional project ID for analytics
             
         Returns:
             bytes: The ZIP file as bytes
@@ -163,6 +167,77 @@ class ConfigFacade:
                 except Exception as e:
                     # If conversion fails, just skip the CSV
                     pass
+            
+            # Add summary results if analytics is available
+            if self._analytics and project_id:
+                try:
+                    context = self._analytics.compute_all(project_id, variant_id)
+                    summary_df = context.get("summary")
+                    
+                    if summary_df is not None and not summary_df.empty:
+                        summary_filename = f"summary_{variant_id}.csv"
+                        summary_buffer = io.BytesIO()
+                        summary_df.to_csv(summary_buffer, index=False)
+                        zip_file.writestr(summary_filename, summary_buffer.getvalue())
+                    
+                    # Add timeseries data
+                    timeseries_df = context.get("timeseries")
+                    if timeseries_df is not None and not timeseries_df.empty:
+                        timeseries_filename = f"timeseries_{variant_id}.csv"
+                        timeseries_buffer = io.BytesIO()
+                        timeseries_df.to_csv(timeseries_buffer, index=False)
+                        zip_file.writestr(timeseries_filename, timeseries_buffer.getvalue())
+                except Exception as e:
+                    # If summary generation fails, just skip it
+                    pass
+            
+            # 5. Add units description file
+            units_text = """Units Description for RC Model Results
+=====================================
+
+RAW RESULTS (Timeseries):
+- datetime: Timestamp
+- temp_air_room: Room air temperature [°C]
+- temp_outdoor_air: Outdoor air temperature [°C]
+- heating_power: Heating power [W]
+- cooling_power: Cooling power [W]
+- heating_energy: Heating energy [Wh]
+- cooling_energy: Cooling energy [Wh]
+
+PROCESSED TIMESERIES (timeseries_*.csv):
+- datetime: Timestamp
+- variant_id: Variant identifier (A or B)
+- temp_air_room: Room air temperature [°C]
+- temp_outdoor_air: Outdoor air temperature [°C]
+- heating_power: Heating power [W]
+- cooling_power: Cooling power [W]
+
+SUMMARY RESULTS:
+Heating:
+- energy_year: Annual heating energy demand [kWh]
+- energy_specific: Specific heating energy demand [kWh/m²]
+- power_max: Maximum heating power [W]
+- load_specific: Specific heating load [W/m²]
+- costs_year: Annual heating costs [CHF]
+- co2_year: Annual CO2 emissions from heating [kg CO2]
+
+Cooling:
+- energy_year: Annual cooling energy demand [kWh]
+- energy_specific: Specific cooling energy demand [kWh/m²]
+- power_max: Maximum cooling power [W]
+- load_specific: Specific cooling load [W/m²]
+- costs_year: Annual cooling costs [CHF]
+- co2_year: Annual CO2 emissions from cooling [kg CO2]
+
+Temperature:
+- overheating_hours: Hours with temperature above threshold [h]
+- temp_outdoor_min: Minimum outdoor temperature [°C]
+- temp_outdoor_max: Maximum outdoor temperature [°C]
+
+Total:
+- co2_total_year: Total annual CO2 emissions [kg CO2]
+"""
+            zip_file.writestr("units_description.txt", units_text)
         
         zip_buffer.seek(0)
         return zip_buffer.getvalue()

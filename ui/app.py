@@ -7,6 +7,7 @@ import numpy as np
 import copy
 import io
 import zipfile
+from pathlib import Path
 
 from shiny import reactive
 from shiny import ui as base_ui
@@ -617,9 +618,7 @@ with ui.nav_panel("Simulationsresultate"):
         ui.br()
         
         ui.markdown("**Ergebnisse herunterladen:**")
-        ui.markdown("- **Parquet Format**: Rohdaten im Parquet-Format (effizientes Binärformat)")
-        ui.markdown("- **CSV Format**: Rohdaten als CSV (Tabellenkalkulationsformat)")
-        ui.markdown("- **ZIP (beide Varianten)**: ZIP mit beiden Varianten (Config JSON, Parquet und CSV für jede)")
+        ui.markdown("ZIP-Datei enthält alle Ergebnisse beider Varianten: Config JSON, Rohdaten (Parquet & CSV), Zeitreihen, Zusammenfassung und Einheiten-Beschreibung")
 
         @reactive.effect
         @reactive.event(input.button_start_simulation)
@@ -638,28 +637,7 @@ with ui.nav_panel("Simulationsresultate"):
 
         
         @render.download(
-            filename=lambda: f"raw_results_{active_variant.get()}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.parquet",
-            media_type="application/octet-stream",
-        )
-        def dl_raw_results():
-            data = facade_A.download_raw_results()
-            yield data
-        
-        @render.download(
-            filename=lambda: f"raw_results_{active_variant.get()}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv",
-            media_type="text/csv",
-        )
-        def dl_raw_results_csv():
-            """Download raw results as CSV"""
-            df = facade_A._result.load_raw()
-            if df is None:
-                raise FileNotFoundError("No raw results found to download.")
-            csv_buffer = io.BytesIO()
-            df.to_csv(csv_buffer, index=False)
-            yield csv_buffer.getvalue()
-        
-        @render.download(
-            filename=lambda: f"results_all_variants_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.zip",
+            filename=lambda: f"rc_model_results_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.zip",
             media_type="application/zip",
         )
         def dl_all_results_zip():
@@ -667,19 +645,27 @@ with ui.nav_panel("Simulationsresultate"):
             zip_buffer = io.BytesIO()
             
             with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-                # Variant A
+                # Get files from Variant A
                 try:
-                    zip_data_a = facade_A.download_all_results_zip("A")
-                    zip_file.writestr("variant-A/results_A.zip", zip_data_a)
+                    zip_data_a = facade_A.download_all_results_zip("A", PROJECT_ID_VAR_A)
+                    # Extract the inner zip and add all files to the main zip
+                    with zipfile.ZipFile(io.BytesIO(zip_data_a), 'r') as inner_zip_a:
+                        for file_info in inner_zip_a.infolist():
+                            file_data = inner_zip_a.read(file_info.filename)
+                            zip_file.writestr(file_info.filename, file_data)
                 except Exception as e:
-                    ui.notification_show(f"Fehler beim Herunterladen von Variante A: {e}", type="error", duration=5)
+                    ui.notification_show(f"Fehler beim Herunterladen von Variante A: {str(e)}", type="error", duration=5)
                 
-                # Variant B
+                # Get files from Variant B
                 try:
-                    zip_data_b = facade_B.download_all_results_zip("B")
-                    zip_file.writestr("variant-B/results_B.zip", zip_data_b)
+                    zip_data_b = facade_B.download_all_results_zip("B", PROJECT_ID_VAR_B)
+                    # Extract the inner zip and add all files to the main zip
+                    with zipfile.ZipFile(io.BytesIO(zip_data_b), 'r') as inner_zip_b:
+                        for file_info in inner_zip_b.infolist():
+                            file_data = inner_zip_b.read(file_info.filename)
+                            zip_file.writestr(file_info.filename, file_data)
                 except Exception as e:
-                    ui.notification_show(f"Fehler beim Herunterladen von Variante B: {e}", type="error", duration=5)
+                    ui.notification_show(f"Fehler beim Herunterladen von Variante B: {str(e)}", type="error", duration=5)
             
             zip_buffer.seek(0)
             yield zip_buffer.getvalue()
