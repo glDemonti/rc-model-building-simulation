@@ -153,6 +153,7 @@ BINDINGS = {
     "enable_cooling": ("simulation_parameters.enable_cooling.value", bool),
     "overheating_threshold": ("simulation_parameters.overheating_threshold.expression", str),
     "sim_timestep": ("simulation_parameters.time_step.expression", str),
+    "weather_start_date": ("simulation_parameters.weather_start_date.expression", str),
     "surface_heat_transfer_in" : ("simulation_parameters.surface_heat_transfer_internal.expression", str),
     "surface_heat_transfer_out" : ("simulation_parameters.surface_heat_transfer_external.expression", str),
     "electricity_price": ("economic_parameters.electricity_price.expression", str),
@@ -2280,6 +2281,15 @@ with ui.nav_panel("Einstellungen"):
                 ui.markdown("**Unterstützte Formate:** MATLAB .mat-Datei mit numerischer Tabelle (erste nicht-`__` Variable wird verwendet), CSV-Dateien, oder EnergyPlus .epw-Dateien")
                 ui.markdown("**Zeitauflösung:** Stundenwerte, lückenlos aufeinanderfolgend")
                 ui.markdown("**Settling-in Phase:** Falls die Wetterdatei länger als ein Jahr (>8760 h) ist, wird das RC-Modell über die zusätzlichen Stunden durchlaufen, um ein thermisches Gleichgewicht zu erreichen. Nur das letzte Jahr wird in den Ergebnissen ausgegeben.")
+                
+                ui.input_text(
+                    id="weather_start_date",
+                    label="Startzeitpunkt für Wetterdaten (YYYY-MM-DD HH:MM:SS)",
+                    value=str(_deep_get(cfg0, "simulation_parameters.weather_start_date.expression")),
+                    placeholder="z.B. 2018-12-18 00:00:00",
+                    width="400px"
+                )
+                ui.markdown("_Dieser Zeitpunkt wird als Referenz für die Zeitachse der Wetterdaten verwendet. Für EPW-Dateien wird der Kalender aus der Datei ignoriert und durch diesen Startzeitpunkt ersetzt._")
                 
                 ui.input_file(
                     "input_weather_file",

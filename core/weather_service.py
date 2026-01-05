@@ -17,26 +17,40 @@ class WeatherService:
             raise RuntimeError(f"Weather data file not found at {self._repo.processed_path}")
         return df
     
-    def process_and_store_weather(self) -> pd.DataFrame:
+    def process_and_store_weather(self, cfg: dict = None) -> pd.DataFrame:
         """
         Reads the raw weather data file, processes it into a DataFrame, and stores the processed data.
         Supports .mat, .csv, and .epw formats.
+        
+        Args:
+            cfg: Optional configuration dict containing weather_start_date
         """
         raw = self._repo.read_raw()
         if raw is None:
             raise RuntimeError(f"Raw weather data file not found at {self._repo.raw_path}")
         
+        # Extract weather_start_date from config if available
+        start_date = None
+        if cfg:
+            try:
+                start_date_str = cfg.get("simulation_parameters", {}).get("weather_start_date", {}).get("value") or \
+                                 cfg.get("simulation_parameters", {}).get("weather_start_date", {}).get("expression")
+                if start_date_str:
+                    start_date = pd.Timestamp(start_date_str)
+            except Exception as e:
+                print(f"Warning: Could not parse weather_start_date from config: {e}")
+        
         # Determine format based on return type from repository
         if isinstance(raw, dict):
             # MATLAB .mat file (returned as dict)
-            df = self._mat_to_dataframe(raw)
+            df = self._mat_to_dataframe(raw, start_date)
         elif isinstance(raw, pd.DataFrame):
             # CSV or EPW file (returned as DataFrame)
             file_extension = self._repo.raw_path.suffix.lower()
             if file_extension == ".csv":
-                df = self._csv_to_dataframe(raw)
+                df = self._csv_to_dataframe(raw, start_date)
             elif file_extension == ".epw":
-                df = self._epw_to_dataframe(raw)
+                df = self._epw_to_dataframe(raw, start_date)
             else:
                 raise ValueError(f"Unsupported file format: {file_extension}")
         else:
@@ -45,8 +59,13 @@ class WeatherService:
         self._repo.write_processed(df)
         return df
 
-    def _mat_to_dataframe(self, raw) -> pd.DataFrame:
-        """Convert MATLAB .mat file to standardized DataFrame"""
+    def _mat_to_dataframe(self, raw, start_date: pd.Timestamp = None) -> pd.DataFrame:
+        """Convert MATLAB .mat file to standardized DataFrame
+        
+        Args:
+            raw: MATLAB .mat file data
+            start_date: Optional start date for datetime index (default: 2018-12-18 00:00:00)
+        """
         # Extract table from mat file
         key = next(k for k in raw.keys() if not k.startswith("__"))
         table = raw[key]
@@ -68,14 +87,19 @@ class WeatherService:
         df = pd.DataFrame(table[:, :len(columns)], columns=columns)
 
         # Convert timestamp to datetime
-        start = pd.Timestamp("2018-12-18 00:00:00")
+        start = start_date if start_date is not None else pd.Timestamp("2018-12-18 00:00:00")
         df['datetime'] = pd.date_range(start=start, periods=len(df), freq='h')
         df = df.set_index('datetime')
 
         return df
 
-    def _csv_to_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Convert CSV DataFrame to standardized format"""
+    def _csv_to_dataframe(self, df: pd.DataFrame, start_date: pd.Timestamp = None) -> pd.DataFrame:
+        """Convert CSV DataFrame to standardized format
+        
+        Args:
+            df: Input DataFrame from CSV
+            start_date: Optional start date for datetime index (default: 2018-12-18 00:00:00)
+        """
         # Take only the first 10 columns (by position, not name)
         columns = [
             "timestamp",                # time of the year, [hours]
@@ -94,14 +118,19 @@ class WeatherService:
         df.columns = columns
         
         # Convert timestamp to datetime
-        start = pd.Timestamp("2018-12-18 00:00:00")
+        start = start_date if start_date is not None else pd.Timestamp("2018-12-18 00:00:00")
         df['datetime'] = pd.date_range(start=start, periods=len(df), freq='h')
         df = df.set_index('datetime')
         
         return df
 
-    def _epw_to_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Convert EnergyPlus .epw DataFrame to standardized format (per EPW spec)."""
+    def _epw_to_dataframe(self, df: pd.DataFrame, start_date: pd.Timestamp = None) -> pd.DataFrame:
+        """Convert EnergyPlus .epw DataFrame to standardized format (per EPW spec).
+        
+        Args:
+            df: Input DataFrame from EPW
+            start_date: Optional start date for datetime index when EPW calendar is not used (default: 2018-12-18 00:00:00)
+        """
         import numpy as np
 
         # Column mapping (0-based indices per EPW spec)
@@ -125,17 +154,10 @@ class WeatherService:
         wind_speed = df.iloc[:, 21]
         sky_cover = df.iloc[:, 22] if df.shape[1] > 22 else 0
 
-        # Convert to datetime; EPW hours are 1-24 -> shift to 0-23 by subtracting 1 hour
-        dt = pd.to_datetime(
-            {
-                "year": year.astype(int),
-                "month": month.astype(int),
-                "day": day.astype(int),
-                "hour": (hour.astype(int) - 1).clip(lower=0),
-                "minute": minute.astype(int),
-            },
-            errors="coerce",
-        )
+        # Use configurable start date instead of EPW calendar for consistency across variants
+        # This allows user to align different weather files on the same timeline
+        start = start_date if start_date is not None else pd.Timestamp("2018-12-18 00:00:00")
+        dt = pd.date_range(start=start, periods=len(df), freq="h")
 
         # Calculate wind components from speed and direction
         wind_direction_rad = np.radians(wind_direction)

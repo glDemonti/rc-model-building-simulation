@@ -68,7 +68,8 @@ class ConfigFacade:
         """
         self._weather_repo.write_raw(Path(temp_path))
         self._weather_repo.save_original_name(original_name)
-        self._weather_service.process_and_store_weather()
+        cfg = self._config_repo.read_raw()
+        self._weather_service.process_and_store_weather(cfg)
 
 
     def update_measurement_file(self, temp_path: str, original_name: str):

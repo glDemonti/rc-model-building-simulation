@@ -276,6 +276,11 @@
             "expression": "5*60",
             "unit": "s",
             "value": 300.0
+        },
+        "weather_start_date": {
+            "expression": "2018-12-18 00:00:00",
+            "unit": "-",
+            "value": "2018-12-18 00:00:00"
         }
     },
     "thermal_properties": {
