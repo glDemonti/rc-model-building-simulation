@@ -153,7 +153,6 @@ BINDINGS = {
     "enable_cooling": ("simulation_parameters.enable_cooling.value", bool),
     "overheating_threshold": ("simulation_parameters.overheating_threshold.expression", str),
     "sim_timestep": ("simulation_parameters.time_step.expression", str),
-    "weather_start_date": ("simulation_parameters.weather_start_date.expression", str),
     "surface_heat_transfer_in" : ("simulation_parameters.surface_heat_transfer_internal.expression", str),
     "surface_heat_transfer_out" : ("simulation_parameters.surface_heat_transfer_external.expression", str),
     "electricity_price": ("economic_parameters.electricity_price.expression", str),
@@ -259,6 +258,29 @@ def _register_binding(input_id: str, path: str, cast):
 
 for _id, (path, cast) in BINDINGS.items():
     _register_binding(_id, path, cast)
+
+# Custom binding for weather_start_date (combines date + time inputs)
+@reactive.effect
+@reactive.event(input.weather_start_date_date, input.weather_start_date_time)
+def _on_weather_start_date_change():
+    try:
+        date_val = input.weather_start_date_date()
+        time_val = input.weather_start_date_time()
+        
+        if date_val and time_val:
+            datetime_str = f"{date_val} {time_val}"
+        elif date_val:
+            datetime_str = f"{date_val} 00:00:00"
+        else:
+            return
+        
+        # Validate format
+        pd.to_datetime(datetime_str)
+        
+        cfg_state.set(_deep_set(cfg_state(), "simulation_parameters.weather_start_date.expression", datetime_str))
+        unsaved_changes.set(True)
+    except Exception as e:
+        ui.notification_show(f"Ungültiges Datum/Zeit-Format: {e}", type="warning", duration=4)
 
 # Helper function to attach a numeric guard to a DataGrid render
 def attach_numeric_guard(
@@ -2282,13 +2304,20 @@ with ui.nav_panel("Einstellungen"):
                 ui.markdown("**Zeitauflösung:** Stundenwerte, lückenlos aufeinanderfolgend")
                 ui.markdown("**Settling-in Phase:** Falls die Wetterdatei länger als ein Jahr (>8760 h) ist, wird das RC-Modell über die zusätzlichen Stunden durchlaufen, um ein thermisches Gleichgewicht zu erreichen. Nur das letzte Jahr wird in den Ergebnissen ausgegeben.")
                 
-                ui.input_text(
-                    id="weather_start_date",
-                    label="Startzeitpunkt für Wetterdaten (YYYY-MM-DD HH:MM:SS)",
-                    value=str(_deep_get(cfg0, "simulation_parameters.weather_start_date.expression")),
-                    placeholder="z.B. 2018-12-18 00:00:00",
-                    width="400px"
-                )
+                with ui.layout_columns():
+                    ui.input_date(
+                        id="weather_start_date_date",
+                        label="Startzeitpunkt (Datum)",
+                        value=pd.to_datetime(_deep_get(cfg0, "simulation_parameters.weather_start_date.expression")).date(),
+                        width="200px"
+                    )
+                    ui.input_text(
+                        id="weather_start_date_time",
+                        label="Uhrzeit (HH:MM:SS)",
+                        value=pd.to_datetime(_deep_get(cfg0, "simulation_parameters.weather_start_date.expression")).strftime("%H:%M:%S"),
+                        placeholder="00:00:00",
+                        width="150px"
+                    )
                 ui.markdown("_Dieser Zeitpunkt wird als Referenz für die Zeitachse der Wetterdaten verwendet. Für EPW-Dateien wird der Kalender aus der Datei ignoriert und durch diesen Startzeitpunkt ersetzt._")
                 
                 ui.input_file(

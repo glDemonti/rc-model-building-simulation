@@ -89,14 +89,19 @@ class ExpressionEvaluator:
 
         def _walk(o, path=""):
             if isinstance(o, dict):
-                # if dict has 'expression', evaluate it
+                # if dict has 'expression', evaluate it (unless it's a string-only field)
                 if "expression" in o and isinstance(o["expression"], str):
-                    expr = o["expression"]
-                    try:
-                        v = self.save_eval(expr)
-                        o["value"] = v
-                    except EvalError as e:
-                        errors.append(f"{path or '/'}: {e}")
+                    # Skip evaluation for string-value fields (e.g., dates)
+                    # These fields should have their expression copied directly to value
+                    if path.endswith("weather_start_date"):
+                        o["value"] = o["expression"]
+                    else:
+                        expr = o["expression"]
+                        try:
+                            v = self.save_eval(expr)
+                            o["value"] = v
+                        except EvalError as e:
+                            errors.append(f"{path or '/'}: {e}")
                 # recurse for child keys
                 for k, v in list(o.items()):
                     # avoid recusing on already changed 'value' keys
