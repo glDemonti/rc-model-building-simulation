@@ -1605,663 +1605,663 @@ with ui.nav_panel("Einstellungen"):
                     placeholder="Geben Sie eine Zahl ein",
                 )
         
-        # Advanced Settings tab
-        with ui.nav_menu("erweiterte Einstellungen"):
+        # # Advanced Settings tab
+        # with ui.nav_menu("erweiterte Einstellungen"):
 
             
-            with ui.nav_panel("Gebäudeeigenschaften"):
+        with ui.nav_panel("Gebäudeeigenschaften"):
 
-                # Input fields for building geometry
+            # Input fields for building geometry
+            with ui.card():
+
+                ui.card_header("Gebäudegeometrie")
+
                 with ui.card():
+                    ui.card_header("Unbeschattete Verglasungsflächen")
+                    ui.input_text(
+                        id="unshaded_glazing_area_n",
+                        label="Unbeschattete Verglasungsfläche (Nord) [m²]",
+                        value=cfg0['building_geometry']['windows']['north']['unshaded_glazing_area']['expression'],
+                        width="600px",
+                        placeholder="Geben Sie eine Zahl ein",
+                        update_on="blur",
+                    )
 
-                    ui.card_header("Gebäudegeometrie")
+                    ui.input_text(
+                        id="unshaded_glazing_area_e",
+                        label="Unbeschattete Verglasungsfläche (Ost) [m²]",
+                        value=cfg0['building_geometry']['windows']['east']['unshaded_glazing_area']['expression'],
+                        width="600px",
+                        placeholder="Geben Sie eine Zahl ein",
+                    )
 
-                    with ui.card():
-                        ui.card_header("Unbeschattete Verglasungsflächen")
-                        ui.input_text(
-                            id="unshaded_glazing_area_n",
-                            label="Unbeschattete Verglasungsfläche (Nord) [m²]",
-                            value=cfg0['building_geometry']['windows']['north']['unshaded_glazing_area']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                            update_on="blur",
-                        )
+                    ui.input_text(
+                        id="unshaded_glazing_area_s",
+                        label="Unbeschattete Verglasungsfläche (Süd) [m²]",
+                        value=cfg0['building_geometry']['windows']['south']['unshaded_glazing_area']['expression'],
+                        width="600px",
+                        placeholder="Geben Sie eine Zahl ein",
+                    )
 
-                        ui.input_text(
-                            id="unshaded_glazing_area_e",
-                            label="Unbeschattete Verglasungsfläche (Ost) [m²]",
-                            value=cfg0['building_geometry']['windows']['east']['unshaded_glazing_area']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
+                    ui.input_text(
+                        id="unshaded_glazing_area_w",
+                        label="Unbeschattete Verglasungsfläche (West) [m²]",
+                        value=cfg0['building_geometry']['windows']['west']['unshaded_glazing_area']['expression'],
+                        width="600px",
+                        placeholder="Geben Sie eine Zahl ein",
+                    )
 
-                        ui.input_text(
-                            id="unshaded_glazing_area_s",
-                            label="Unbeschattete Verglasungsfläche (Süd) [m²]",
-                            value=cfg0['building_geometry']['windows']['south']['unshaded_glazing_area']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-
-                        ui.input_text(
-                            id="unshaded_glazing_area_w",
-                            label="Unbeschattete Verglasungsfläche (West) [m²]",
-                            value=cfg0['building_geometry']['windows']['west']['unshaded_glazing_area']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-
-                    with ui.card():
-                        ui.card_header("Beschattete Verglasungsflächen")
-                        ui.input_text(
-                            id="shaded_glazing_area_n",
-                            label="Beschattete Verglasungsfläche (Nord) [m²]",
-                            value=cfg0['building_geometry']['windows']['north']['shaded_glazing_area']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-                        ui.input_text(
-                            id="shaded_glazing_area_e",
-                            label="Beschattete Verglasungsfläche (Ost) [m²]",
-                            value=cfg0['building_geometry']['windows']['east']['shaded_glazing_area']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-                        ui.input_text(
-                            id="shaded_glazing_area_s",
-                            label="Beschattete Verglasungsfläche (Süd) [m²]",
-                            value=cfg0['building_geometry']['windows']['south']['shaded_glazing_area']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-                        ui.input_text(
-                            id="shaded_glazing_area_w",
-                            label="Beschattete Verglasungsfläche (West) [m²]",
-                            value=cfg0['building_geometry']['windows']['west']['shaded_glazing_area']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-                        
-                    with ui.card():
-                        ui.card_header("Unbeschattete Rahmenflächen")
-                        ui.input_text(
-                            id="unshaded_frame_area_n",
-                            label="Unbeschattete Rahmenfläche (Nord) [m²]",
-                            value=cfg0['building_geometry']['windows']['north']['unshaded_frame_area']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-                        ui.input_text(
-                            id="unshaded_frame_area_e",
-                            label="Unbeschattete Rahmenfläche (Ost) [m²]",
-                            value=cfg0['building_geometry']['windows']['east']['unshaded_frame_area']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-                        ui.input_text(
-                            id="unshaded_frame_area_s",
-                            label="Unbeschattete Rahmenfläche (Süd) [m²]",
-                            value=cfg0['building_geometry']['windows']['south']['unshaded_frame_area']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-                        ui.input_text(
-                            id="unshaded_frame_area_w",
-                            label="Unbeschattete Rahmenfläche (West) [m²]",
-                            value=cfg0['building_geometry']['windows']['west']['unshaded_frame_area']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
+                with ui.card():
+                    ui.card_header("Beschattete Verglasungsflächen")
+                    ui.input_text(
+                        id="shaded_glazing_area_n",
+                        label="Beschattete Verglasungsfläche (Nord) [m²]",
+                        value=cfg0['building_geometry']['windows']['north']['shaded_glazing_area']['expression'],
+                        width="600px",
+                        placeholder="Geben Sie eine Zahl ein",
+                    )
+                    ui.input_text(
+                        id="shaded_glazing_area_e",
+                        label="Beschattete Verglasungsfläche (Ost) [m²]",
+                        value=cfg0['building_geometry']['windows']['east']['shaded_glazing_area']['expression'],
+                        width="600px",
+                        placeholder="Geben Sie eine Zahl ein",
+                    )
+                    ui.input_text(
+                        id="shaded_glazing_area_s",
+                        label="Beschattete Verglasungsfläche (Süd) [m²]",
+                        value=cfg0['building_geometry']['windows']['south']['shaded_glazing_area']['expression'],
+                        width="600px",
+                        placeholder="Geben Sie eine Zahl ein",
+                    )
+                    ui.input_text(
+                        id="shaded_glazing_area_w",
+                        label="Beschattete Verglasungsfläche (West) [m²]",
+                        value=cfg0['building_geometry']['windows']['west']['shaded_glazing_area']['expression'],
+                        width="600px",
+                        placeholder="Geben Sie eine Zahl ein",
+                    )
                     
-                    with ui.card():
-                        ui.card_header("Beschattete Rahmenflächen")
-                        ui.input_text(
-                            id="shaded_frame_area_n",
-                            label="Beschattete Rahmenfläche (Nord) [m²]",
-                            value=cfg0['building_geometry']['windows']['north']['shaded_frame_area']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-                        ui.input_text(
-                            id="shaded_frame_area_e",
-                            label="Beschattete Rahmenfläche (Ost) [m²]",
-                            value=cfg0['building_geometry']['windows']['east']['shaded_frame_area']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-                        ui.input_text(
-                            id="shaded_frame_area_s",
-                            label="Beschattete Rahmenfläche (Süd) [m²]",
-                            value=cfg0['building_geometry']['windows']['south']['shaded_frame_area']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-                        ui.input_text(
-                            id="shaded_frame_area_w",
-                            label="Beschattete Rahmenfläche (West) [m²]",
-                            value=cfg0['building_geometry']['windows']['west']['shaded_frame_area']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-                    
-                    with ui.card():
-                        ui.card_header("Wandflächen (inkl. Verglasungen)")
-                        ui.input_text(
-                            id="wall_area_n",
-                            label="Wandfläche (Nord) [m²]",
-                            value=cfg0['building_geometry']['enclosure']['outside_wall_areas']['north']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-                        ui.input_text(
-                            id="wall_area_e",
-                            label="Wandfläche (Ost) [m²]",
-                            value=cfg0['building_geometry']['enclosure']['outside_wall_areas']['east']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-                        ui.input_text(
-                            id="wall_area_s",
-                            label="Wandfläche (Süd) [m²]",
-                            value=cfg0['building_geometry']['enclosure']['outside_wall_areas']['south']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-                        ui.input_text(
-                            id="wall_area_w",
-                            label="Wandfläche (West) [m²]",
-                            value=cfg0['building_geometry']['enclosure']['outside_wall_areas']['west']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-                    with ui.card():
-                        ui.card_header("Andere Gebäudeflächen und Abmessungen")
-                        ui.input_text(
-                            id="ebf_area",
-                            label="Energiebezugsfläche (EBF) [m²]",
-                            value=cfg0['building_geometry']['enclosure']['ebf_area']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-                        ui.input_text(
-                            id="roof_area",
-                            label="Dachfläche [m²]",
-                            value=cfg0['building_geometry']['enclosure']['roof_area']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-                        ui.input_text(
-                            id="floor_area",
-                            label="Bodenfläche [m²]",
-                            value=cfg0['building_geometry']['enclosure']['floor_area']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-                        ui.input_text(
-                            id="int_wall_area",
-                            label="Innenwandflächen (beide seiten sollen vorhanden sein) [m²]",
-                            value=cfg0["building_geometry"]['enclosure']['int_wall_area']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-                        ui.input_text(
-                            id="int_ceiling_area",
-                            label="Innendeckenfläche (beide seiten sollen vorhanden sein) [m²]",
-                            value=cfg0["building_geometry"]["enclosure"]["int_ceiling_area"]["expression"],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-                        ui.input_text(
-                            id="wall_against_unheated_area",
-                            label="Wandfläche gegen unbeheizte Zonen [m²]",
-                            value=cfg0["building_geometry"]["enclosure"]["wall_to_unheated_area"]["expression"],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-                        ui.input_text(
-                            id="building_height",
-                            label="Höhe des Gebäudes [m]",
-                            value=cfg0['building_geometry']['building_height']['expression'],
-                            width="600px",
-                            placeholder="Geben Sie eine Zahl ein",
-                        )
-                    with ui.card():
-                        with ui.layout_column_wrap():
-                            with ui.value_box(
-                                id="value_box_total_outerwall_area",
-                                value="1234",
-                                width=6,
-                            ):
-                                "Gesammte Aussenwandfläche (Verglasung) [m²]"
-                            with ui.value_box(
-                                id="value_box_total_glazing_area",
-                                value="567",
-                                width=6,
-                            ):
-                                "Gesammte Verglasungsfläche [m²]"
-                            with ui.value_box(
-                                id="value_box_window_to_wall_ratio",
-                                value="89",
-                                width=6,
-                            ):
-                                "Fenster-zu-Wand-Verhältnis [%]"
-                            with ui.value_box(
-                                id="value_box_window_shadowing_ratio",
-                                value="90",
-                                width=6,
-                            ):
-                                "Fenster-Beschattungsverhältnis [%]"
-
-                # input fields for thermal properties
                 with ui.card():
-                    ui.card_header("Thermische Eigenschaften")
+                    ui.card_header("Unbeschattete Rahmenflächen")
                     ui.input_text(
-                        id="glazing_u_value",
-                        label="U-Wert der Verglasung [W/m²K]",
-                        value=cfg0['thermal_properties']['windows']['u_value_glazing']['expression'],
-                        width=None,
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="glazing_g_value",
-                        label="g-Wert der Verglasung (Anteil der solaren Strahlung, welche in das Gebäude gelangt) []",
-                        value=cfg0['thermal_properties']['windows']['g_value_glazing']['expression'],
-                        width=None,
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="shading_g_value_reduction_factor",
-                        label="Reduktionsfaktor des g-Werts aufgrund von Beschattung (z.B. Balkone) []",
-                        value=cfg0['thermal_properties']['windows']['shading_g_value_reduction_factor']['expression'],
-                        width=None,
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="frame_u_value",
-                        label="U-Wert des Fensterrahmens [W/m²K]",
-                        value=cfg0['thermal_properties']['windows']['u_value_frame']['expression'],
-                        width=None,
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="wall_against_unheated_u_value",
-                        label="U-Wert der Wand gegen unbeheizte Zonen [W/m²K]",
-                        value=cfg0['thermal_properties']['enclosure']['u_value_wall_against_unheated']['expression'],
+                        id="unshaded_frame_area_n",
+                        label="Unbeschattete Rahmenfläche (Nord) [m²]",
+                        value=cfg0['building_geometry']['windows']['north']['unshaded_frame_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
-                        id="wall_inside_lambda",
-                        label="Wärmeleitfähigkeit der inneren Schicht der Wand [W/mK]",
-                        value=cfg0['thermal_properties']['enclosure']['inside_layer']['lambda_wall_inside']['expression'],
-                        width=None,
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="roof_inside_lambda",
-                        label="Wärmeleitfähigkeit der inneren Schicht des Daches [W/mK]",
-                        value=cfg0['thermal_properties']['enclosure']['inside_layer']['lambda_roof_inside']['expression'],
-                        width=None,
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="floor_inside_lambda",
-                        label="Wärmeleitfähigkeit der inneren Schicht des Fußbodens [W/mK]",
-                        value=cfg0['thermal_properties']['enclosure']['inside_layer']['lambda_floor_inside']['expression'],
-                        width=None,
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="wall_inside_capacity_density",
-                        label="Speicherdichte der inneren Schicht der Wand (rho * c) [J/m³K]",
-                        value=cfg0['thermal_properties']['enclosure']['inside_layer']['capacity_density_wall_inside']['expression'],
+                        id="unshaded_frame_area_e",
+                        label="Unbeschattete Rahmenfläche (Ost) [m²]",
+                        value=cfg0['building_geometry']['windows']['east']['unshaded_frame_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
-                        id="roof_inside_capacity_density",
-                        label="Speicherdichte der inneren Schicht des Daches (rho * c) [J/m³K]",
-                        value=cfg0['thermal_properties']['enclosure']['inside_layer']['capacity_density_roof_inside']['expression'],
+                        id="unshaded_frame_area_s",
+                        label="Unbeschattete Rahmenfläche (Süd) [m²]",
+                        value=cfg0['building_geometry']['windows']['south']['unshaded_frame_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
-                        id="floor_inside_capacity_density",
-                        label="Speicherdichte der inneren Schicht des Fußbodens (rho * c) [J/m³K]",
-                        value=cfg0['thermal_properties']['enclosure']['inside_layer']['capacity_density_floor_inside']['expression'],
+                        id="unshaded_frame_area_w",
+                        label="Unbeschattete Rahmenfläche (West) [m²]",
+                        value=cfg0['building_geometry']['windows']['west']['unshaded_frame_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
-                    ui.input_text(
-                        id="wall_outside_lambda",
-                        label="Wärmeleitfähigkeit der äusseren Schicht der Wand [W/mK]",
-                        value=cfg0['thermal_properties']['enclosure']['outside_layer']['lambda_wall_outside']['expression'],
-                        width=None,
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="roof_outside_lambda",
-                        label="Wärmeleitfähigkeit der äusseren Schicht des Daches [W/mK]",
-                        value=cfg0['thermal_properties']['enclosure']['outside_layer']['lambda_roof_outside']['expression'],
-                        width=None,
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="floor_outside_lambda",
-                        label="Wärmeleitfähigkeit der äusseren Schicht des Fußbodens [W/mK]",
-                        value=cfg0['thermal_properties']['enclosure']['outside_layer']['lambda_floor_outside']['expression'],
-                        width=None,
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="wall_outside_capacity_density",
-                        label="Kapazitätsdichte der äusseren Schicht der Wand (rho * c) [J/m³K]",
-                        value=cfg0['thermal_properties']['enclosure']['outside_layer']['capacity_density_wall_outside']['expression'],
-                        width="600px",
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="roof_outside_capacity_density",
-                        label="Kapazitätsdichte der äusseren Schicht des Daches (rho * c) [J/m³K]",
-                        value=cfg0['thermal_properties']['enclosure']['outside_layer']['capacity_density_roof_outside']['expression'],
-                        width="600px",
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="floor_outside_capacity_density",
-                        label="Kapazitätsdichte der äusseren Schicht des Fussbodens (rho * c) [J/m³K]",
-                        value=cfg0['thermal_properties']['enclosure']['outside_layer']['capacity_density_floor_outside']['expression'],
-                        width="600px",
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="int_wall_lambda",
-                        label="Wärmeleitfähigkeit der Innenwand [W/mK]",
-                        value=cfg0['thermal_properties']['enclosure']['internal_walls_ceiling']['lambda_internal_wall']['expression'],
-                        width=None,
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="int_ceiling_lambda",
-                        label="Wärmeleitfähigkeit der Innendecke [W/mK]",
-                        value=cfg0['thermal_properties']['enclosure']['internal_walls_ceiling']['lambda_internal_ceiling']['expression'],
-                        width=None,
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="int_wall_capacity_density",
-                        label="Kapazitätsdichte der Innenwand (rho * c) [J/m³K]",
-                        value=cfg0['thermal_properties']['enclosure']['internal_walls_ceiling']['capacity_density_internal_wall']['expression'],
-                        width="600px",
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="int_ceiling_capacity_density",
-                        label="Kapazitätsdichte der Innendecke (rho * c) [J/m³K]",
-                        value=cfg0['thermal_properties']['enclosure']['internal_walls_ceiling']['capacity_density_internal_ceiling']['expression'],
-                        width="600px",
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-
-
-                # input fields for thicknesses of building components
+                
                 with ui.card():
-                    ui.card_header("Dicken der Bauteilschichten")
+                    ui.card_header("Beschattete Rahmenflächen")
                     ui.input_text(
-                        id="wall_inside_thickness",
-                        label="Dicke der inneren Schicht der Wand (Ziegel) [m]",
-                        value=cfg0["building_geometry"]['enclosure']['outside_wall_areas']['thickness']['inside_layer']['expression'],
-                        width=None,
+                        id="shaded_frame_area_n",
+                        label="Beschattete Rahmenfläche (Nord) [m²]",
+                        value=cfg0['building_geometry']['windows']['north']['shaded_frame_area']['expression'],
+                        width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
-                        id="wall_outside_thickness",
-                        label="Dicke der äusseren Schicht der Wand (Dämmung) [m]",
-                        value=cfg0["building_geometry"]['enclosure']['outside_wall_areas']['thickness']['outside_layer']['expression'],
-                        width=None,
+                        id="shaded_frame_area_e",
+                        label="Beschattete Rahmenfläche (Ost) [m²]",
+                        value=cfg0['building_geometry']['windows']['east']['shaded_frame_area']['expression'],
+                        width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
-                        id="roof_inside_thickness",
-                        label="Dicke der inneren Schicht des Daches (Beton) [m]",
-                        value=cfg0["building_geometry"]['enclosure']['roof_area']['thickness']['inside_layer']['expression'],
-                        width=None,
+                        id="shaded_frame_area_s",
+                        label="Beschattete Rahmenfläche (Süd) [m²]",
+                        value=cfg0['building_geometry']['windows']['south']['shaded_frame_area']['expression'],
+                        width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
-                        id="roof_outside_thickness",
-                        label="Dicke der äusseren Schicht des Daches (Dämmung) [m]",
-                        value=cfg0["building_geometry"]['enclosure']['roof_area']['thickness']['outside_layer']['expression'],
-                        width=None,
+                        id="shaded_frame_area_w",
+                        label="Beschattete Rahmenfläche (West) [m²]",
+                        value=cfg0['building_geometry']['windows']['west']['shaded_frame_area']['expression'],
+                        width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
-                    ui.input_text(
-                        id="floor_inside_thickness",
-                        label="Dicke der inneren Schicht des Fussbodens (Beton) [m]",
-                        value=cfg0["building_geometry"]['enclosure']['floor_area']['thickness']['inside_layer']['expression'],
-                        width=None,
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="floor_outside_thickness",
-                        label="Dicke der äusseren Schicht des Fussbodens (Dämmung) [m]",
-                        value=cfg0["building_geometry"]['enclosure']['floor_area']['thickness']['outside_layer']['expression'],
-                        width=None,
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="int_wall_thickness",
-                        label="Dicke der Innenwand (Gipskarton) [m]",
-                        value=cfg0["building_geometry"]['enclosure']['int_wall_area']['thickness']['expression'],
-                        width=None,
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="int_ceiling_thickness",
-                        label="Dicke der Innendecke (Gipskarton) [m]",
-                        value=cfg0["building_geometry"]['enclosure']['int_ceiling_area']['thickness']['expression'],
-                        width=None,
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-
-                #input fields for building thermal parameters
+                
                 with ui.card():
-                    ui.card_header("Gebäude thermische Parameter")
+                    ui.card_header("Wandflächen (inkl. Verglasungen)")
                     ui.input_text(
-                        id="infiltration_rate",
-                        label="Infiltrationsrate des Gebäudes [m³/s]",
-                        value=cfg0["thermal_properties"]['infiltration_rate_specific']['expression'],
+                        id="wall_area_n",
+                        label="Wandfläche (Nord) [m²]",
+                        value=cfg0['building_geometry']['enclosure']['outside_wall_areas']['north']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
-                        id="air_ventilation_rate",
-                        label="Mechanischer Luftwechselrate des Gebäudes (angenommen, immer eingeschaltet) [m³/s]",
-                        value=cfg0["thermal_properties"]['air_ventilation_rate_specific']['expression'],
+                        id="wall_area_e",
+                        label="Wandfläche (Ost) [m²]",
+                        value=cfg0['building_geometry']['enclosure']['outside_wall_areas']['east']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
-                        id="heat_exchanger_efficiency",
-                        label="Wirkungsgrad des Wärmetauschers im Belüftungssystem []",
-                        value=cfg0["thermal_properties"]['heat_exchanger_efficiency']['expression'],
-                        width=None,
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
-                    ui.input_text(
-                        id="thermal_bridges",
-                        label="Wärmebrücken [W/K]",
-                        value=cfg0["thermal_properties"]['thermal_bridges']['expression'],
+                        id="wall_area_s",
+                        label="Wandfläche (Süd) [m²]",
+                        value=cfg0['building_geometry']['enclosure']['outside_wall_areas']['south']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
-                        id="lighting_power",
-                        label="Beleuchtungsstromverbrauch [W]",
-                        value=cfg0['thermal_properties']['power_input']['lighting_power_per_area']['expression'],
+                        id="wall_area_w",
+                        label="Wandfläche (West) [m²]",
+                        value=cfg0['building_geometry']['enclosure']['outside_wall_areas']['west']['expression'],
+                        width="600px",
+                        placeholder="Geben Sie eine Zahl ein",
+                    )
+                with ui.card():
+                    ui.card_header("Andere Gebäudeflächen und Abmessungen")
+                    ui.input_text(
+                        id="ebf_area",
+                        label="Energiebezugsfläche (EBF) [m²]",
+                        value=cfg0['building_geometry']['enclosure']['ebf_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
-                        id="equipment_power",
-                        label="Geräte-Stromverbrauch [W]",
-                        value=cfg0['thermal_properties']['power_input']['equipment_power_per_area']['expression'],
+                        id="roof_area",
+                        label="Dachfläche [m²]",
+                        value=cfg0['building_geometry']['enclosure']['roof_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
+                    ui.input_text(
+                        id="floor_area",
+                        label="Bodenfläche [m²]",
+                        value=cfg0['building_geometry']['enclosure']['floor_area']['expression'],
+                        width="600px",
+                        placeholder="Geben Sie eine Zahl ein",
+                    )
+                    ui.input_text(
+                        id="int_wall_area",
+                        label="Innenwandflächen (beide seiten sollen vorhanden sein) [m²]",
+                        value=cfg0["building_geometry"]['enclosure']['int_wall_area']['expression'],
+                        width="600px",
+                        placeholder="Geben Sie eine Zahl ein",
+                    )
+                    ui.input_text(
+                        id="int_ceiling_area",
+                        label="Innendeckenfläche (beide seiten sollen vorhanden sein) [m²]",
+                        value=cfg0["building_geometry"]["enclosure"]["int_ceiling_area"]["expression"],
+                        width="600px",
+                        placeholder="Geben Sie eine Zahl ein",
+                    )
+                    ui.input_text(
+                        id="wall_against_unheated_area",
+                        label="Wandfläche gegen unbeheizte Zonen [m²]",
+                        value=cfg0["building_geometry"]["enclosure"]["wall_to_unheated_area"]["expression"],
+                        width="600px",
+                        placeholder="Geben Sie eine Zahl ein",
+                    )
+                    ui.input_text(
+                        id="building_height",
+                        label="Höhe des Gebäudes [m]",
+                        value=cfg0['building_geometry']['building_height']['expression'],
+                        width="600px",
+                        placeholder="Geben Sie eine Zahl ein",
+                    )
+                with ui.card():
+                    with ui.layout_column_wrap():
+                        with ui.value_box(
+                            id="value_box_total_outerwall_area",
+                            value="1234",
+                            width=6,
+                        ):
+                            "Gesammte Aussenwandfläche (Verglasung) [m²]"
+                        with ui.value_box(
+                            id="value_box_total_glazing_area",
+                            value="567",
+                            width=6,
+                        ):
+                            "Gesammte Verglasungsfläche [m²]"
+                        with ui.value_box(
+                            id="value_box_window_to_wall_ratio",
+                            value="89",
+                            width=6,
+                        ):
+                            "Fenster-zu-Wand-Verhältnis [%]"
+                        with ui.value_box(
+                            id="value_box_window_shadowing_ratio",
+                            value="90",
+                            width=6,
+                        ):
+                            "Fenster-Beschattungsverhältnis [%]"
 
-            # Settings for scheduled parameters
-            with ui.nav_panel("Zeitpläne"):
-                base_ui.tags.p(
-                    "Tragen Sie stündliche Werte zwischen 0 und 1 ein (entspricht 0–100 %). 0 = aus, 1 = volle Nutzung.",
-                    class_="text-muted"
+            # input fields for thermal properties
+            with ui.card():
+                ui.card_header("Thermische Eigenschaften")
+                ui.input_text(
+                    id="glazing_u_value",
+                    label="U-Wert der Verglasung [W/m²K]",
+                    value=cfg0['thermal_properties']['windows']['u_value_glazing']['expression'],
+                    width=None,
+                    placeholder="Geben Sie eine Zahl ein",
                 )
-                    
-                with ui.card():
-                    ui.card_header("Belegungszeitplan")
+                ui.input_text(
+                    id="glazing_g_value",
+                    label="g-Wert der Verglasung (Anteil der solaren Strahlung, welche in das Gebäude gelangt) []",
+                    value=cfg0['thermal_properties']['windows']['g_value_glazing']['expression'],
+                    width=None,
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="shading_g_value_reduction_factor",
+                    label="Reduktionsfaktor des g-Werts aufgrund von Beschattung (z.B. Balkone) []",
+                    value=cfg0['thermal_properties']['windows']['shading_g_value_reduction_factor']['expression'],
+                    width=None,
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="frame_u_value",
+                    label="U-Wert des Fensterrahmens [W/m²K]",
+                    value=cfg0['thermal_properties']['windows']['u_value_frame']['expression'],
+                    width=None,
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="wall_against_unheated_u_value",
+                    label="U-Wert der Wand gegen unbeheizte Zonen [W/m²K]",
+                    value=cfg0['thermal_properties']['enclosure']['u_value_wall_against_unheated']['expression'],
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="wall_inside_lambda",
+                    label="Wärmeleitfähigkeit der inneren Schicht der Wand [W/mK]",
+                    value=cfg0['thermal_properties']['enclosure']['inside_layer']['lambda_wall_inside']['expression'],
+                    width=None,
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="roof_inside_lambda",
+                    label="Wärmeleitfähigkeit der inneren Schicht des Daches [W/mK]",
+                    value=cfg0['thermal_properties']['enclosure']['inside_layer']['lambda_roof_inside']['expression'],
+                    width=None,
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="floor_inside_lambda",
+                    label="Wärmeleitfähigkeit der inneren Schicht des Fußbodens [W/mK]",
+                    value=cfg0['thermal_properties']['enclosure']['inside_layer']['lambda_floor_inside']['expression'],
+                    width=None,
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="wall_inside_capacity_density",
+                    label="Speicherdichte der inneren Schicht der Wand (rho * c) [J/m³K]",
+                    value=cfg0['thermal_properties']['enclosure']['inside_layer']['capacity_density_wall_inside']['expression'],
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="roof_inside_capacity_density",
+                    label="Speicherdichte der inneren Schicht des Daches (rho * c) [J/m³K]",
+                    value=cfg0['thermal_properties']['enclosure']['inside_layer']['capacity_density_roof_inside']['expression'],
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="floor_inside_capacity_density",
+                    label="Speicherdichte der inneren Schicht des Fußbodens (rho * c) [J/m³K]",
+                    value=cfg0['thermal_properties']['enclosure']['inside_layer']['capacity_density_floor_inside']['expression'],
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="wall_outside_lambda",
+                    label="Wärmeleitfähigkeit der äusseren Schicht der Wand [W/mK]",
+                    value=cfg0['thermal_properties']['enclosure']['outside_layer']['lambda_wall_outside']['expression'],
+                    width=None,
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="roof_outside_lambda",
+                    label="Wärmeleitfähigkeit der äusseren Schicht des Daches [W/mK]",
+                    value=cfg0['thermal_properties']['enclosure']['outside_layer']['lambda_roof_outside']['expression'],
+                    width=None,
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="floor_outside_lambda",
+                    label="Wärmeleitfähigkeit der äusseren Schicht des Fußbodens [W/mK]",
+                    value=cfg0['thermal_properties']['enclosure']['outside_layer']['lambda_floor_outside']['expression'],
+                    width=None,
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="wall_outside_capacity_density",
+                    label="Kapazitätsdichte der äusseren Schicht der Wand (rho * c) [J/m³K]",
+                    value=cfg0['thermal_properties']['enclosure']['outside_layer']['capacity_density_wall_outside']['expression'],
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="roof_outside_capacity_density",
+                    label="Kapazitätsdichte der äusseren Schicht des Daches (rho * c) [J/m³K]",
+                    value=cfg0['thermal_properties']['enclosure']['outside_layer']['capacity_density_roof_outside']['expression'],
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="floor_outside_capacity_density",
+                    label="Kapazitätsdichte der äusseren Schicht des Fussbodens (rho * c) [J/m³K]",
+                    value=cfg0['thermal_properties']['enclosure']['outside_layer']['capacity_density_floor_outside']['expression'],
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="int_wall_lambda",
+                    label="Wärmeleitfähigkeit der Innenwand [W/mK]",
+                    value=cfg0['thermal_properties']['enclosure']['internal_walls_ceiling']['lambda_internal_wall']['expression'],
+                    width=None,
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="int_ceiling_lambda",
+                    label="Wärmeleitfähigkeit der Innendecke [W/mK]",
+                    value=cfg0['thermal_properties']['enclosure']['internal_walls_ceiling']['lambda_internal_ceiling']['expression'],
+                    width=None,
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="int_wall_capacity_density",
+                    label="Kapazitätsdichte der Innenwand (rho * c) [J/m³K]",
+                    value=cfg0['thermal_properties']['enclosure']['internal_walls_ceiling']['capacity_density_internal_wall']['expression'],
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="int_ceiling_capacity_density",
+                    label="Kapazitätsdichte der Innendecke (rho * c) [J/m³K]",
+                    value=cfg0['thermal_properties']['enclosure']['internal_walls_ceiling']['capacity_density_internal_ceiling']['expression'],
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
 
-                    @render.data_frame
-                    def table_occupancy():
-                        return render.DataGrid(schedule_occupancy(), editable=True)
-                    
-                    occ_last_error, occ_error_log = attach_numeric_guard(
-                        table_occupancy,
-                        schedule_name="Belegung",
-                        min_value=0.0,
-                        max_value=1.0,
-                        decimals=2
-                    )
 
-                    # @render.ui
-                    # def occ_last_error_msg():
-                    #     msg = occ_last_error.get()
-                    #     if not msg:
-                    #         return ui.div()
-                    #     return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
-                    # @render.ui
-                    # def occ_error_list():
-                    #     items = occ_error_log.get() or []
-                    #     if not items:
-                    #         return ui.div()
-                    #     return ui.div(
-                    #         {"style":"margin-top:6px;font-size:0.9rem;"},
-                    #         ui.tags.ul(*[ui.tags.li(it) for it in items])
-                    #     )
-                    
-                    @render.plot(alt="Plot of occupancy schedule")
-                    def plot_occupancy():
-                        df = table_occupancy.data_patched().astype(float)
-                        y = df.loc['Occupancy'].tolist()
-                        x = list(df.columns)
-                        plt.figure(figsize=(10, 5))
-                        plt.bar(x, y, color='skyblue')
-                        plt.title('Belegungszeitplan')
-                        plt.xlabel('Stunde')
-                        plt.ylabel('Belegung []')
-                        plt.xticks(rotation=45)
-                        plt.grid()
-                        plt.tight_layout()
-                        return plt.gcf()
+            # input fields for thicknesses of building components
+            with ui.card():
+                ui.card_header("Dicken der Bauteilschichten")
+                ui.input_text(
+                    id="wall_inside_thickness",
+                    label="Dicke der inneren Schicht der Wand (Ziegel) [m]",
+                    value=cfg0["building_geometry"]['enclosure']['outside_wall_areas']['thickness']['inside_layer']['expression'],
+                    width=None,
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="wall_outside_thickness",
+                    label="Dicke der äusseren Schicht der Wand (Dämmung) [m]",
+                    value=cfg0["building_geometry"]['enclosure']['outside_wall_areas']['thickness']['outside_layer']['expression'],
+                    width=None,
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="roof_inside_thickness",
+                    label="Dicke der inneren Schicht des Daches (Beton) [m]",
+                    value=cfg0["building_geometry"]['enclosure']['roof_area']['thickness']['inside_layer']['expression'],
+                    width=None,
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="roof_outside_thickness",
+                    label="Dicke der äusseren Schicht des Daches (Dämmung) [m]",
+                    value=cfg0["building_geometry"]['enclosure']['roof_area']['thickness']['outside_layer']['expression'],
+                    width=None,
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="floor_inside_thickness",
+                    label="Dicke der inneren Schicht des Fussbodens (Beton) [m]",
+                    value=cfg0["building_geometry"]['enclosure']['floor_area']['thickness']['inside_layer']['expression'],
+                    width=None,
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="floor_outside_thickness",
+                    label="Dicke der äusseren Schicht des Fussbodens (Dämmung) [m]",
+                    value=cfg0["building_geometry"]['enclosure']['floor_area']['thickness']['outside_layer']['expression'],
+                    width=None,
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="int_wall_thickness",
+                    label="Dicke der Innenwand (Gipskarton) [m]",
+                    value=cfg0["building_geometry"]['enclosure']['int_wall_area']['thickness']['expression'],
+                    width=None,
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="int_ceiling_thickness",
+                    label="Dicke der Innendecke (Gipskarton) [m]",
+                    value=cfg0["building_geometry"]['enclosure']['int_ceiling_area']['thickness']['expression'],
+                    width=None,
+                    placeholder="Geben Sie eine Zahl ein",
+                )
 
-                with ui.card():
-                    ui.card_header("Beleuchtungszeitplan")
-                    @render.data_frame
-                    def table_lighting():
-                        return render.DataGrid(schedule_lighting(), editable=True)
-                    
-                    light_last_error, light_error_log = attach_numeric_guard(
-                        table_lighting,
-                        schedule_name="Beleuchtung",
-                        min_value=0.0,
-                        max_value=1.0,
-                        decimals=2
-                    )
+            #input fields for building thermal parameters
+            with ui.card():
+                ui.card_header("Gebäude thermische Parameter")
+                ui.input_text(
+                    id="infiltration_rate",
+                    label="Infiltrationsrate des Gebäudes [m³/s]",
+                    value=cfg0["thermal_properties"]['infiltration_rate_specific']['expression'],
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="air_ventilation_rate",
+                    label="Mechanischer Luftwechselrate des Gebäudes (angenommen, immer eingeschaltet) [m³/s]",
+                    value=cfg0["thermal_properties"]['air_ventilation_rate_specific']['expression'],
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="heat_exchanger_efficiency",
+                    label="Wirkungsgrad des Wärmetauschers im Belüftungssystem []",
+                    value=cfg0["thermal_properties"]['heat_exchanger_efficiency']['expression'],
+                    width=None,
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="thermal_bridges",
+                    label="Wärmebrücken [W/K]",
+                    value=cfg0["thermal_properties"]['thermal_bridges']['expression'],
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="lighting_power",
+                    label="Beleuchtungsstromverbrauch [W]",
+                    value=cfg0['thermal_properties']['power_input']['lighting_power_per_area']['expression'],
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
+                ui.input_text(
+                    id="equipment_power",
+                    label="Geräte-Stromverbrauch [W]",
+                    value=cfg0['thermal_properties']['power_input']['equipment_power_per_area']['expression'],
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
 
-                    # @render.ui
-                    # def light_last_error_msg():
-                    #     msg = light_last_error.get()
-                    #     if not msg:
-                    #         return ui.div()
-                    #     return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
+        # Settings for scheduled parameters
+        with ui.nav_panel("Zeitpläne"):
+            base_ui.tags.p(
+                "Tragen Sie stündliche Werte zwischen 0 und 1 ein (entspricht 0–100 %). 0 = aus, 1 = volle Nutzung.",
+                class_="text-muted"
+            )
+                
+            with ui.card():
+                ui.card_header("Belegungszeitplan")
 
-                    # @render.ui
-                    # def light_error_list():
-                    #     items = light_error_log.get() or []
-                    #     if not items:
-                    #         return ui.div()
-                    #     return ui.div(
-                    #         {"style":"margin-top:6px;font-size:0.9rem;"},
-                    #         ui.tags.ul(*[ui.tags.li(it) for it in items])
-                    #     )
+                @render.data_frame
+                def table_occupancy():
+                    return render.DataGrid(schedule_occupancy(), editable=True)
+                
+                occ_last_error, occ_error_log = attach_numeric_guard(
+                    table_occupancy,
+                    schedule_name="Belegung",
+                    min_value=0.0,
+                    max_value=1.0,
+                    decimals=2
+                )
 
-                    
-                    @render.plot(alt="Plot of lighting schedule")
-                    def plot_lighting():
-                        df = table_lighting.data_patched().astype(float)
-                        y = df.loc['Lighting'].tolist()
-                        x = list(df.columns)
-                        plt.figure(figsize=(10, 5))
-                        plt.bar(x, y, color='orange')
-                        plt.title('Beleuchtungszeitplan')
-                        plt.xlabel('Stunde')
-                        plt.ylabel('Beleuchtung []')
-                        plt.xticks(rotation=45)
-                        plt.grid()
-                        plt.tight_layout()
-                        return plt.gcf()
+                # @render.ui
+                # def occ_last_error_msg():
+                #     msg = occ_last_error.get()
+                #     if not msg:
+                #         return ui.div()
+                #     return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
+                # @render.ui
+                # def occ_error_list():
+                #     items = occ_error_log.get() or []
+                #     if not items:
+                #         return ui.div()
+                #     return ui.div(
+                #         {"style":"margin-top:6px;font-size:0.9rem;"},
+                #         ui.tags.ul(*[ui.tags.li(it) for it in items])
+                #     )
+                
+                @render.plot(alt="Plot of occupancy schedule")
+                def plot_occupancy():
+                    df = table_occupancy.data_patched().astype(float)
+                    y = df.loc['Occupancy'].tolist()
+                    x = list(df.columns)
+                    plt.figure(figsize=(10, 5))
+                    plt.bar(x, y, color='skyblue')
+                    plt.title('Belegungszeitplan')
+                    plt.xlabel('Stunde')
+                    plt.ylabel('Belegung []')
+                    plt.xticks(rotation=45)
+                    plt.grid()
+                    plt.tight_layout()
+                    return plt.gcf()
 
-                with ui.card():
-                    ui.card_header("Geräte-Zeitplan")
-                    @render.data_frame
-                    def table_equipment():
-                        return render.DataGrid(schedule_equipment(), editable=True)
-                    
-                    equip_error, equip_error_log = attach_numeric_guard(
-                        table_equipment,
-                        schedule_name="Geräte",
-                        min_value=0.0,
-                        max_value=1.0,
-                        decimals=2
-                    )
+            with ui.card():
+                ui.card_header("Beleuchtungszeitplan")
+                @render.data_frame
+                def table_lighting():
+                    return render.DataGrid(schedule_lighting(), editable=True)
+                
+                light_last_error, light_error_log = attach_numeric_guard(
+                    table_lighting,
+                    schedule_name="Beleuchtung",
+                    min_value=0.0,
+                    max_value=1.0,
+                    decimals=2
+                )
 
-                    # @render.ui
-                    # def equip_last_error_msg():
-                    #     msg = equip_error.get()
-                    #     if not msg:
-                    #         return ui.div()
-                    #     return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
+                # @render.ui
+                # def light_last_error_msg():
+                #     msg = light_last_error.get()
+                #     if not msg:
+                #         return ui.div()
+                #     return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
 
-                    # @render.ui
-                    # def equip_error_list():
-                    #     items = equip_error_log.get() or []
-                    #     if not items:
-                    #         return ui.div()
-                    #     return ui.div(
-                    #         {"style":"margin-top:6px;font-size:0.9rem;"},
-                    #         ui.tags.ul(*[ui.tags.li(it) for it in items])
-                    #     )     
+                # @render.ui
+                # def light_error_list():
+                #     items = light_error_log.get() or []
+                #     if not items:
+                #         return ui.div()
+                #     return ui.div(
+                #         {"style":"margin-top:6px;font-size:0.9rem;"},
+                #         ui.tags.ul(*[ui.tags.li(it) for it in items])
+                #     )
 
-                    @render.plot(alt="Plot of equipment schedule")
-                    def plot_equipment():
-                        df = table_equipment.data_patched().astype(float)
-                        y = df.loc['Equipment'].tolist()
-                        x = list(df.columns)
-                        plt.figure(figsize=(10, 5))
-                        plt.bar(x, y, color='green')
-                        plt.title('Geräte-Zeitplan')
-                        plt.xlabel('Stunde')
-                        plt.ylabel('Geräte []')
-                        plt.xticks(rotation=45)
-                        plt.grid()
-                        plt.tight_layout()
-                        return plt.gcf()
-    
-            # settings for weather data input       
-            with ui.nav_panel("Wetterdaten"):
-                with ui.card():
-                    ui.card_header("Wetterdaten-Datei (.mat)")
-                    ui.markdown("**Erforderliche Spalten (in dieser Reihenfolge):**")
-                    ui.markdown("""
+                
+                @render.plot(alt="Plot of lighting schedule")
+                def plot_lighting():
+                    df = table_lighting.data_patched().astype(float)
+                    y = df.loc['Lighting'].tolist()
+                    x = list(df.columns)
+                    plt.figure(figsize=(10, 5))
+                    plt.bar(x, y, color='orange')
+                    plt.title('Beleuchtungszeitplan')
+                    plt.xlabel('Stunde')
+                    plt.ylabel('Beleuchtung []')
+                    plt.xticks(rotation=45)
+                    plt.grid()
+                    plt.tight_layout()
+                    return plt.gcf()
+
+            with ui.card():
+                ui.card_header("Geräte-Zeitplan")
+                @render.data_frame
+                def table_equipment():
+                    return render.DataGrid(schedule_equipment(), editable=True)
+                
+                equip_error, equip_error_log = attach_numeric_guard(
+                    table_equipment,
+                    schedule_name="Geräte",
+                    min_value=0.0,
+                    max_value=1.0,
+                    decimals=2
+                )
+
+                # @render.ui
+                # def equip_last_error_msg():
+                #     msg = equip_error.get()
+                #     if not msg:
+                #         return ui.div()
+                #     return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
+
+                # @render.ui
+                # def equip_error_list():
+                #     items = equip_error_log.get() or []
+                #     if not items:
+                #         return ui.div()
+                #     return ui.div(
+                #         {"style":"margin-top:6px;font-size:0.9rem;"},
+                #         ui.tags.ul(*[ui.tags.li(it) for it in items])
+                #     )     
+
+                @render.plot(alt="Plot of equipment schedule")
+                def plot_equipment():
+                    df = table_equipment.data_patched().astype(float)
+                    y = df.loc['Equipment'].tolist()
+                    x = list(df.columns)
+                    plt.figure(figsize=(10, 5))
+                    plt.bar(x, y, color='green')
+                    plt.title('Geräte-Zeitplan')
+                    plt.xlabel('Stunde')
+                    plt.ylabel('Geräte []')
+                    plt.xticks(rotation=45)
+                    plt.grid()
+                    plt.tight_layout()
+                    return plt.gcf()
+
+        # settings for weather data input       
+        with ui.nav_panel("Wetterdaten"):
+            with ui.card():
+                ui.card_header("Wetterdaten-Datei (.mat)")
+                ui.markdown("**Erforderliche Spalten (in dieser Reihenfolge):**")
+                ui.markdown("""
 | Spalte | Einheit | Beschreibung |
 |--------|---------|-------------|
 | timestamp | Stunden | Zeit ab Jahresbeginn (z.B. 0–8760 h) |
@@ -2274,33 +2274,33 @@ with ui.nav_panel("Einstellungen"):
 | sky_cover | % | Bewölkung |
 | sun_elevation | ° | Sonnenelevationswinkel |
 | sun_azimuth | ° | Sonnenazimut |
-                    """)
-                    ui.markdown("**Wichtig: Nur die Spaltenreihenfolge zählt!** Die Spaltennamen werden ignoriert. Die Positionen der Spalten müssen exakt dieser Tabelle entsprechen.")
-                    ui.markdown("**Format:** MATLAB .mat-Datei mit numerischer Tabelle (erste nicht-`__` Variable wird verwendet)")
-                    ui.markdown("**Zeitauflösung:** Stundenwerte, lückenlos aufeinanderfolgend")
-                    ui.markdown("**Settling-in Phase:** Falls die Wetterdatei länger als ein Jahr (>8760 h) ist, wird das RC-Modell über die zusätzlichen Stunden durchlaufen, um ein thermisches Gleichgewicht zu erreichen. Nur das letzte Jahr wird in den Ergebnissen ausgegeben.")
-                    
-                    ui.input_file(
-                        "input_weather_file",
-                        "Wetterdatei hochladen",
-                        # accept=".mat",
-                        width="600px",
-                        multiple=False
-                    )
+                """)
+                ui.markdown("**Wichtig: Nur die Spaltenreihenfolge zählt!** Die Spaltennamen werden ignoriert. Die Positionen der Spalten müssen exakt dieser Tabelle entsprechen.")
+                ui.markdown("**Format:** MATLAB .mat-Datei mit numerischer Tabelle (erste nicht-`__` Variable wird verwendet)")
+                ui.markdown("**Zeitauflösung:** Stundenwerte, lückenlos aufeinanderfolgend")
+                ui.markdown("**Settling-in Phase:** Falls die Wetterdatei länger als ein Jahr (>8760 h) ist, wird das RC-Modell über die zusätzlichen Stunden durchlaufen, um ein thermisches Gleichgewicht zu erreichen. Nur das letzte Jahr wird in den Ergebnissen ausgegeben.")
+                
+                ui.input_file(
+                    "input_weather_file",
+                    "Wetterdatei hochladen",
+                    # accept=".mat",
+                    width="600px",
+                    multiple=False
+                )
 
-            with ui.nav_panel("Erweiterte Einstellungen"):
+        with ui.nav_panel("Erweiterte Einstellungen"):
 
 
-                    
-                with ui.card():
-                    ui.card_header("Grenzwert Überhitzung ")
-                    ui.input_text(
-                        id="overheating_threshold",
-                        label="Temperaturgrenzwert für Überhitzung [°C]",
-                        value=cfg0['simulation_parameters']['overheating_threshold']['expression'],
-                        width="600px",
-                        placeholder="Geben Sie eine Zahl ein",
-                    )
+                
+            with ui.card():
+                ui.card_header("Grenzwert Überhitzung ")
+                ui.input_text(
+                    id="overheating_threshold",
+                    label="Temperaturgrenzwert für Überhitzung [°C]",
+                    value=cfg0['simulation_parameters']['overheating_threshold']['expression'],
+                    width="600px",
+                    placeholder="Geben Sie eine Zahl ein",
+                )
 #                 with ui.card():
 #                     ui.card_header("Wärmepumpe und Kühlmaschine Einstellungen")
 #                     # ui.input_text(
