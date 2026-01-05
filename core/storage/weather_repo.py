@@ -15,16 +15,24 @@ class WeatherRepository:
         Temp path is provided by the upload component in the UI.
         Path of the repository is defined in bootstrap.py
         """
-        self.raw_path.parent.mkdir(parents=True, exist_ok=True)
+        # Preserve the uploaded file extension for proper format detection
+        target_path = self.raw_path.with_suffix(temp_path.suffix)
+
+        # Ensure target directory exists and remove any existing files (keep folder clean)
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        for existing in target_path.parent.iterdir():
+            if existing.is_file():
+                existing.unlink()
+
         try:
-            if self.raw_path.exists():
-                self.raw_path.unlink() # delete existing file
-            shutil.copy(temp_path, self.raw_path)
+            shutil.copy(temp_path, target_path)
+            # Update raw_path so subsequent reads use the correct file and extension
+            self.raw_path = target_path
             print(f"Copied weather data file to {self.raw_path}")
         except FileNotFoundError:
-            print (f"Error: Source file not found at {temp_path}")
+            print(f"Error: Source file not found at {temp_path}")
         except PermissionError:
-            print (f"Error: Permission denied when copying to {self.raw_path}")
+            print(f"Error: Permission denied when copying to {target_path}")
                
 
     def read_raw_mat(self):
