@@ -20,7 +20,7 @@ class WeatherService:
         """
         Reads the raw weather data file, processes it into a DataFrame, and stores the processed data.
         """
-        raw = self._repo.read_raw_mat()
+        raw = self._repo.read_raw()
         if raw is None:
             raise RuntimeError(f"Raw weather data file not found at {self._repo.raw_path}")
         

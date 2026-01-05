@@ -34,9 +34,48 @@ class WeatherRepository:
         """
         if not self.raw_path.exists():
             return None
-        
         return sio.loadmat(self.raw_path)
     
+    def read_raw_csv(self):
+        """
+        Reads the raw .csv weather data file and returns its content as a DataFrame.
+        Path is defined in bootstrap.py
+        """
+        if not self.raw_path.exists():
+            return None
+        return pd.read_csv(self.raw_path)
+    
+    def read_raw_epw(self):
+        """
+        Reads the raw .epw weather data file and returns its content as a DataFrame.
+        Path is defined in bootstrap.py
+        """
+        if not self.raw_path.exists():
+            return None
+        # EPW files have a header of 8 lines, skip them
+        return pd.read_csv(
+            self.raw_path,
+            skiprows=8
+            header=True,
+            name=list/range(35) # EPW files have 35 columns
+            )
+    
+    def read_raw(self):
+        """Auto-detects file format and reads raw weather data"""
+        if not self.raw_path.exists():
+            return None
+        
+        file_extension = self.raw_path.suffix.lower()
+        
+        if file_extension == ".mat":
+            return self.read_raw_mat()
+        elif file_extension == ".csv":
+            return self.read_raw_csv()
+        elif file_extension == ".epw":
+            return self.read_raw_epw()
+        else:
+            raise ValueError(f"Unsupported file format: {file_extension}")
+
     def read_processed(self):
         """
         Reads the processed weather data from a file.
