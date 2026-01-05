@@ -23,33 +23,37 @@ class WeatherService:
         Supports .mat, .csv, and .epw formats.
         
         Args:
-            cfg: Optional configuration dict containing weather_start_date
+            cfg: Configuration dict containing weather_start_date (required only for EPW files)
         """
         raw = self._repo.read_raw()
         if raw is None:
             raise RuntimeError(f"Raw weather data file not found at {self._repo.raw_path}")
         
-        # Extract weather_start_date from config if available
-        start_date = None
-        if cfg:
-            try:
-                start_date_str = cfg.get("simulation_parameters", {}).get("weather_start_date", {}).get("value") or \
-                                 cfg.get("simulation_parameters", {}).get("weather_start_date", {}).get("expression")
-                if start_date_str:
-                    start_date = pd.Timestamp(start_date_str)
-            except Exception as e:
-                print(f"Warning: Could not parse weather_start_date from config: {e}")
-        
         # Determine format based on return type from repository
         if isinstance(raw, dict):
-            # MATLAB .mat file (returned as dict)
-            df = self._mat_to_dataframe(raw, start_date)
+            # MATLAB .mat file (returned as dict) - uses fixed reference date
+            df = self._mat_to_dataframe(raw)
         elif isinstance(raw, pd.DataFrame):
             # CSV or EPW file (returned as DataFrame)
             file_extension = self._repo.raw_path.suffix.lower()
             if file_extension == ".csv":
-                df = self._csv_to_dataframe(raw, start_date)
+                # CSV uses fixed reference date
+                df = self._csv_to_dataframe(raw)
             elif file_extension == ".epw":
+                # EPW requires config for start_date
+                start_date = None
+                if cfg:
+                    try:
+                        start_date_str = cfg.get("simulation_parameters", {}).get("weather_start_date", {}).get("value") or \
+                                         cfg.get("simulation_parameters", {}).get("weather_start_date", {}).get("expression")
+                        if start_date_str:
+                            start_date = pd.Timestamp(start_date_str)
+                    except Exception as e:
+                        print(f"Warning: Could not parse weather_start_date from config: {e}")
+                
+                if start_date is None:
+                    raise ValueError("EPW files require weather_start_date to be configured in simulation_parameters")
+                
                 df = self._epw_to_dataframe(raw, start_date)
             else:
                 raise ValueError(f"Unsupported file format: {file_extension}")
@@ -59,12 +63,12 @@ class WeatherService:
         self._repo.write_processed(df)
         return df
 
-    def _mat_to_dataframe(self, raw, start_date: pd.Timestamp = None) -> pd.DataFrame:
-        """Convert MATLAB .mat file to standardized DataFrame
+    def _mat_to_dataframe(self, raw) -> pd.DataFrame:
+        """Convert MATLAB .mat file to standardized DataFrame.
+        Parses the timestamp column directly from the file.
         
         Args:
             raw: MATLAB .mat file data
-            start_date: Optional start date for datetime index (default: 2018-12-18 00:00:00)
         """
         # Extract table from mat file
         key = next(k for k in raw.keys() if not k.startswith("__"))
@@ -86,19 +90,19 @@ class WeatherService:
         # Create DataFrame. 
         df = pd.DataFrame(table[:, :len(columns)], columns=columns)
 
-        # Convert timestamp to datetime
-        start = start_date if start_date is not None else pd.Timestamp("2018-12-18 00:00:00")
-        df['datetime'] = pd.date_range(start=start, periods=len(df), freq='h')
+        # Parse timestamp column as datetime
+        df['datetime'] = pd.to_datetime(df['timestamp'])
         df = df.set_index('datetime')
+        df = df.drop('timestamp', axis=1)
 
         return df
 
-    def _csv_to_dataframe(self, df: pd.DataFrame, start_date: pd.Timestamp = None) -> pd.DataFrame:
-        """Convert CSV DataFrame to standardized format
+    def _csv_to_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Convert CSV DataFrame to standardized format.
+        Parses the timestamp column directly from the file.
         
         Args:
             df: Input DataFrame from CSV
-            start_date: Optional start date for datetime index (default: 2018-12-18 00:00:00)
         """
         # Take only the first 10 columns (by position, not name)
         columns = [
@@ -117,10 +121,10 @@ class WeatherService:
         df = df.iloc[:, :len(columns)]
         df.columns = columns
         
-        # Convert timestamp to datetime
-        start = start_date if start_date is not None else pd.Timestamp("2018-12-18 00:00:00")
-        df['datetime'] = pd.date_range(start=start, periods=len(df), freq='h')
+        # Parse timestamp column as datetime
+        df['datetime'] = pd.to_datetime(df['timestamp'])
         df = df.set_index('datetime')
+        df = df.drop('timestamp', axis=1)
         
         return df
 
