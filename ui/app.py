@@ -110,6 +110,7 @@ BINDINGS = {
     "int_wall_area": ("building_geometry.enclosure.int_wall_area.expression", str),
     "int_ceiling_area": ("building_geometry.enclosure.int_ceiling_area.expression", str),
     "wall_against_unheated_area": ("building_geometry.enclosure.wall_to_unheated_area.expression", str),
+    "ebf_area": ("building_geometry.enclosure.ebf_area.expression", str),
     "building_height": ("building_geometry.building_height.expression", str),
     "glazing_u_value": ("thermal_properties.windows.u_value_glazing.expression", str),
     "glazing_g_value": ("thermal_properties.windows.g_value_glazing.expression", str),
@@ -157,6 +158,9 @@ BINDINGS = {
     "electricity_price": ("economic_parameters.electricity_price.expression", str),
     "heating_price": ("economic_parameters.heating_price.expression", str),
     "cooling_price": ("economic_parameters.cooling_price.expression", str),
+    "Co2_emission_factor_heating": ("Co2_emission_factors.heating.expression", str),
+    "Co2_emission_factor_cooling": ("Co2_emission_factors.cooling.expression", str),
+    
 }
 
 def _schedule_df_from_cfg(cfg, key):
@@ -1566,7 +1570,7 @@ with ui.nav_panel("Einstellungen"):
                 ui.input_text(
                     id="Co2_emission_factor_heating",
                     label="CO2-Emissionsfaktor Heizen [kg CO2/kWh]",
-                    value=cfg0['Co2_emission_factors']['cooling']['expression'],
+                    value=cfg0['Co2_emission_factors']['heating']['expression'],
                     width="600px",
                     placeholder="Geben Sie eine Zahl ein",
                 )
