@@ -1348,7 +1348,7 @@ with ui.nav_panel("Vergleich mit Messdaten"):
         ui.input_file(
             id="file_input_measured_data",
             label="Wählen Sie eine Datei mit Messtdaten aus",
-            accept=[".csv"],
+            accept=[".csv", ".xlsx"],
         )
         ui.input_action_button(
             id="button_load_measured_data",
