@@ -17,7 +17,7 @@ ENV CONDA_ENV=vm2
 # Make RUN commands use the new environment:
 SHELL ["bash", "-lc"]
 
-# Install dependencies
+# Copy application code
 COPY core/ core/ 
 COPY projects/ projects/ 
 COPY r_c_model/ r_c_model/ 
@@ -27,10 +27,12 @@ COPY ui/ ui/
 ENV PYTHONPATH=/app
 
 # Create data directory
+RUN mkdir -p /app/data
 ENV VM2_DATA_DIR=/app/data
 
 # Expose port
 EXPOSE 8050
 
-# Run the application
-CMD conda run -n ${CONDA_ENV} shiny run --host 0.0.0.0 --port 8050 ui/app.py
+# Activate conda environment and run the application
+ENTRYPOINT ["conda", "run", "-n", "vm2", "--no-capture-output"]
+CMD ["shiny", "run", "--host", "0.0.0.0", "--port", "8050", "ui/app.py"]
