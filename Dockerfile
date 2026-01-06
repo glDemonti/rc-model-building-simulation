@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-From continuumio/miniconda3
+FROM continuumio/miniconda3
 
 # Set working directory
 WORKDIR /app
@@ -33,4 +33,4 @@ ENV VM2_DATA_DIR=/app/data
 EXPOSE 8050
 
 # Run the application
-CMD ["bash", "-lc", "conda run -n ${CONDA_ENV} shiny run --host 0.0.0.0 --port 8050 ui/app.py"]
+CMD conda run -n ${CONDA_ENV} shiny run --host 0.0.0.0 --port 8050 ui/app.py
