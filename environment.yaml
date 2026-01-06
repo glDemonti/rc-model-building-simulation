@@ -3,15 +3,20 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.12
-  - numpy
-  - pandas
-  - matplotlib
-  - scipy
   - shiny
-  - plotly
-  - shinywidgets
   - anywidget
   - pytest
+  - matplotlib
+  - shinywidgets
+  - pandas
+  - python=3.12
+  - plotly
+  - numpy
+  - scipy
   - pyarrow
+  - ipykernel
+  - jinja2
+  - notebook
+  - jupyter_client[version='<8']
+  - pyzmq[version='<25']
   - openpyxl
