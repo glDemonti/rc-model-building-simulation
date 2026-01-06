@@ -66,7 +66,20 @@ class MeasurementsRepository:
         """
         if not self.path_raw.exists():
             return None
-        return pd.read_excel(self.path_raw, engine='openpyxl')
+        try:
+            # Read Excel with string dtype first to prevent Excel auto-formatting issues
+            df = pd.read_excel(self.path_raw, engine='openpyxl', dtype=str)
+            
+            # Convert numeric columns back to float (skip first column which is timestamp)
+            for col in df.columns[1:]:
+                try:
+                    df[col] = pd.to_numeric(df[col], errors='coerce')
+                except Exception:
+                    pass  # Keep as string if conversion fails
+            
+            return df
+        except Exception as e:
+            raise ValueError(f"Error reading Excel file: {e}. Please check that all data columns contain numeric values.")
     
     def read_raw(self):
         """Auto-detects file format and reads raw measurement data"""

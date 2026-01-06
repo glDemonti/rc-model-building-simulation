@@ -75,10 +75,29 @@ class ConfigFacade:
     def update_measurement_file(self, temp_path: str, original_name: str):
         """
         Updates the measurement data file in the repository by copying it from a temporary location.
-
+        Returns a tuple (success, message, has_nan_warning)
         """
         self._measure_repo.write_raw(Path(temp_path))
         self._measure_repo.save_original_name(original_name)
+        
+        # Check for NaN values in data columns (exclude completely empty columns)
+        try:
+            df = self._measure_repo.read_raw()
+            if df is not None:
+                # Only check columns that have at least some data
+                data_cols = df.select_dtypes(include=['number'])
+                has_nan = False
+                for col in data_cols.columns:
+                    # If column has some valid data but also has NaN, that's a problem
+                    if data_cols[col].notna().any() and data_cols[col].isna().any():
+                        has_nan = True
+                        break
+                if has_nan:
+                    return True, "Datei hochgeladen", True
+        except Exception:
+            pass
+        
+        return True, "Datei hochgeladen", False
 
     def run_simulation(self, project_id: str, variant_id: str, *, force: bool = False) -> RunReport:
         """quick and dirty implementation of start simulation

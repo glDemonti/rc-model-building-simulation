@@ -379,7 +379,11 @@ def _load_initial_results():
         summary_B.set(facade_B.get_summary(PROJECT_ID_VAR_B, "B"))
         timeseries_A.set(facade_A.get_timeseries(PROJECT_ID_VAR_A, "A"))
         timeseries_B.set(facade_B.get_timeseries(PROJECT_ID_VAR_B, "B"))
-        measurements.set(facade_A.get_measurements())
+        try:
+            measurements.set(facade_A.get_measurements())
+        except Exception as e:
+            print(f"Warning: Could not load measurements: {e}")
+            measurements.set(None)
         monthly_timeseries_A.set(facade_A.get_monthly_timeseries(PROJECT_ID_VAR_A, "A"))
         monthly_timeseries_B.set(facade_B.get_monthly_timeseries(PROJECT_ID_VAR_B, "B"))
     except RuntimeError:
@@ -1373,8 +1377,18 @@ with ui.nav_panel("Vergleich mit Messdaten"):
                 path = info["datapath"]
                 original_name = info["name"]
                 try:
-                    facade_A.update_measurement_file(path, original_name)
-                    ui.notification_show(f"Messdaten '{original_name}' erfolgreich hochgeladen.", type="success", duration=4)
+                    success, message, has_nan_warning = facade_A.update_measurement_file(path, original_name)
+                    if success:
+                        # Reload measurements to update the display
+                        try:
+                            measurements.set(facade_A.get_measurements())
+                        except Exception as e:
+                            print(f"Warning: Could not reload measurements: {e}")
+                            measurements.set(None)
+                        
+                        ui.notification_show(f"Messdaten '{original_name}' erfolgreich hochgeladen.", type="success", duration=4)
+                        if has_nan_warning:
+                            ui.notification_show("Warnung: Die Datei enthält ungültige Werte (NaN) in Datenspalten. Bitte prüfen Sie die Quelldatei.", type="warning", duration=8)
                 except Exception as e: 
                     ui.notification_show(F"Fehler beim hochladen der Messdaten: {e}", type="error", duration=6)
     
