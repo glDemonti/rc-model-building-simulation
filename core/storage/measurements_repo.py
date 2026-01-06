@@ -98,3 +98,17 @@ class MeasurementsRepository:
         orig_name_path = self.path_raw.with_suffix('.txt')
         with open(orig_name_path, 'w') as f:
             f.write(name)
+
+    def get_original_name(self):
+        """
+        Retrieves the original name of the uploaded measurement file.
+        Returns None if no file has been uploaded yet.
+        """
+        orig_name_path = self.path_raw.with_suffix('.txt')
+        if not orig_name_path.exists():
+            return None
+        try:
+            with open(orig_name_path, 'r') as f:
+                return f.read().strip()
+        except Exception:
+            return None

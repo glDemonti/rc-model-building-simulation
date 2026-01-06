@@ -1352,12 +1352,17 @@ with ui.nav_panel("Vergleich mit Messdaten"):
         )
         ui.input_action_button(
             id="button_load_measured_data",
-            label="Messtdaten laden",
+            label="Messdaten laden",
             disabled=False,
         )
+        
         @render.text
-        def measurement_file_properties():
-            return input.file_input_measured_data()
+        def loaded_measurement_file():
+            filename = facade_A.get_measurement_filename()
+            if filename:
+                return f"Geladene Datei: {filename}"
+            else:
+                return "Keine Messdaten geladen"
 
         @reactive.effect
         @reactive.event(input.button_load_measured_data)

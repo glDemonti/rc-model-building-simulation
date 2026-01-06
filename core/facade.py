@@ -113,6 +113,13 @@ class ConfigFacade:
         measurement = self._measure_service.process_and_store_measurements()
         return measurement
     
+    def get_measurement_filename(self):
+        """
+        Returns the original name of the uploaded measurement file.
+        Returns None if no file has been uploaded yet.
+        """
+        return self._measure_repo.get_original_name()
+    
     def get_monthly_timeseries(self, project_id: str, variant_id: str):
         result = self._analytics.compute_all(project_id, variant_id)
         return result["monthly_timeseries"]
