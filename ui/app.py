@@ -1393,6 +1393,7 @@ with ui.nav_panel("Vergleich mit Messdaten"):
                     ui.notification_show(F"Fehler beim hochladen der Messdaten: {e}", type="error", duration=6)
     
     with ui.card():
+        ui.card_header("Datenansicht")
         @render.data_frame
         def measurements_df():
             df = measurements()
@@ -1401,20 +1402,82 @@ with ui.nav_panel("Vergleich mit Messdaten"):
             if isinstance(df, pd.DataFrame) and df.empty:
                 return pd.DataFrame({"info:" ["measurements ist ein leerer DataFrame"]})
             return df
+    
+    with ui.card():
+        ui.card_header("Diagramm")
+        
+        @render.ui
+        def column_selector():
+            df = measurements()
+            if df is None or df.empty:
+                return ui.p("Keine Daten geladen")
+            
+            # Get numeric columns (exclude first column which is typically timestamp)
+            numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+            if not numeric_cols:
+                return ui.p("Keine numerischen Spalten gefunden")
+            
+            return ui.input_selectize(
+                id="selected_columns",
+                label="Spalten für Diagramm auswählen:",
+                choices={col: col for col in numeric_cols},
+                selected=numeric_cols[:2] if len(numeric_cols) >= 2 else numeric_cols,
+                multiple=True,
+                width="100%"
+            )
         
         @render_plotly
         def plot_measurements():
             df = measurements()
-            if df is None:
-                return go.Figure()
+            if df is None or df.empty:
+                fig = go.Figure()
+                fig.add_annotation(
+                    text="Keine Messdaten geladen",
+                    xref="paper", yref="paper",
+                    x=0.5, y=0.5, showarrow=False,
+                    font=dict(size=16)
+                )
+                return fig
+            
+            # Get selected columns
+            try:
+                selected = input.selected_columns()
+                if not selected:
+                    selected = []
+                else:
+                    # Ensure it's a list, not a tuple
+                    selected = list(selected) if not isinstance(selected, list) else selected
+            except Exception:
+                # Input doesn't exist yet
+                selected = []
+            
+            if not selected:
+                fig = go.Figure()
+                fig.add_annotation(
+                    text="Bitte wählen Sie Spalten aus",
+                    xref="paper", yref="paper",
+                    x=0.5, y=0.5, showarrow=False,
+                    font=dict(size=16)
+                )
+                return fig
+            
+            # Use first column as x-axis (typically timestamp)
+            x_col = df.columns[0]
+            
             fig = px.line(
                 df,
-                x="Unnamed: 0",
-                y=[
-                    "Raumtemperatur S235",
-                    "Raumtemperatur N235"
-                ]
+                x=x_col,
+                y=selected,
+                labels={x_col: "Zeit"},
+                title="Messdaten"
             )
+            fig.update_layout(
+                xaxis_title="Zeit",
+                yaxis_title="Wert",
+                legend_title="Spalten",
+                hovermode='x unified'
+            )
+            return fig
             return fig
 # ===================================================================
 # region: Settings Panel
