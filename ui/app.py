@@ -749,6 +749,7 @@ with ui.nav_panel("Simulationsresultate"):
     #         return df
         
     with ui.card():
+        ui.card_header("Temperaturverläufe und Kennzahlen")
         @render_plotly
         def plot_temperatures():
             df_temp = timeseries_wide()
@@ -845,6 +846,7 @@ with ui.nav_panel("Simulationsresultate"):
                     return f"am {ts}"
 
     with ui.card():
+        ui.card_header("Heiz- und Kühlleistung sowie Energiebedarf")
         with ui.navset_card_tab(id="heating_cooling_tabs"):
             with ui.nav_panel("Heiz- und Kühlleistung"):
                 @render_widget
@@ -1414,7 +1416,7 @@ with ui.nav_panel("Vergleich mit Messdaten"):
             return DataGrid(df, width="100%", height="400px")
     
     with ui.card():
-        ui.card_header("Diagramm")
+        ui.card_header("Messdaten Diagramm")
         
         @render.ui
         def column_selector():
@@ -1424,7 +1426,7 @@ with ui.nav_panel("Vergleich mit Messdaten"):
             if df.empty:
                 return ui.p("Geladene Datei ist leer")
             
-            # Get numeric columns (exclude first column which is typically timestamp)
+            # Get numeric columns
             numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
             if not numeric_cols:
                 return ui.p("Keine numerischen Spalten gefunden")
@@ -1457,10 +1459,8 @@ with ui.nav_panel("Vergleich mit Messdaten"):
                 if not selected:
                     selected = []
                 else:
-                    # Ensure it's a list, not a tuple
                     selected = list(selected) if not isinstance(selected, list) else selected
             except Exception:
-                # Input doesn't exist yet
                 selected = []
             
             if not selected:
@@ -1473,13 +1473,12 @@ with ui.nav_panel("Vergleich mit Messdaten"):
                 )
                 return fig
             
-            # Use first column as x-axis (typically timestamp)
+            # Use first column as x-axis
             x_col = df.columns[0]
             
-            # If data is very large, sample it for better performance
+            # Sample data if too large
             plot_df = df
             if len(df) > 10000:
-                # Sample every nth row to keep max 10000 points
                 step = len(df) // 10000
                 plot_df = df.iloc[::step]
             
@@ -1500,98 +1499,111 @@ with ui.nav_panel("Vergleich mit Messdaten"):
     
     with ui.card():
         ui.card_header("Simulationsergebnisse zum Vergleich")
-        
-        with ui.layout_columns():
-            ui.input_radio_buttons(
-                id="sim_variant_select",
-                label="Variante:",
-                choices={"A": "Variante A", "B": "Variante B"},
-                selected="A",
-                inline=True
-            )
-        
-        @render.ui
-        def sim_column_selector():
-            variant = input.sim_variant_select()
-            df = timeseries_A() if variant == "A" else timeseries_B()
+        with ui.navset_card_tab(id="comparison_simulation_tabs"):
+            with ui.nav_panel("Temperatur"):
+                @render_plotly
+                def plot_comp_temperatures():
+                    df_temp = timeseries_wide()
+                    if df_temp is None or df_temp.empty:
+                        return go.Figure()
+                    
+                    df_temp["ts_ms"] = ts_ms(df_temp["datetime"])
+                    
+                    fig = px.line(
+                        df_temp,
+                        x="ts_ms",
+                        y=[
+                            "temp_air_room_A",
+                            "temp_outdoor_air_A",
+                            "temp_air_room_B",
+                            "temp_outdoor_air_B",
+                        ],
+                        labels={
+                            "ts_ms": "Zeit",
+                            "temp_air_room": "Innenlufttemperatur [°C]",
+                            "variant_id": "Variante",
+                        },
+                    ).update_xaxes(
+                        type="date",
+                        tickformat="%d-%m-%y %H:%M",
+                        tickangle=45,
+                        showgrid=True,
+                    ).update_layout(
+                        title="Temperaturverläufe",
+                        hovermode="x unified",
+                        xaxis_title="Zeit [h]",
+                        yaxis_title="Temperatur [°C]",
+                    )
+                    return fig
             
-            if df is None:
-                return ui.p("Keine Simulationsdaten verfügbar. Bitte führen Sie zuerst eine Simulation durch.")
-            if df.empty:
-                return ui.p("Simulationsdaten sind leer")
+            with ui.nav_panel("Heiz- und Kühlleistung"):
+                @render_plotly
+                def plot_comp_cooling_heating_power():
+                    df_load = timeseries_wide()
+                    if df_load is None or df_load.empty:
+                        return go.Figure()
+                    
+                    df_load["ts_ms"] = ts_ms(df_load["datetime"])
+                    
+                    fig = px.line(
+                        df_load,
+                        x="ts_ms",
+                        y=[
+                            "cooling_power_A",
+                            "heating_power_A",
+                            "cooling_power_B",
+                            "heating_power_B",
+                        ],
+                        labels={
+                            "ts_ms": "Zeit", 
+                            "value": "Leistung [W]",
+                            "variable": "Legende",
+                        },
+                    ).update_xaxes(
+                        type="date",
+                        tickformat="%d-%m-%y %H:%M",
+                        tickangle=45,
+                        showgrid=True,
+                    ).update_layout(
+                        title="Heiz- und Kühlleistung",
+                        xaxis_title="Zeit [h]",
+                        yaxis_title="Leistung [W]",
+                    )
+                    return fig
             
-            # Get numeric columns
-            numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
-            if not numeric_cols:
-                return ui.p("Keine numerischen Spalten gefunden")
-            
-            return ui.input_selectize(
-                id="sim_selected_columns",
-                label="Spalten für Diagramm auswählen:",
-                choices={col: col for col in numeric_cols},
-                selected=numeric_cols[:2] if len(numeric_cols) >= 2 else numeric_cols,
-                multiple=True,
-                width="100%"
-            )
-        
-        @render_plotly
-        def plot_simulation():
-            variant = input.sim_variant_select()
-            df = timeseries_A() if variant == "A" else timeseries_B()
-            
-            if df is None or df.empty:
-                fig = go.Figure()
-                fig.add_annotation(
-                    text="Keine Simulationsdaten verfügbar",
-                    xref="paper", yref="paper",
-                    x=0.5, y=0.5, showarrow=False,
-                    font=dict(size=16)
-                )
-                return fig
-            
-            # Get selected columns
-            try:
-                selected = input.sim_selected_columns()
-                if not selected:
-                    selected = []
-                else:
-                    selected = list(selected) if not isinstance(selected, list) else selected
-            except Exception:
-                selected = []
-            
-            if not selected:
-                fig = go.Figure()
-                fig.add_annotation(
-                    text="Bitte wählen Sie Spalten aus",
-                    xref="paper", yref="paper",
-                    x=0.5, y=0.5, showarrow=False,
-                    font=dict(size=16)
-                )
-                return fig
-            
-            # Use timestamp column as x-axis
-            x_col = df.columns[0] if 'timestamp' not in df.columns else 'timestamp'
-            
-            # Sample data if too large
-            plot_df = df
-            if len(df) > 10000:
-                step = len(df) // 10000
-                plot_df = df.iloc[::step]
-            
-            fig = px.line(
-                plot_df,
-                x=x_col,
-                y=selected,
-                labels={x_col: "Zeit"},
-                title=f"Simulationsergebnisse - Variante {variant}"
-            )
-            fig.update_layout(
-                xaxis_title="Zeit",
-                yaxis_title="Wert",
-                legend_title="Spalten",
-                hovermode='x unified'
-            )
-            return fig
+            with ui.nav_panel("Heiz- und Kühlenergie"):
+                @render_plotly
+                def plot_comp_cooling_heating_energy():
+                    df_monthly = monthly_timeseries_wide()
+                    if df_monthly is None or df_monthly.empty:
+                        return go.Figure()
+                    
+                    df_monthly["datetime"] = pd.to_datetime(df_monthly["datetime"]).dt.strftime("%Y-%m")
+                    
+                    data = []
+                    for _, row in df_monthly.iterrows():
+                        month = row["datetime"]
+                        data.append({"Monat": month, "Variante": "A", "Energie [MWh]": row["heating_energy_MWh_A"], "Typ": "Heizung"})
+                        data.append({"Monat": month, "Variante": "B", "Energie [MWh]": row["heating_energy_MWh_B"], "Typ": "Heizung"})
+                        data.append({"Monat": month, "Variante": "A", "Energie [MWh]": row["cooling_energy_MWh_A"], "Typ": "Kühlung"})
+                        data.append({"Monat": month, "Variante": "B", "Energie [MWh]": row["cooling_energy_MWh_B"], "Typ": "Kühlung"})
+                    
+                    df_plot = pd.DataFrame(data)
+                    
+                    fig = px.bar(
+                        df_plot,
+                        x="Monat",
+                        y="Energie [MWh]",
+                        color="Variante",
+                        pattern_shape="Typ",
+                        barmode="group",
+                        title="Monatliche Heiz- und Kühlenergie",
+                    )
+                    fig.update_layout(
+                        xaxis_title="Monat",
+                        yaxis_title="Energie [MWh]",
+                    )
+                    return fig
 # ===================================================================
 # region: Settings Panel
 # ===================================================================
