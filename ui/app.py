@@ -1394,14 +1394,24 @@ with ui.nav_panel("Vergleich mit Messdaten"):
     
     with ui.card():
         ui.card_header("Datenansicht")
+        
+        @render.text
+        def data_info():
+            df = measurements()
+            if df is None:
+                return "Keine Messdaten geladen"
+            return f"Datensatz: {len(df)} Zeilen, {len(df.columns)} Spalten"
+        
         @render.data_frame
         def measurements_df():
             df = measurements()
             if df is None:
-                return pd.DataFrame({"info:"["measurements ist None (noch nicht geladen)"]})
+                return pd.DataFrame({"Info": ["Keine Messdaten geladen"]})
             if isinstance(df, pd.DataFrame) and df.empty:
-                return pd.DataFrame({"info:" ["measurements ist ein leerer DataFrame"]})
-            return df
+                return pd.DataFrame({"Info": ["Messdaten sind leer"]})
+            # Return with pagination settings to avoid freezing
+            from shiny.render import DataGrid
+            return DataGrid(df, width="100%", height="400px")
     
     with ui.card():
         ui.card_header("Diagramm")
@@ -1409,8 +1419,10 @@ with ui.nav_panel("Vergleich mit Messdaten"):
         @render.ui
         def column_selector():
             df = measurements()
-            if df is None or df.empty:
-                return ui.p("Keine Daten geladen")
+            if df is None:
+                return ui.p("Keine Daten geladen. Bitte laden Sie zuerst eine Messdatei hoch.")
+            if df.empty:
+                return ui.p("Geladene Datei ist leer")
             
             # Get numeric columns (exclude first column which is typically timestamp)
             numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
@@ -1464,8 +1476,15 @@ with ui.nav_panel("Vergleich mit Messdaten"):
             # Use first column as x-axis (typically timestamp)
             x_col = df.columns[0]
             
+            # If data is very large, sample it for better performance
+            plot_df = df
+            if len(df) > 10000:
+                # Sample every nth row to keep max 10000 points
+                step = len(df) // 10000
+                plot_df = df.iloc[::step]
+            
             fig = px.line(
-                df,
+                plot_df,
                 x=x_col,
                 y=selected,
                 labels={x_col: "Zeit"},
