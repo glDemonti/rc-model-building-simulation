@@ -57,8 +57,9 @@ class MeasurementsRepository:
         else:
             sep, decimal = ',', '.'
 
-        # Read CSV with first row as header
-        return pd.read_csv(self.path_raw, sep=sep, decimal=decimal, engine='python', header=0)
+        # Read CSV with first row as header, skip row 1 (description/units row)
+        df = pd.read_csv(self.path_raw, sep=sep, decimal=decimal, engine='python', header=0, skiprows=[1])
+        return df
     
     def read_raw_excel(self):
         """
@@ -69,8 +70,8 @@ class MeasurementsRepository:
             return None
         try:
             # Read Excel with string dtype first to prevent Excel auto-formatting issues
-            # Use first row as header
-            df = pd.read_excel(self.path_raw, engine='openpyxl', dtype=str, header=0)
+            # Use first row as header, skip row 1 (description/units row)
+            df = pd.read_excel(self.path_raw, engine='openpyxl', dtype=str, header=0, skiprows=[1])
             
             # Convert numeric columns back to float (skip first column which is timestamp)
             for col in df.columns[1:]:
