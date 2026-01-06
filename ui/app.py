@@ -1497,6 +1497,100 @@ with ui.nav_panel("Vergleich mit Messdaten"):
                 hovermode='x unified'
             )
             return fig
+    
+    with ui.card():
+        ui.card_header("Simulationsergebnisse zum Vergleich")
+        
+        with ui.layout_columns():
+            ui.input_radio_buttons(
+                id="sim_variant_select",
+                label="Variante:",
+                choices={"A": "Variante A", "B": "Variante B"},
+                selected="A",
+                inline=True
+            )
+        
+        @render.ui
+        def sim_column_selector():
+            variant = input.sim_variant_select()
+            df = timeseries_A() if variant == "A" else timeseries_B()
+            
+            if df is None:
+                return ui.p("Keine Simulationsdaten verfügbar. Bitte führen Sie zuerst eine Simulation durch.")
+            if df.empty:
+                return ui.p("Simulationsdaten sind leer")
+            
+            # Get numeric columns
+            numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+            if not numeric_cols:
+                return ui.p("Keine numerischen Spalten gefunden")
+            
+            return ui.input_selectize(
+                id="sim_selected_columns",
+                label="Spalten für Diagramm auswählen:",
+                choices={col: col for col in numeric_cols},
+                selected=numeric_cols[:2] if len(numeric_cols) >= 2 else numeric_cols,
+                multiple=True,
+                width="100%"
+            )
+        
+        @render_plotly
+        def plot_simulation():
+            variant = input.sim_variant_select()
+            df = timeseries_A() if variant == "A" else timeseries_B()
+            
+            if df is None or df.empty:
+                fig = go.Figure()
+                fig.add_annotation(
+                    text="Keine Simulationsdaten verfügbar",
+                    xref="paper", yref="paper",
+                    x=0.5, y=0.5, showarrow=False,
+                    font=dict(size=16)
+                )
+                return fig
+            
+            # Get selected columns
+            try:
+                selected = input.sim_selected_columns()
+                if not selected:
+                    selected = []
+                else:
+                    selected = list(selected) if not isinstance(selected, list) else selected
+            except Exception:
+                selected = []
+            
+            if not selected:
+                fig = go.Figure()
+                fig.add_annotation(
+                    text="Bitte wählen Sie Spalten aus",
+                    xref="paper", yref="paper",
+                    x=0.5, y=0.5, showarrow=False,
+                    font=dict(size=16)
+                )
+                return fig
+            
+            # Use timestamp column as x-axis
+            x_col = df.columns[0] if 'timestamp' not in df.columns else 'timestamp'
+            
+            # Sample data if too large
+            plot_df = df
+            if len(df) > 10000:
+                step = len(df) // 10000
+                plot_df = df.iloc[::step]
+            
+            fig = px.line(
+                plot_df,
+                x=x_col,
+                y=selected,
+                labels={x_col: "Zeit"},
+                title=f"Simulationsergebnisse - Variante {variant}"
+            )
+            fig.update_layout(
+                xaxis_title="Zeit",
+                yaxis_title="Wert",
+                legend_title="Spalten",
+                hovermode='x unified'
+            )
             return fig
 # ===================================================================
 # region: Settings Panel
