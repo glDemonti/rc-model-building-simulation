@@ -1729,25 +1729,25 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
 
     with ui.card():
         ui.card_header("Kennzahlen der Messdaten")
-        
+
         # Reactive value for measurement summary
         measurements_summary = reactive.Value(None)
-        
+
         @reactive.effect
         def _compute_measurement_summary():
             df = measurements()
             if df is None or (isinstance(df, pd.DataFrame) and df.empty):
                 measurements_summary.set(None)
                 return
-            
+
             x_col = df.columns[0]
-            
+
             # Get date range filter
             try:
                 date_range = input.measurement_time_range()
             except Exception:
                 date_range = None
-            
+
             # Use facade to compute measurements summary via analytics
             try:
                 stats_df = facade_A.get_measurement_summary(
@@ -1759,70 +1759,158 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
             except Exception as e:
                 print(f"Error computing measurement summary: {e}")
                 measurements_summary.set(None)
-        
-        with ui.layout_column_wrap():
-            # Aussentemperatur minima/maxima mit Zeitstempel
-            with ui.value_box(id="value_box_meas_outdoor_temp_min", width=6):
-                "Minimale Aussentemperatur"
-                @render.text
-                def meas_outdoor_temp_min():
-                    value = get_measurement_values(measurements_summary(), column_name="Aussentemperatur", metric="min")
-                    return f"{value} °C"
-                @render.text
-                def meas_outdoor_temp_min_ts():
-                    ts = get_measurement_values(measurements_summary(), column_name="Aussentemperatur", metric="min_timestamp")
-                    return f"am {ts}" if ts != "-" else ""
 
-            with ui.value_box(id="value_box_meas_outdoor_temp_max", width=6):
-                "Maximale Aussentemperatur"
-                @render.text
-                def meas_outdoor_temp_max():
-                    value = get_measurement_values(measurements_summary(), column_name="Aussentemperatur", metric="max")
-                    return f"{value} °C"
-                @render.text
-                def meas_outdoor_temp_max_ts():
-                    ts = get_measurement_values(measurements_summary(), column_name="Aussentemperatur", metric="max_timestamp")
-                    return f"am {ts}" if ts != "-" else ""
-            
-            # Heizleistung
-            with ui.value_box(id="value_box_meas_heating_power_max", width=6):
-                "Maximale Heizleistung"
-                @render.text
-                def meas_heating_power_max():
-                    value = get_measurement_values(measurements_summary(), column_name="Heizleistung", metric="power_max")
-                    return f"{value} kW"
-            
-            # Kühlleistung
-            with ui.value_box(id="value_box_meas_cooling_power_max", width=6):
-                "Maximale Kühlleistung"
-                @render.text
-                def meas_cooling_power_max():
-                    value = get_measurement_values(measurements_summary(), column_name="Kühlleistung", metric="power_max")
-                    return f"{value} kW"
+        with ui.navset_card_tab(id="measurement_kpis"):
+            with ui.nav_panel("Kennzahlen Temperatur"):
+                with ui.layout_column_wrap():
+                    with ui.value_box(id="value_box_meas_outdoor_temp_min", width=6):
+                        "Minimale Aussentemperatur"
+                        @render.text
+                        def meas_outdoor_temp_min():
+                            value = get_measurement_values(measurements_summary(), column_name="Aussentemperatur", metric="min")
+                            return f"{value} °C"
+                        @render.text
+                        def meas_outdoor_temp_min_ts():
+                            ts = get_measurement_values(measurements_summary(), column_name="Aussentemperatur", metric="min_timestamp")
+                            return f"am {ts}" if ts != "-" else ""
+
+                    with ui.value_box(id="value_box_meas_outdoor_temp_max", width=6):
+                        "Maximale Aussentemperatur"
+                        @render.text
+                        def meas_outdoor_temp_max():
+                            value = get_measurement_values(measurements_summary(), column_name="Aussentemperatur", metric="max")
+                            return f"{value} °C"
+                        @render.text
+                        def meas_outdoor_temp_max_ts():
+                            ts = get_measurement_values(measurements_summary(), column_name="Aussentemperatur", metric="max_timestamp")
+                            return f"am {ts}" if ts != "-" else ""
+
+            with ui.nav_panel("Kennzahlen Energie & Leistung"):
+                with ui.layout_column_wrap():
+                    with ui.value_box(id="value_box_meas_heating_power_max", width=6):
+                        "Maximale Heizleistung"
+                        @render.text
+                        def meas_heating_power_max():
+                            value = get_measurement_values(measurements_summary(), column_name="Heizleistung", metric="power_max")
+                            return f"{value} kW"
+
+                    with ui.value_box(id="value_box_meas_cooling_power_max", width=6):
+                        "Maximale Kühlleistung"
+                        @render.text
+                        def meas_cooling_power_max():
+                            value = get_measurement_values(measurements_summary(), column_name="Kühlleistung", metric="power_max")
+                            return f"{value} kW"
     
     with ui.card():
         ui.card_header("Simulationsergebnisse zum Vergleich")
         
-        # Kennzahlen aus Simulationsergebnissen (Variante A)
-        with ui.layout_column_wrap():
-            with ui.value_box(id="sim_outdoor_min", width=6):
-                "Min. Aussentemperatur (Simulation A)"
-                @render.text
-                def sim_outdoor_min_value():
-                    return f"{get_summary_values(summary_all(), variant=VARIANT_ID_A, end_use='temperature', metric='temp_outdoor_min')} °C"
-                @render.text
-                def sim_outdoor_min_ts():
-                    ts = get_summary_values(summary_all(), variant=VARIANT_ID_A, end_use='temperature', metric='temp_outdoor_min_ts')
-                    return f"am {ts}" if ts != '-' else ''
-            with ui.value_box(id="sim_outdoor_max", width=6):
-                "Max. Aussentemperatur (Simulation A)"
-                @render.text
-                def sim_outdoor_max_value():
-                    return f"{get_summary_values(summary_all(), variant=VARIANT_ID_A, end_use='temperature', metric='temp_outdoor_max')} °C"
-                @render.text
-                def sim_outdoor_max_ts():
-                    ts = get_summary_values(summary_all(), variant=VARIANT_ID_A, end_use='temperature', metric='temp_outdoor_max_ts')
-                    return f"am {ts}" if ts != '-' else ''
+        ui.input_radio_buttons(
+            id="comp_variant_selector",
+            label="Variante auswählen",
+            choices={"A": "Variante A", "B": "Variante B"},
+            selected="A",
+        )
+
+        with ui.navset_card_tab(id="comparison_simulation_kpis"):
+            with ui.nav_panel("Kennzahlen Temperatur"):
+                with ui.layout_column_wrap():
+                    with ui.value_box(id="comp_overheating_hours", width=4):
+                        "Überhitzungsstunden"
+                        @render.text
+                        def comp_overheating_hours_value():
+                            value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='temperature', metric='overheating_hours')
+                            return f"{value} h"
+                    with ui.value_box(id="comp_outdoor_temp_min", width=4):
+                        "Minimale Aussentemperatur"
+                        @render.text
+                        def comp_outdoor_temp_min_value():
+                            value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='temperature', metric='temp_outdoor_min')
+                            return f"{value} °C"
+                        @render.text
+                        def comp_outdoor_temp_min_ts():
+                            ts = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='temperature', metric='timestamp_temp_outdoor_min')
+                            return f"am {ts}"
+                    with ui.value_box(id="comp_outdoor_temp_max", width=4):
+                        "Maximale Aussentemperatur"
+                        @render.text
+                        def comp_outdoor_temp_max_value():
+                            value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='temperature', metric='temp_outdoor_max')
+                            return f"{value} °C"
+                        @render.text
+                        def comp_outdoor_temp_max_ts():
+                            ts = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='temperature', metric='timestamp_temp_outdoor_max')
+                            return f"am {ts}"
+
+            with ui.nav_panel("Kennzahlen Energie & Leistung"):
+                with ui.layout_column_wrap():
+                    with ui.value_box(id="comp_heating_demand", width=4):
+                        "Jährlicher Heizwärmebedarf"
+                        @render.text
+                        def comp_heating_energy_value():
+                            value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='heating', metric='energy_year')
+                            return f"{value} kWh"
+                    with ui.value_box(id="comp_cooling_demand", width=4):
+                        "Jährlicher Kühlbedarf"
+                        @render.text
+                        def comp_cooling_energy_value():
+                            value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='cooling', metric='energy_year')
+                            return f"{value} kWh"
+                    with ui.value_box(id="comp_max_heating_power", width=4):
+                        "Maximale Heizleistung [W]"
+                        @render.text
+                        def comp_max_heating_power_value():
+                            value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='heating', metric='power_max')
+                            return f"{value} kW"
+                        @render.text
+                        def comp_max_heating_power_ts():
+                            ts = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='heating', metric='power_max_timestamp')
+                            return f"am {ts}"
+                    with ui.value_box(id="comp_max_cooling_power", width=4):
+                        "Maximale Kühlleistung [W]"
+                        @render.text
+                        def comp_max_cooling_power_value():
+                            value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='cooling', metric='power_max')
+                            return f"{value} kW"
+                        @render.text
+                        def comp_max_cooling_power_ts():
+                            ts = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='cooling', metric='power_max_timestamp')
+                            return f"am {ts}"
+                    with ui.value_box(id="comp_spec_heating_load", width=4):
+                        "Spezifische Heizlast [kW/m²]"
+                        @render.text
+                        def comp_spec_heating_load_value():
+                            value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='heating', metric='load_specific')
+                            return f"{value} W/m²"
+                    with ui.value_box(id="comp_spec_cooling_load", width=4):
+                        "Spezifische Kühllast [kW/m²]"
+                        @render.text
+                        def comp_spec_cooling_load_value():
+                            value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='cooling', metric='load_specific')
+                            return f"{value} W/m²"
+                    with ui.value_box(id="comp_spec_heating_energy", width=4):
+                        "Spezifischer Heizenergiebedarf [kWh/m²]"
+                        @render.text
+                        def comp_spec_heating_energy_value():
+                            value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='heating', metric='energy_specific')
+                            return f"{value} kWh/m²"
+                    with ui.value_box(id="comp_spec_cooling_energy", width=4):
+                        "Spezifischer Kühlenergiebedarf [kWh/m²]"
+                        @render.text
+                        def comp_spec_cooling_energy_value():
+                            value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='cooling', metric='energy_specific')
+                            return f"{value} kWh/m²"
+                    with ui.value_box(id="comp_total_energy_costs_heating", width=4):
+                        "Jährliche Stromkosten Heizung"
+                        @render.text
+                        def comp_total_energy_costs_heating_value():
+                            value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='heating', metric='costs_year')
+                            return f"{value} CHF"
+                    with ui.value_box(id="comp_total_energy_costs_cooling", width=4):
+                        "Jährliche Stromkosten Kühlung"
+                        @render.text
+                        def comp_total_energy_costs_cooling_value():
+                            value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='cooling', metric='costs_year')
+                            return f"{value} CHF"
         
         with ui.navset_card_tab(id="comparison_simulation_tabs"):
             with ui.nav_panel("Temperatur"):
