@@ -798,8 +798,6 @@ with ui.nav_panel("Simulationsresultate"):
                    ],
                 labels={
                     "ts_ms": "Zeit",
-                    "temp_air_room": "Innenlufttemperatur [°C]",
-                    "variant_id": "Variante",
                 },
                 ).update_xaxes(
                     type="date",
@@ -811,7 +809,17 @@ with ui.nav_panel("Simulationsresultate"):
                 hovermode="x unified",
                 xaxis_title="Zeit [h]",
                 yaxis_title="Temperatur [°C]",
+                legend_title_text="Messgrössen",
                 )
+            
+            # Update legend names to German
+            newnames = {
+                "temp_air_room_A": "Raumtemperatur Variante A",
+                "temp_outdoor_air_A": "Aussentemperatur Variante A",
+                "temp_air_room_B": "Raumtemperatur Variante B",
+                "temp_outdoor_air_B": "Aussentemperatur Variante B",
+            }
+            fig.for_each_trace(lambda t: t.update(name=newnames.get(t.name, t.name)))
             return fig
 
         ui.input_radio_buttons(
@@ -895,8 +903,6 @@ with ui.nav_panel("Simulationsresultate"):
                             ],
                         labels={
                             "ts_ms": "Zeit", 
-                            "value": "Leistung [W]",
-                            "variable": "Legende",
                         },
                         ).update_xaxes(
                             type="date",
@@ -907,7 +913,17 @@ with ui.nav_panel("Simulationsresultate"):
                         title="Heiz- und Kühlleistung",
                         xaxis_title="Zeit [h]",
                         yaxis_title="Leistung [W]",
+                        legend_title_text="Messgrössen",
                         )
+                    
+                    # Update legend names to German
+                    newnames = {
+                        "cooling_power_A": "Kühlleistung Variante A",
+                        "heating_power_A": "Heizleistung Variante A",
+                        "cooling_power_B": "Kühlleistung Variante B",
+                        "heating_power_B": "Heizleistung Variante B",
+                    }
+                    fig.for_each_trace(lambda t: t.update(name=newnames.get(t.name, t.name)))
                     return fig
                 
             with ui.nav_panel("Heiz- und Kühlenergie"):        
@@ -950,6 +966,7 @@ with ui.nav_panel("Simulationsresultate"):
                         title="Monatlicher Heiz- und Kühlenergiebedarf",
                         xaxis_title="Monat",
                         yaxis_title="Energie [MWh]",
+                        legend_title_text="Legende",
                         bargap=0.2,
                         bargroupgap=0.1,
                     )
@@ -1564,7 +1581,8 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
                     ).update_layout(
                         hovermode='x unified',
                         xaxis_title="Zeit",
-                        yaxis_title="Temperatur [°C]"
+                        yaxis_title="Temperatur [°C]",
+                        legend_title_text="Messgrössen",
                     )
                     return fig
 
@@ -1602,7 +1620,8 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
                     ).update_layout(
                         hovermode='x unified',
                         xaxis_title="Zeit",
-                        yaxis_title="Leistung [W]"
+                        yaxis_title="Leistung [W]",
+                        legend_title_text="Messgrössen",
                     )
                     return fig
 
@@ -1639,7 +1658,8 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
                         title='Monatliche Energie'
                     ).update_layout(
                         xaxis_title="Monat",
-                        yaxis_title="Energie [kWh]"
+                        yaxis_title="Energie [kWh]",
+                        legend_title_text="Energieart",
                     )
                     return fig
 
@@ -1722,7 +1742,7 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
                     fig.update_layout(
                         xaxis_title="Zeit",
                         yaxis_title="Wert",
-                        legend_title="Spalten",
+                        legend_title_text="Messgrössen",
                         hovermode='x unified'
                     )
                     return fig
@@ -2045,8 +2065,6 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
                         ],
                         labels={
                             "ts_ms": "Zeit",
-                            "temp_air_room": "Innenlufttemperatur [°C]",
-                            "variant_id": "Variante",
                         },
                     ).update_xaxes(
                         type="date",
@@ -2058,7 +2076,17 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
                         hovermode="x unified",
                         xaxis_title="Zeit",
                         yaxis_title="Temperatur [°C]",
+                        legend_title_text="Messgrössen",
                     )
+                    
+                    # Update legend names to German
+                    newnames = {
+                        "temp_air_room_A": "Raumtemperatur Variante A",
+                        "temp_outdoor_air_A": "Aussentemperatur Variante A",
+                        "temp_air_room_B": "Raumtemperatur Variante B",
+                        "temp_outdoor_air_B": "Aussentemperatur Variante B",
+                    }
+                    fig.for_each_trace(lambda t: t.update(name=newnames.get(t.name, t.name)))
                     return fig
             
             with ui.nav_panel("Heiz- und Kühlleistung"):
@@ -2081,8 +2109,6 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
                         ],
                         labels={
                             "ts_ms": "Zeit", 
-                            "value": "Leistung [W]",
-                            "variable": "Legende",
                         },
                     ).update_xaxes(
                         type="date",
@@ -2094,7 +2120,17 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
                         hovermode="x unified",
                         xaxis_title="Zeit",
                         yaxis_title="Leistung [W]",
+                        legend_title_text="Messgrössen",
                     )
+                    
+                    # Update legend names to German
+                    newnames = {
+                        "cooling_power_A": "Kühlleistung Variante A",
+                        "heating_power_A": "Heizleistung Variante A",
+                        "cooling_power_B": "Kühlleistung Variante B",
+                        "heating_power_B": "Heizleistung Variante B",
+                    }
+                    fig.for_each_trace(lambda t: t.update(name=newnames.get(t.name, t.name)))
                     return fig
             
             with ui.nav_panel("Heiz- und Kühlenergie"):
@@ -2128,6 +2164,7 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
                     fig.update_layout(
                         xaxis_title="Monat",
                         yaxis_title="Energie [MWh]",
+                        legend_title_text="Legende",
                     )
                     return fig
 # ===================================================================
