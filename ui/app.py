@@ -370,6 +370,7 @@ timeseries_B = reactive.Value(None)
 measurements = reactive.Value(None)
 monthly_timeseries_A = reactive.Value(None)
 monthly_timeseries_B = reactive.Value(None)
+measurement_filename = reactive.Value(None)
 
 
 @reactive.effect
@@ -1419,11 +1420,14 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
         
         @render.text
         def loaded_measurement_file():
-            filename = facade_A.get_measurement_filename()
-            if filename:
-                return f"Geladene Datei: {filename}"
-            else:
-                return "Keine Messdaten geladen"
+            # Prefer reactive filename set on upload; fallback to repo value
+            fname = measurement_filename()
+            if not fname:
+                try:
+                    fname = facade_A.get_measurement_filename()
+                except Exception:
+                    fname = None
+            return f"Geladene Datei: {fname}" if fname else "Keine Messdaten geladen"
 
         @reactive.effect
         @reactive.event(input.button_load_measured_data)
@@ -1442,6 +1446,8 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
                         except Exception as e:
                             print(f"Warning: Could not reload measurements: {e}")
                             measurements.set(None)
+                        # Update reactive filename
+                        measurement_filename.set(original_name)
                         
                         ui.notification_show(f"Messdaten '{original_name}' erfolgreich hochgeladen.", type="success", duration=4)
                         if has_nan_warning:
@@ -1473,7 +1479,7 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
             return DataGrid(df, width="100%", height="400px")
     
     with ui.card():
-        ui.card_header("Messdaten Diagramm")
+        ui.card_header("Messdaten Diagramme")
         
         @render.ui
         def column_selector():
@@ -1522,88 +1528,204 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
                 width="100%",
             )
         
-        @render_plotly
-        def plot_measurements():
-            df = measurements()
-            if df is None or df.empty:
-                fig = go.Figure()
-                fig.add_annotation(
-                    text="Keine Messdaten geladen",
-                    xref="paper", yref="paper",
-                    x=0.5, y=0.5, showarrow=False,
-                    font=dict(size=16)
-                )
-                return fig
-            
-            # Get selected columns
-            try:
-                selected = input.selected_columns()
-                if not selected:
-                    selected = []
-                else:
-                    selected = list(selected) if not isinstance(selected, list) else selected
-            except Exception:
-                selected = []
-            
-            if not selected:
-                fig = go.Figure()
-                fig.add_annotation(
-                    text="Bitte wählen Sie Spalten aus",
-                    xref="paper", yref="paper",
-                    x=0.5, y=0.5, showarrow=False,
-                    font=dict(size=16)
-                )
-                return fig
-            
-            # Use first column as x-axis
-            x_col = df.columns[0]
-
-            # Apply optional time range filter
-            plot_df = df
-            times = pd.to_datetime(df[x_col], errors="coerce")
-            try:
-                date_range = input.measurement_time_range()
-            except Exception:
-                date_range = None
-
-            if date_range and len(date_range) == 2 and times.notna().any():
-                start_date, end_date = date_range
-                mask = times.notna()
-                if start_date:
-                    mask &= times >= pd.to_datetime(start_date)
-                if end_date:
-                    mask &= times <= pd.to_datetime(end_date) + pd.Timedelta(days=1) - pd.Timedelta(milliseconds=1)
-                plot_df = df.loc[mask]
-
-                if plot_df.empty:
-                    fig = go.Figure()
-                    fig.add_annotation(
-                        text="Keine Daten im gewählten Zeitraum",
-                        xref="paper", yref="paper",
-                        x=0.5, y=0.5, showarrow=False,
-                        font=dict(size=16)
+        with ui.navset_card_tab(id="measurement_plots_tabs"):
+            with ui.nav_panel("Temperatur"):
+                @render_plotly
+                def plot_meas_temperature():
+                    df = measurements()
+                    if df is None or df.empty:
+                        return go.Figure()
+                    x_col = df.columns[0]
+                    outdoor = df.columns[1] if len(df.columns) > 1 else None
+                    indoor = df.columns[2] if len(df.columns) > 2 else None
+                    if outdoor is None or indoor is None:
+                        return go.Figure()
+                    times = pd.to_datetime(df[x_col], errors="coerce")
+                    plot_df = df.copy()
+                    # Apply optional time range filter
+                    try:
+                        date_range = input.measurement_time_range()
+                    except Exception:
+                        date_range = None
+                    if date_range and len(date_range) == 2 and times.notna().any():
+                        start_date, end_date = date_range
+                        mask = times.notna()
+                        if start_date:
+                            mask &= times >= pd.to_datetime(start_date)
+                        if end_date:
+                            mask &= times <= pd.to_datetime(end_date) + pd.Timedelta(days=1) - pd.Timedelta(milliseconds=1)
+                        plot_df = df.loc[mask]
+                    fig = px.line(
+                        plot_df,
+                        x=x_col,
+                        y=[indoor, outdoor],
+                        labels={x_col: "Zeit", indoor: "Raumtemperatur [°C]", outdoor: "Aussentemperatur [°C]"},
+                        title="Temperaturen"
+                    ).update_layout(
+                        hovermode='x unified',
+                        xaxis_title="Zeit",
+                        yaxis_title="Temperatur [°C]"
                     )
                     return fig
-            
-            # Sample data if too large
-            if len(plot_df) > 10000:
-                step = max(1, len(plot_df) // 10000)
-                plot_df = plot_df.iloc[::step]
-            
-            fig = px.line(
-                plot_df,
-                x=x_col,
-                y=selected,
-                labels={x_col: "Zeit"},
-                title="Messdaten"
-            )
-            fig.update_layout(
-                xaxis_title="Zeit",
-                yaxis_title="Wert",
-                legend_title="Spalten",
-                hovermode='x unified'
-            )
-            return fig
+
+            with ui.nav_panel("Leistungen"):
+                @render_plotly
+                def plot_meas_power():
+                    df = measurements()
+                    if df is None or df.empty:
+                        return go.Figure()
+                    x_col = df.columns[0]
+                    heat = df.columns[3] if len(df.columns) > 3 else None
+                    cool = df.columns[4] if len(df.columns) > 4 else None
+                    if heat is None or cool is None:
+                        return go.Figure()
+                    times = pd.to_datetime(df[x_col], errors="coerce")
+                    plot_df = df.copy()
+                    try:
+                        date_range = input.measurement_time_range()
+                    except Exception:
+                        date_range = None
+                    if date_range and len(date_range) == 2 and times.notna().any():
+                        start_date, end_date = date_range
+                        mask = times.notna()
+                        if start_date:
+                            mask &= times >= pd.to_datetime(start_date)
+                        if end_date:
+                            mask &= times <= pd.to_datetime(end_date) + pd.Timedelta(days=1) - pd.Timedelta(milliseconds=1)
+                        plot_df = df.loc[mask]
+                    fig = px.line(
+                        plot_df,
+                        x=x_col,
+                        y=[cool, heat],
+                        labels={x_col: "Zeit", cool: "Kühlleistung [W]", heat: "Heizleistung [W]"},
+                        title="Heiz- und Kühlleistung"
+                    ).update_layout(
+                        hovermode='x unified',
+                        xaxis_title="Zeit",
+                        yaxis_title="Leistung [W]"
+                    )
+                    return fig
+
+            with ui.nav_panel("Energie"):
+                @render_plotly
+                def plot_meas_energy():
+                    df = measurements()
+                    if df is None or df.empty:
+                        return go.Figure()
+                    x_col = df.columns[0]
+                    heat = df.columns[3] if len(df.columns) > 3 else None
+                    cool = df.columns[4] if len(df.columns) > 4 else None
+                    if heat is None or cool is None:
+                        return go.Figure()
+                    # Parse times and aggregate monthly energy (assume 1h step)
+                    dfm = df.copy()
+                    dfm[x_col] = pd.to_datetime(dfm[x_col], errors="coerce")
+                    dfm = dfm.dropna(subset=[x_col])
+                    dfm['month'] = dfm[x_col].dt.strftime('%Y-%m')
+                    dfm['heat_kWh'] = pd.to_numeric(dfm[heat], errors='coerce') / 1000.0
+                    dfm['cool_kWh'] = pd.to_numeric(dfm[cool], errors='coerce').abs() / 1000.0
+                    monthly = dfm.groupby('month')[['heat_kWh','cool_kWh']].sum().reset_index()
+                    data = []
+                    for _, row in monthly.iterrows():
+                        data.append({'Monat': row['month'], 'Typ': 'Heizung', 'Energie [kWh]': row['heat_kWh']})
+                        data.append({'Monat': row['month'], 'Typ': 'Kühlung', 'Energie [kWh]': row['cool_kWh']})
+                    df_plot = pd.DataFrame(data)
+                    fig = px.bar(
+                        df_plot,
+                        x='Monat',
+                        y='Energie [kWh]',
+                        color='Typ',
+                        barmode='group',
+                        title='Monatliche Energie'
+                    ).update_layout(
+                        xaxis_title="Monat",
+                        yaxis_title="Energie [kWh]"
+                    )
+                    return fig
+
+            with ui.nav_panel("Beliebige Daten"):
+                @render_plotly
+                def plot_measurements():
+                    df = measurements()
+                    if df is None or df.empty:
+                        fig = go.Figure()
+                        fig.add_annotation(
+                            text="Keine Messdaten geladen",
+                            xref="paper", yref="paper",
+                            x=0.5, y=0.5, showarrow=False,
+                            font=dict(size=16)
+                        )
+                        return fig
+                    
+                    # Get selected columns
+                    try:
+                        selected = input.selected_columns()
+                        if not selected:
+                            selected = []
+                        else:
+                            selected = list(selected) if not isinstance(selected, list) else selected
+                    except Exception:
+                        selected = []
+                    
+                    if not selected:
+                        fig = go.Figure()
+                        fig.add_annotation(
+                            text="Bitte wählen Sie Spalten aus",
+                            xref="paper", yref="paper",
+                            x=0.5, y=0.5, showarrow=False,
+                            font=dict(size=16)
+                        )
+                        return fig
+                    
+                    # Use first column as x-axis
+                    x_col = df.columns[0]
+
+                    # Apply optional time range filter
+                    plot_df = df
+                    times = pd.to_datetime(df[x_col], errors="coerce")
+                    try:
+                        date_range = input.measurement_time_range()
+                    except Exception:
+                        date_range = None
+
+                    if date_range and len(date_range) == 2 and times.notna().any():
+                        start_date, end_date = date_range
+                        mask = times.notna()
+                        if start_date:
+                            mask &= times >= pd.to_datetime(start_date)
+                        if end_date:
+                            mask &= times <= pd.to_datetime(end_date) + pd.Timedelta(days=1) - pd.Timedelta(milliseconds=1)
+                        plot_df = df.loc[mask]
+
+                        if plot_df.empty:
+                            fig = go.Figure()
+                            fig.add_annotation(
+                                text="Keine Daten im gewählten Zeitraum",
+                                xref="paper", yref="paper",
+                                x=0.5, y=0.5, showarrow=False,
+                                font=dict(size=16)
+                            )
+                            return fig
+                    
+                    # Sample data if too large
+                    if len(plot_df) > 10000:
+                        step = max(1, len(plot_df) // 10000)
+                        plot_df = plot_df.iloc[::step]
+                    
+                    fig = px.line(
+                        plot_df,
+                        x=x_col,
+                        y=selected,
+                        labels={x_col: "Zeit"},
+                        title="Messdaten (frei wählbar)"
+                    )
+                    fig.update_layout(
+                        xaxis_title="Zeit",
+                        yaxis_title="Wert",
+                        legend_title="Spalten",
+                        hovermode='x unified'
+                    )
+                    return fig
 
     with ui.card():
         ui.card_header("Kennzahlen der Messdaten")
@@ -1639,44 +1761,30 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
                 measurements_summary.set(None)
         
         with ui.layout_column_wrap():
-            # Außentemperatur
-            with ui.value_box(id="value_box_meas_outdoor_temp_mean", width=6):
-                "Durchschnittliche Außentemperatur"
-                @render.text
-                def meas_outdoor_temp_mean():
-                    value = get_measurement_values(measurements_summary(), column_name="Außentemperatur", metric="mean")
-                    return f"{value} °C"
-            
+            # Aussentemperatur minima/maxima mit Zeitstempel
             with ui.value_box(id="value_box_meas_outdoor_temp_min", width=6):
-                "Minimale Außentemperatur"
+                "Minimale Aussentemperatur"
                 @render.text
                 def meas_outdoor_temp_min():
-                    value = get_measurement_values(measurements_summary(), column_name="Außentemperatur", metric="min")
+                    value = get_measurement_values(measurements_summary(), column_name="Aussentemperatur", metric="min")
                     return f"{value} °C"
-            
-            # Innentemperatur
-            with ui.value_box(id="value_box_meas_indoor_temp_mean", width=6):
-                "Durchschnittliche Raumtemperatur"
                 @render.text
-                def meas_indoor_temp_mean():
-                    value = get_measurement_values(measurements_summary(), column_name="Raumtemperatur", metric="mean")
+                def meas_outdoor_temp_min_ts():
+                    ts = get_measurement_values(measurements_summary(), column_name="Aussentemperatur", metric="min_timestamp")
+                    return f"am {ts}" if ts != "-" else ""
+
+            with ui.value_box(id="value_box_meas_outdoor_temp_max", width=6):
+                "Maximale Aussentemperatur"
+                @render.text
+                def meas_outdoor_temp_max():
+                    value = get_measurement_values(measurements_summary(), column_name="Aussentemperatur", metric="max")
                     return f"{value} °C"
-            
-            with ui.value_box(id="value_box_meas_indoor_temp_overheat", width=6):
-                "Überhitzungsstunden (>26°C)"
                 @render.text
-                def meas_indoor_temp_overheat():
-                    value = get_measurement_values(measurements_summary(), column_name="Raumtemperatur", metric="overheating_hours")
-                    return f"{value} h"
+                def meas_outdoor_temp_max_ts():
+                    ts = get_measurement_values(measurements_summary(), column_name="Aussentemperatur", metric="max_timestamp")
+                    return f"am {ts}" if ts != "-" else ""
             
             # Heizleistung
-            with ui.value_box(id="value_box_meas_heating_power_mean", width=6):
-                "Durchschnittliche Heizleistung"
-                @render.text
-                def meas_heating_power_mean():
-                    value = get_measurement_values(measurements_summary(), column_name="Heizleistung", metric="power_mean")
-                    return f"{value} kW"
-            
             with ui.value_box(id="value_box_meas_heating_power_max", width=6):
                 "Maximale Heizleistung"
                 @render.text
@@ -1685,13 +1793,6 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
                     return f"{value} kW"
             
             # Kühlleistung
-            with ui.value_box(id="value_box_meas_cooling_power_mean", width=6):
-                "Durchschnittliche Kühlleistung"
-                @render.text
-                def meas_cooling_power_mean():
-                    value = get_measurement_values(measurements_summary(), column_name="Kühlleistung", metric="power_mean")
-                    return f"{value} kW"
-            
             with ui.value_box(id="value_box_meas_cooling_power_max", width=6):
                 "Maximale Kühlleistung"
                 @render.text
@@ -1701,6 +1802,28 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
     
     with ui.card():
         ui.card_header("Simulationsergebnisse zum Vergleich")
+        
+        # Kennzahlen aus Simulationsergebnissen (Variante A)
+        with ui.layout_column_wrap():
+            with ui.value_box(id="sim_outdoor_min", width=6):
+                "Min. Aussentemperatur (Simulation A)"
+                @render.text
+                def sim_outdoor_min_value():
+                    return f"{get_summary_values(summary_all(), variant=VARIANT_ID_A, end_use='temperature', metric='temp_outdoor_min')} °C"
+                @render.text
+                def sim_outdoor_min_ts():
+                    ts = get_summary_values(summary_all(), variant=VARIANT_ID_A, end_use='temperature', metric='temp_outdoor_min_ts')
+                    return f"am {ts}" if ts != '-' else ''
+            with ui.value_box(id="sim_outdoor_max", width=6):
+                "Max. Aussentemperatur (Simulation A)"
+                @render.text
+                def sim_outdoor_max_value():
+                    return f"{get_summary_values(summary_all(), variant=VARIANT_ID_A, end_use='temperature', metric='temp_outdoor_max')} °C"
+                @render.text
+                def sim_outdoor_max_ts():
+                    ts = get_summary_values(summary_all(), variant=VARIANT_ID_A, end_use='temperature', metric='temp_outdoor_max_ts')
+                    return f"am {ts}" if ts != '-' else ''
+        
         with ui.navset_card_tab(id="comparison_simulation_tabs"):
             with ui.nav_panel("Temperatur"):
                 @render_plotly
@@ -1733,7 +1856,7 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
                     ).update_layout(
                         title="Temperaturverläufe",
                         hovermode="x unified",
-                        xaxis_title="Zeit [h]",
+                        xaxis_title="Zeit",
                         yaxis_title="Temperatur [°C]",
                     )
                     return fig
@@ -1768,7 +1891,8 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
                         showgrid=True,
                     ).update_layout(
                         title="Heiz- und Kühlleistung",
-                        xaxis_title="Zeit [h]",
+                        hovermode="x unified",
+                        xaxis_title="Zeit",
                         yaxis_title="Leistung [W]",
                     )
                     return fig
