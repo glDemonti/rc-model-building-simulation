@@ -1,6 +1,6 @@
 services:
   simulation-app:
-    image: ghcr.io/gldementi/vm2-rc-modell-ui:latest
+    image: ghcr.io/glDemonti/rc-model-building-simulation:latest
     container_name: simulation-app
     ports:
       - "8050:8050"

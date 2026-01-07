@@ -1,0 +1,29 @@
+# Reduce Docker build context size
+.git
+.gitignore
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.swp
+.DS_Store
+
+# Python venvs
+.venv
+venv
+
+# Local data and outputs
+data/
+py_out.npz
+*.npz
+*.mat
+
+# Notebooks and large refs (not needed in image)
+notebooks/
+reference/
+
+# Test files
+tests/
+
+# Project results (mounted at runtime)
+projects/**/results/
