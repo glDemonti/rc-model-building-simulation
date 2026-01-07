@@ -1,6 +1,6 @@
 services:
   simulation-app:
-    image: ghcr.io/glDemonti/rc-model-building-simulation:latest
+    image: ghcr.io/gldemonti/rc-model-building-simulation:containerization
     container_name: simulation-app
     ports:
       - "8050:8050"
@@ -8,4 +8,5 @@ services:
       - ./projects:/app/projects
       - ./data:/app/data
     environment:
-      - VM2_DATA_DIR=/app/data
+      VM2_DATA_DIR: /app/data
+    restart: unless-stopped
