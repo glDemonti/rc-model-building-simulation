@@ -579,7 +579,7 @@ def _compute_monthly_timeseries_wide():
 
 def get_summary_values(summary_df, *, variant: str, end_use: str, metric: str, default="-"):
     """
-    Funktion for extracting a single summary value from the summary DataFrame.
+    Function for extracting a single summary value from the summary DataFrame.
     Args:
         summary_df (pd.DataFrame): The summary DataFrame containing the results.
         variant (str): The variant ID to filter by (e.g., "A" or "B").
@@ -595,6 +595,33 @@ def get_summary_values(summary_df, *, variant: str, end_use: str, metric: str, d
     rows = summary_df[
         (summary_df["variant_id"] == variant) &
         (summary_df["end_use"] == end_use) &
+        (summary_df["metric"] == metric)
+    ]
+    if rows.empty:
+        return default
+    
+    value = rows.iloc[0]["value"]
+    try:   
+        return f"{float(value):.1f}"
+    except Exception:
+        return str(value)
+
+def get_measurement_values(summary_df, *, column_name: str, metric: str, default="-"):
+    """
+    Extract a single measurement value from the measurement summary DataFrame.
+    Args:
+        summary_df (pd.DataFrame): The measurement summary DataFrame.
+        column_name (str): The column name to filter by (e.g., "Raumtemperatur S235").
+        metric (str): The metric to filter by (e.g., "mean", "max", "overheating_hours").
+        default (str, optional): The default value to return if no matching entry is found. Defaults to "-".
+    """
+    if summary_df is None:
+        return default
+    if not isinstance(summary_df, pd.DataFrame) or summary_df.empty:
+        return default
+    
+    rows = summary_df[
+        (summary_df["column_name"] == column_name) &
         (summary_df["metric"] == metric)
     ]
     if rows.empty:
@@ -1547,6 +1574,172 @@ with ui.nav_panel("Vergleich mit Messdaten"):
                 hovermode='x unified'
             )
             return fig
+
+    with ui.card():
+        ui.card_header("Kennzahlen der Messdaten")
+        
+        # Reactive value for measurement summary
+        measurements_summary = reactive.Value(None)
+        
+        @reactive.effect
+        def _compute_measurement_summary():
+            df = measurements()
+            if df is None or (isinstance(df, pd.DataFrame) and df.empty):
+                measurements_summary.set(None)
+                return
+            
+            x_col = df.columns[0]
+            
+            # Get date range filter
+            try:
+                date_range = input.measurement_time_range()
+            except Exception:
+                date_range = None
+            
+            # Use facade to compute measurements summary via analytics
+            try:
+                stats_df = facade_A.get_measurement_summary(
+                    "measurements",
+                    date_range=date_range,
+                    time_column=x_col
+                )
+                measurements_summary.set(stats_df)
+            except Exception as e:
+                print(f"Error computing measurement summary: {e}")
+                measurements_summary.set(None)
+        
+        with ui.navset_card_tab(id="measurement_stats_tabs"):
+            with ui.nav_panel("Raumtemperatur"):
+                with ui.layout_column_wrap():
+                    with ui.value_box(
+                        id="value_box_meas_temp_s235_mean",
+                        width=4,
+                    ):
+                        "Durchschnittstemperatur S235"
+                        @render.text
+                        def meas_temp_s235_mean():
+                            value = get_measurement_values(measurements_summary(), column_name="Raumtemperatur S235", metric="mean")
+                            return f"{value} °C"
+                    
+                    with ui.value_box(
+                        id="value_box_meas_temp_s235_min",
+                        width=4,
+                    ):
+                        "Minimale Temperatur S235"
+                        @render.text
+                        def meas_temp_s235_min():
+                            value = get_measurement_values(measurements_summary(), column_name="Raumtemperatur S235", metric="min")
+                            return f"{value} °C"
+                        @render.text
+                        def meas_temp_s235_min_ts():
+                            ts = get_measurement_values(measurements_summary(), column_name="Raumtemperatur S235", metric="min_timestamp")
+                            return f"am {ts}" if ts != "-" else ""
+                    
+                    with ui.value_box(
+                        id="value_box_meas_temp_s235_max",
+                        width=4,
+                    ):
+                        "Maximale Temperatur S235"
+                        @render.text
+                        def meas_temp_s235_max():
+                            value = get_measurement_values(measurements_summary(), column_name="Raumtemperatur S235", metric="max")
+                            return f"{value} °C"
+                        @render.text
+                        def meas_temp_s235_max_ts():
+                            ts = get_measurement_values(measurements_summary(), column_name="Raumtemperatur S235", metric="max_timestamp")
+                            return f"am {ts}" if ts != "-" else ""
+                    
+                    with ui.value_box(
+                        id="value_box_meas_temp_s235_overheat",
+                        width=4,
+                    ):
+                        "Überhitzungsstunden S235"
+                        @render.text
+                        def meas_temp_s235_overheat():
+                            value = get_measurement_values(measurements_summary(), column_name="Raumtemperatur S235", metric="overheating_hours")
+                            return f"{value} h"
+                    
+                    with ui.value_box(
+                        id="value_box_meas_temp_n235_mean",
+                        width=4,
+                    ):
+                        "Durchschnittstemperatur N235"
+                        @render.text
+                        def meas_temp_n235_mean():
+                            value = get_measurement_values(measurements_summary(), column_name="Raumtemperatur N235", metric="mean")
+                            return f"{value} °C"
+                    
+                    with ui.value_box(
+                        id="value_box_meas_temp_n235_overheat",
+                        width=4,
+                    ):
+                        "Überhitzungsstunden N235"
+                        @render.text
+                        def meas_temp_n235_overheat():
+                            value = get_measurement_values(measurements_summary(), column_name="Raumtemperatur N235", metric="overheating_hours")
+                            return f"{value} h"
+            
+            with ui.nav_panel("Raumfeuchte"):
+                with ui.layout_column_wrap():
+                    with ui.value_box(
+                        id="value_box_meas_humid_s235_mean",
+                        width=4,
+                    ):
+                        "Durchschnittliche Feuchte S235"
+                        @render.text
+                        def meas_humid_s235_mean():
+                            value = get_measurement_values(measurements_summary(), column_name="Raumfeuchtefuehler S235", metric="mean")
+                            return f"{value} %"
+                    
+                    with ui.value_box(
+                        id="value_box_meas_humid_s235_min",
+                        width=4,
+                    ):
+                        "Minimale Feuchte S235"
+                        @render.text
+                        def meas_humid_s235_min():
+                            value = get_measurement_values(measurements_summary(), column_name="Raumfeuchtefuehler S235", metric="min")
+                            return f"{value} %"
+                    
+                    with ui.value_box(
+                        id="value_box_meas_humid_s235_max",
+                        width=4,
+                    ):
+                        "Maximale Feuchte S235"
+                        @render.text
+                        def meas_humid_s235_max():
+                            value = get_measurement_values(measurements_summary(), column_name="Raumfeuchtefuehler S235", metric="max")
+                            return f"{value} %"
+                    
+                    with ui.value_box(
+                        id="value_box_meas_humid_n235_mean",
+                        width=4,
+                    ):
+                        "Durchschnittliche Feuchte N235"
+                        @render.text
+                        def meas_humid_n235_mean():
+                            value = get_measurement_values(measurements_summary(), column_name="Raumfeuchtefuehler N235", metric="mean")
+                            return f"{value} %"
+                    
+                    with ui.value_box(
+                        id="value_box_meas_humid_n235_min",
+                        width=4,
+                    ):
+                        "Minimale Feuchte N235"
+                        @render.text
+                        def meas_humid_n235_min():
+                            value = get_measurement_values(measurements_summary(), column_name="Raumfeuchtefuehler N235", metric="min")
+                            return f"{value} %"
+                    
+                    with ui.value_box(
+                        id="value_box_meas_humid_n235_max",
+                        width=4,
+                    ):
+                        "Maximale Feuchte N235"
+                        @render.text
+                        def meas_humid_n235_max():
+                            value = get_measurement_values(measurements_summary(), column_name="Raumfeuchtefuehler N235", metric="max")
+                            return f"{value} %"
     
     with ui.card():
         ui.card_header("Simulationsergebnisse zum Vergleich")

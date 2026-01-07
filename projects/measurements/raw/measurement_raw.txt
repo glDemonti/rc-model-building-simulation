@@ -1,1 +1,1 @@
-Klima.csv
+Referenztemperatur.csv

@@ -143,6 +143,37 @@ class ConfigFacade:
         result = self._analytics.compute_all(project_id, variant_id)
         return result["monthly_timeseries"]
     
+    def get_measurement_summary(self, project_id: str, date_range: tuple = None, time_column: str = None):
+        """
+        Compute and return measurement statistics in summary format.
+        Uses same metrics as simulation adapters for comparison.
+        
+        Args:
+            project_id (str): Project identifier
+            date_range (tuple): Optional (start_date, end_date) for filtering
+            time_column (str): Optional name of time column
+        
+        Returns:
+            pd.DataFrame: Summary statistics with columns: project_id, column_name, metric, value, unit
+        """
+        # Load config to get costs and building area
+        cfg = self._config_repo.read_raw()
+        costs_config = {
+            "heating_price": cfg.get("economic_parameters", {}).get("heating_price", {}).get("value", 0),
+            "cooling_price": cfg.get("economic_parameters", {}).get("cooling_price", {}).get("value", 0),
+        }
+        ebf_area = cfg.get("building_geometry", {}).get("enclosure", {}).get("ebf_area", {}).get("value", None)
+        
+        # Pass config to adapters via analytics service
+        result = self._analytics.compute_measurements(
+            project_id, 
+            date_range=date_range, 
+            time_column=time_column,
+            costs_config=costs_config,
+            ebf_area=ebf_area
+        )
+        return result["summary"]
+    
     def download_raw_results(self) -> bytes:
         data = self._result.load_raw_bites()
         if data is None:
