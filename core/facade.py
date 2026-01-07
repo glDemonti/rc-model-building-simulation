@@ -150,7 +150,7 @@ class ConfigFacade:
         result = self._analytics.compute_all(project_id, variant_id)
         return result["monthly_timeseries"]
     
-    def get_measurement_summary(self, project_id: str, date_range: tuple = None, time_column: str = None):
+    def get_measurement_summary(self, project_id: str, date_range: tuple = None, time_column: str = None, costs_override: dict = None, ebf_area_override: float = None):
         """
         Compute and return measurement statistics in summary format.
         Uses same metrics as simulation adapters for comparison.
@@ -170,6 +170,17 @@ class ConfigFacade:
             "cooling_price": cfg.get("economic_parameters", {}).get("cooling_price", {}).get("value", 0),
         }
         ebf_area = cfg.get("building_geometry", {}).get("enclosure", {}).get("ebf_area", {}).get("value", None)
+
+        # Apply overrides from UI if provided
+        if isinstance(costs_override, dict):
+            hp = costs_override.get("heating_price")
+            cp = costs_override.get("cooling_price")
+            if hp is not None:
+                costs_config["heating_price"] = hp
+            if cp is not None:
+                costs_config["cooling_price"] = cp
+        if ebf_area_override is not None:
+            ebf_area = ebf_area_override
         
         # Pass config to adapters via analytics service
         result = self._analytics.compute_measurements(

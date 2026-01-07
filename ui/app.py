@@ -1733,6 +1733,33 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
         # Reactive value for measurement summary
         measurements_summary = reactive.Value(None)
 
+        # Inputs for EBF area and energy prices (override config)
+        with ui.layout_column_wrap():
+            ui.input_numeric(
+                id="input_meas_ebf_area",
+                label="Energiebezugsfläche EBF [m²]",
+                value=(cfg0.get("building_geometry", {}).get("enclosure", {}).get("ebf_area", {}).get("value", 0) or 0),
+                min=0,
+                step=1,
+                width=4,
+            )
+            ui.input_numeric(
+                id="input_meas_heating_price",
+                label="Heizpreis [CHF/kWh]",
+                value=(cfg0.get("economic_parameters", {}).get("heating_price", {}).get("value", 0) or 0),
+                min=0,
+                step=0.01,
+                width=4,
+            )
+            ui.input_numeric(
+                id="input_meas_cooling_price",
+                label="Kühlpreis [CHF/kWh]",
+                value=(cfg0.get("economic_parameters", {}).get("cooling_price", {}).get("value", 0) or 0),
+                min=0,
+                step=0.01,
+                width=4,
+            )
+
         @reactive.effect
         def _compute_measurement_summary():
             df = measurements()
@@ -1748,12 +1775,33 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
             except Exception:
                 date_range = None
 
+            # Collect UI overrides for costs and EBF
+            try:
+                ebf_area_ui = input.input_meas_ebf_area()
+            except Exception:
+                ebf_area_ui = None
+            try:
+                heating_price_ui = input.input_meas_heating_price()
+            except Exception:
+                heating_price_ui = None
+            try:
+                cooling_price_ui = input.input_meas_cooling_price()
+            except Exception:
+                cooling_price_ui = None
+
+            costs_override = {
+                "heating_price": heating_price_ui,
+                "cooling_price": cooling_price_ui,
+            }
+
             # Use facade to compute measurements summary via analytics
             try:
                 stats_df = facade_A.get_measurement_summary(
                     "measurements",
                     date_range=date_range,
-                    time_column=x_col
+                    time_column=x_col,
+                    costs_override=costs_override,
+                    ebf_area_override=ebf_area_ui
                 )
                 measurements_summary.set(stats_df)
             except Exception as e:
@@ -1787,12 +1835,30 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
 
             with ui.nav_panel("Kennzahlen Energie & Leistung"):
                 with ui.layout_column_wrap():
+                    with ui.value_box(id="value_box_meas_heating_energy_year", width=6):
+                        "Jährlicher Heizwärmebedarf"
+                        @render.text
+                        def meas_heating_energy_year():
+                            value = get_measurement_values(measurements_summary(), column_name="Heizleistung", metric="energy_year")
+                            return f"{value} kWh"
+                        
+                    with ui.value_box(id="value_box_meas_cooling_energy_year", width=6):
+                        "Jährlicher Kühlbedarf"
+                        @render.text
+                        def meas_cooling_energy_year():
+                            value = get_measurement_values(measurements_summary(), column_name="Kühlleistung", metric="energy_year")
+                            return f"{value} kWh"
+                        
                     with ui.value_box(id="value_box_meas_heating_power_max", width=6):
                         "Maximale Heizleistung"
                         @render.text
                         def meas_heating_power_max():
                             value = get_measurement_values(measurements_summary(), column_name="Heizleistung", metric="power_max")
                             return f"{value} kW"
+                        @render.text
+                        def meas_heating_power_max_ts():
+                            ts = get_measurement_values(measurements_summary(), column_name="Heizleistung", metric="power_max_timestamp")
+                            return f"am {ts}" if ts != "-" else ""
 
                     with ui.value_box(id="value_box_meas_cooling_power_max", width=6):
                         "Maximale Kühlleistung"
@@ -1800,6 +1866,52 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
                         def meas_cooling_power_max():
                             value = get_measurement_values(measurements_summary(), column_name="Kühlleistung", metric="power_max")
                             return f"{value} kW"
+                        @render.text
+                        def meas_cooling_power_max_ts():
+                            ts = get_measurement_values(measurements_summary(), column_name="Kühlleistung", metric="power_max_timestamp")
+                            return f"am {ts}" if ts != "-" else ""
+
+                    with ui.value_box(id="value_box_meas_spec_heating_load", width=6):
+                        "Spezifische Heizlast"
+                        @render.text
+                        def meas_spec_heating_load():
+                            value = get_measurement_values(measurements_summary(), column_name="Heizleistung", metric="load_specific")
+                            return f"{value} W/m²"
+
+                    with ui.value_box(id="value_box_meas_spec_cooling_load", width=6):
+                        "Spezifische Kühllast"
+                        @render.text
+                        def meas_spec_cooling_load():
+                            value = get_measurement_values(measurements_summary(), column_name="Kühlleistung", metric="load_specific")
+                            return f"{value} W/m²"
+
+                    with ui.value_box(id="value_box_meas_spec_heating_energy", width=6):
+                        "Spezifischer Heizenergiebedarf"
+                        @render.text
+                        def meas_spec_heating_energy():
+                            value = get_measurement_values(measurements_summary(), column_name="Heizleistung", metric="energy_specific")
+                            return f"{value} kWh/m²"
+
+                    with ui.value_box(id="value_box_meas_spec_cooling_energy", width=6):
+                        "Spezifischer Kühlenergiebedarf"
+                        @render.text
+                        def meas_spec_cooling_energy():
+                            value = get_measurement_values(measurements_summary(), column_name="Kühlleistung", metric="energy_specific")
+                            return f"{value} kWh/m²"
+
+                    with ui.value_box(id="value_box_meas_total_energy_costs_heating", width=6):
+                        "Jährliche Stromkosten Heizung"
+                        @render.text
+                        def meas_total_energy_costs_heating():
+                            value = get_measurement_values(measurements_summary(), column_name="Heizleistung", metric="costs_year")
+                            return f"{value} CHF"
+
+                    with ui.value_box(id="value_box_meas_total_energy_costs_cooling", width=6):
+                        "Jährliche Stromkosten Kühlung"
+                        @render.text
+                        def meas_total_energy_costs_cooling():
+                            value = get_measurement_values(measurements_summary(), column_name="Kühlleistung", metric="costs_year")
+                            return f"{value} CHF"
     
     with ui.card():
         ui.card_header("Simulationsergebnisse zum Vergleich")
@@ -1856,7 +1968,7 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
                             value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='cooling', metric='energy_year')
                             return f"{value} kWh"
                     with ui.value_box(id="comp_max_heating_power", width=4):
-                        "Maximale Heizleistung [W]"
+                        "Maximale Heizleistung"
                         @render.text
                         def comp_max_heating_power_value():
                             value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='heating', metric='power_max')
@@ -1866,7 +1978,7 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
                             ts = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='heating', metric='power_max_timestamp')
                             return f"am {ts}"
                     with ui.value_box(id="comp_max_cooling_power", width=4):
-                        "Maximale Kühlleistung [W]"
+                        "Maximale Kühlleistung"
                         @render.text
                         def comp_max_cooling_power_value():
                             value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='cooling', metric='power_max')
@@ -1876,25 +1988,25 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
                             ts = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='cooling', metric='power_max_timestamp')
                             return f"am {ts}"
                     with ui.value_box(id="comp_spec_heating_load", width=4):
-                        "Spezifische Heizlast [kW/m²]"
+                        "Spezifische Heizlast"
                         @render.text
                         def comp_spec_heating_load_value():
                             value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='heating', metric='load_specific')
                             return f"{value} W/m²"
                     with ui.value_box(id="comp_spec_cooling_load", width=4):
-                        "Spezifische Kühllast [kW/m²]"
+                        "Spezifische Kühllast"
                         @render.text
                         def comp_spec_cooling_load_value():
                             value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='cooling', metric='load_specific')
                             return f"{value} W/m²"
                     with ui.value_box(id="comp_spec_heating_energy", width=4):
-                        "Spezifischer Heizenergiebedarf [kWh/m²]"
+                        "Spezifischer Heizenergiebedarf"
                         @render.text
                         def comp_spec_heating_energy_value():
                             value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='heating', metric='energy_specific')
                             return f"{value} kWh/m²"
                     with ui.value_box(id="comp_spec_cooling_energy", width=4):
-                        "Spezifischer Kühlenergiebedarf [kWh/m²]"
+                        "Spezifischer Kühlenergiebedarf"
                         @render.text
                         def comp_spec_cooling_energy_value():
                             value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='cooling', metric='energy_specific')
