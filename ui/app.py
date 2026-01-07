@@ -2167,6 +2167,7 @@ Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihen
                         legend_title_text="Legende",
                     )
                     return fig
+
 # ===================================================================
 # region: Settings Panel
 # ===================================================================
@@ -3100,5 +3101,77 @@ with ui.nav_panel("Einstellungen"):
 
 
 with ui.nav_panel("über"):
-    "über diese App"
+    with ui.card():
+        ui.card_header("Über diese Anwendung")
+        ui.markdown(
+            """
+            ## RC-Gebäudemodell - Simulationsanwendung
+            
+            Diese Webanwendung ermöglicht die Simulation und Analyse des thermischen Verhaltens 
+            von Gebäuden mittels eines RC-Modells (Resistor-Capacitor-Modell).
+            
+            ### Funktionen
+            
+            **Simulation:**
+            - Berechnung von Raumtemperaturen, Heiz- und Kühlleistungen
+            - Vergleich von zwei Gebäudevarianten (A und B)
+            - Visualisierung von Zeitverläufen und monatlichen Energiebilanzen
+            - Berechnung von Kennzahlen (Überhitzungsstunden, Energiebedarf, Spitzenlasten, CO2-Emissionen, Kosten)
+            
+            **Messungen:**
+            - Import und Visualisierung von Messdaten
+            - Berechnung von Energiekennzahlen aus Messwerten
+            - Zeitbereichsfilterung für detaillierte Analysen
+            - Vergleich von simulierten und gemessenen Werten
+            
+            **Vergleich:**
+            - Gegenüberstellung von Variante A und B
+            - Direkte Visualisierung von Unterschieden
+            - Kennzahlenvergleich für Entscheidungsfindung
+            
+            ### Technische Details
+            
+            - **Modell:** R-C-Netzwerk 
+            - **Zeitschrittweite:** 1 Stunde (konfigurierbar)
+            - **Wetterdaten:** Verwendung von Wetterdaten  im .mat, .csv oder .epw Format
+            - **Messdaten:** Import von Messdaten im CSV oder xlsx Format
+            - **Konfiguration:** JSON-basierte Parameterverwaltung
+            
+            ### Version
+            
+            Version 1.0 - Januar 2026
+            
+            ---
+            
+            *Entwickelt von Gian Luca Demonti im Rahmen des Vertifungsmoduls 2 im Masterstudiengang Gebäudetechnik an der Hochschule Luzern - Technik & Architektur.*
+            """
+        )
+    
+    # with ui.card():
+    #     ui.card_header("Dokumentation & Hilfe")
+    #     ui.markdown(
+    #         """
+    #         ### Erste Schritte
+            
+    #         1. **Simulation starten:** Wählen Sie eine Variante und klicken Sie auf "Simulation starten"
+    #         2. **Parameter anpassen:** Nutzen Sie die Einstellungen, um Gebäudeparameter zu ändern
+    #         3. **Messdaten laden:** Laden Sie CSV-Dateien mit Messwerten für Vergleiche
+    #         4. **Varianten vergleichen:** Nutzen Sie den Vergleichsbereich für die Gegenüberstellung
+            
+    #         ### Eingabeformate
+            
+    #         **Wetterdaten:**
+    #         - MATLAB .mat Dateien mit Zeitreihen
+    #         - Erforderliche Felder: Außentemperatur, Solarstrahlung
+            
+    #         **Messdaten:**
+    #         - CSV-Dateien mit Spaltentrennung
+    #         - Erste Spalte: Zeitstempel
+    #         - Weitere Spalten: Messgrößen (Temperaturen, Leistungen)
+            
+    #         ### Support
+            
+    #         Bei Fragen oder Problemen wenden Sie sich bitte an den Administrator.
+    #         """
+    #     )
 
