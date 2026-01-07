@@ -1378,6 +1378,34 @@ with ui.nav_panel("Simulationsresultate"):
 with ui.nav_panel("Vergleich mit Messdaten"):
     with ui.card():
         ui.card_header("Einlesen von Messtdaten")
+        
+        ui.markdown("""
+### Empfohlenes Datenformat für Messdaten
+
+Die Messdaten müssen in einer Datei (CSV oder XLSX) mit **5 Spalten** in folgender **Reihenfolge** organisiert sein:
+
+| Position | Beschreibung | Beispiel-Spaltennamen |
+|----------|-------------|----------------------|
+| **Spalte 1** | Zeitstempel (Datum und Uhrzeit) | `Datum`, `Zeit`, `datetime`, `Zeitstempel` |
+| **Spalte 2** | Aussentemperatur in °C | `Aussentemperatur`, `Aussen`, `Aussenluft`, `Temp_Aussen` |
+| **Spalte 3** | Raumtemperatur in °C | `Raumtemperatur`, `Innen`, `Innentemperatur`, `Temp_Raum` |
+| **Spalte 4** | Heizleistung in W | `Heizleistung`, `Heizung`, `Heating`, `Power_Heat` |
+| **Spalte 5** | Kühlleistung in W | `Kühlleistung`, `Kühlung`, `Cooling`, `Power_Cool` |
+
+**Wichtig:**
+- Die **Spaltennamen spielen keine Rolle** - nur die **Position** ist entscheidend!
+- **Spalte 1** muss Zeitstempel enthalten (Format z.B. `dd.mm.yyyy HH:MM` oder ISO-Standard)
+- **Spalte 2-5** müssen numerische Werte sein (keine Texte)
+- Sie sind **selbst verantwortlich** für korrekte Daten: Falsche oder unvollständige Messwerte führen zu falschen Kennzahlen
+
+**Beispiel für die erste Zeile einer Datei:**
+```
+Zeit, Aussen (°C), Innen (°C), Heiz (W), Kühl (W)
+01.01.2024 00:00, -2.5, 21.0, 5200, 0
+```
+Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihenfolge stehen!
+        """)
+        
         ui.input_file(
             id="file_input_measured_data",
             label="Wählen Sie eine Datei mit Messtdaten aus",
@@ -1418,8 +1446,10 @@ with ui.nav_panel("Vergleich mit Messdaten"):
                         ui.notification_show(f"Messdaten '{original_name}' erfolgreich hochgeladen.", type="success", duration=4)
                         if has_nan_warning:
                             ui.notification_show("Warnung: Die Datei enthält ungültige Werte (NaN) in Datenspalten. Bitte prüfen Sie die Quelldatei.", type="warning", duration=8)
+                    else:
+                        ui.notification_show(message, type="error", duration=8)
                 except Exception as e: 
-                    ui.notification_show(F"Fehler beim hochladen der Messdaten: {e}", type="error", duration=6)
+                    ui.notification_show(f"Fehler beim hochladen der Messdaten: {e}", type="error", duration=6)
     
     with ui.card():
         ui.card_header("Datenansicht")
@@ -1608,138 +1638,66 @@ with ui.nav_panel("Vergleich mit Messdaten"):
                 print(f"Error computing measurement summary: {e}")
                 measurements_summary.set(None)
         
-        with ui.navset_card_tab(id="measurement_stats_tabs"):
-            with ui.nav_panel("Raumtemperatur"):
-                with ui.layout_column_wrap():
-                    with ui.value_box(
-                        id="value_box_meas_temp_s235_mean",
-                        width=4,
-                    ):
-                        "Durchschnittstemperatur S235"
-                        @render.text
-                        def meas_temp_s235_mean():
-                            value = get_measurement_values(measurements_summary(), column_name="Raumtemperatur S235", metric="mean")
-                            return f"{value} °C"
-                    
-                    with ui.value_box(
-                        id="value_box_meas_temp_s235_min",
-                        width=4,
-                    ):
-                        "Minimale Temperatur S235"
-                        @render.text
-                        def meas_temp_s235_min():
-                            value = get_measurement_values(measurements_summary(), column_name="Raumtemperatur S235", metric="min")
-                            return f"{value} °C"
-                        @render.text
-                        def meas_temp_s235_min_ts():
-                            ts = get_measurement_values(measurements_summary(), column_name="Raumtemperatur S235", metric="min_timestamp")
-                            return f"am {ts}" if ts != "-" else ""
-                    
-                    with ui.value_box(
-                        id="value_box_meas_temp_s235_max",
-                        width=4,
-                    ):
-                        "Maximale Temperatur S235"
-                        @render.text
-                        def meas_temp_s235_max():
-                            value = get_measurement_values(measurements_summary(), column_name="Raumtemperatur S235", metric="max")
-                            return f"{value} °C"
-                        @render.text
-                        def meas_temp_s235_max_ts():
-                            ts = get_measurement_values(measurements_summary(), column_name="Raumtemperatur S235", metric="max_timestamp")
-                            return f"am {ts}" if ts != "-" else ""
-                    
-                    with ui.value_box(
-                        id="value_box_meas_temp_s235_overheat",
-                        width=4,
-                    ):
-                        "Überhitzungsstunden S235"
-                        @render.text
-                        def meas_temp_s235_overheat():
-                            value = get_measurement_values(measurements_summary(), column_name="Raumtemperatur S235", metric="overheating_hours")
-                            return f"{value} h"
-                    
-                    with ui.value_box(
-                        id="value_box_meas_temp_n235_mean",
-                        width=4,
-                    ):
-                        "Durchschnittstemperatur N235"
-                        @render.text
-                        def meas_temp_n235_mean():
-                            value = get_measurement_values(measurements_summary(), column_name="Raumtemperatur N235", metric="mean")
-                            return f"{value} °C"
-                    
-                    with ui.value_box(
-                        id="value_box_meas_temp_n235_overheat",
-                        width=4,
-                    ):
-                        "Überhitzungsstunden N235"
-                        @render.text
-                        def meas_temp_n235_overheat():
-                            value = get_measurement_values(measurements_summary(), column_name="Raumtemperatur N235", metric="overheating_hours")
-                            return f"{value} h"
+        with ui.layout_column_wrap():
+            # Außentemperatur
+            with ui.value_box(id="value_box_meas_outdoor_temp_mean", width=6):
+                "Durchschnittliche Außentemperatur"
+                @render.text
+                def meas_outdoor_temp_mean():
+                    value = get_measurement_values(measurements_summary(), column_name="Außentemperatur", metric="mean")
+                    return f"{value} °C"
             
-            with ui.nav_panel("Raumfeuchte"):
-                with ui.layout_column_wrap():
-                    with ui.value_box(
-                        id="value_box_meas_humid_s235_mean",
-                        width=4,
-                    ):
-                        "Durchschnittliche Feuchte S235"
-                        @render.text
-                        def meas_humid_s235_mean():
-                            value = get_measurement_values(measurements_summary(), column_name="Raumfeuchtefuehler S235", metric="mean")
-                            return f"{value} %"
-                    
-                    with ui.value_box(
-                        id="value_box_meas_humid_s235_min",
-                        width=4,
-                    ):
-                        "Minimale Feuchte S235"
-                        @render.text
-                        def meas_humid_s235_min():
-                            value = get_measurement_values(measurements_summary(), column_name="Raumfeuchtefuehler S235", metric="min")
-                            return f"{value} %"
-                    
-                    with ui.value_box(
-                        id="value_box_meas_humid_s235_max",
-                        width=4,
-                    ):
-                        "Maximale Feuchte S235"
-                        @render.text
-                        def meas_humid_s235_max():
-                            value = get_measurement_values(measurements_summary(), column_name="Raumfeuchtefuehler S235", metric="max")
-                            return f"{value} %"
-                    
-                    with ui.value_box(
-                        id="value_box_meas_humid_n235_mean",
-                        width=4,
-                    ):
-                        "Durchschnittliche Feuchte N235"
-                        @render.text
-                        def meas_humid_n235_mean():
-                            value = get_measurement_values(measurements_summary(), column_name="Raumfeuchtefuehler N235", metric="mean")
-                            return f"{value} %"
-                    
-                    with ui.value_box(
-                        id="value_box_meas_humid_n235_min",
-                        width=4,
-                    ):
-                        "Minimale Feuchte N235"
-                        @render.text
-                        def meas_humid_n235_min():
-                            value = get_measurement_values(measurements_summary(), column_name="Raumfeuchtefuehler N235", metric="min")
-                            return f"{value} %"
-                    
-                    with ui.value_box(
-                        id="value_box_meas_humid_n235_max",
-                        width=4,
-                    ):
-                        "Maximale Feuchte N235"
-                        @render.text
-                        def meas_humid_n235_max():
-                            value = get_measurement_values(measurements_summary(), column_name="Raumfeuchtefuehler N235", metric="max")
-                            return f"{value} %"
+            with ui.value_box(id="value_box_meas_outdoor_temp_min", width=6):
+                "Minimale Außentemperatur"
+                @render.text
+                def meas_outdoor_temp_min():
+                    value = get_measurement_values(measurements_summary(), column_name="Außentemperatur", metric="min")
+                    return f"{value} °C"
+            
+            # Innentemperatur
+            with ui.value_box(id="value_box_meas_indoor_temp_mean", width=6):
+                "Durchschnittliche Raumtemperatur"
+                @render.text
+                def meas_indoor_temp_mean():
+                    value = get_measurement_values(measurements_summary(), column_name="Raumtemperatur", metric="mean")
+                    return f"{value} °C"
+            
+            with ui.value_box(id="value_box_meas_indoor_temp_overheat", width=6):
+                "Überhitzungsstunden (>26°C)"
+                @render.text
+                def meas_indoor_temp_overheat():
+                    value = get_measurement_values(measurements_summary(), column_name="Raumtemperatur", metric="overheating_hours")
+                    return f"{value} h"
+            
+            # Heizleistung
+            with ui.value_box(id="value_box_meas_heating_power_mean", width=6):
+                "Durchschnittliche Heizleistung"
+                @render.text
+                def meas_heating_power_mean():
+                    value = get_measurement_values(measurements_summary(), column_name="Heizleistung", metric="power_mean")
+                    return f"{value} kW"
+            
+            with ui.value_box(id="value_box_meas_heating_power_max", width=6):
+                "Maximale Heizleistung"
+                @render.text
+                def meas_heating_power_max():
+                    value = get_measurement_values(measurements_summary(), column_name="Heizleistung", metric="power_max")
+                    return f"{value} kW"
+            
+            # Kühlleistung
+            with ui.value_box(id="value_box_meas_cooling_power_mean", width=6):
+                "Durchschnittliche Kühlleistung"
+                @render.text
+                def meas_cooling_power_mean():
+                    value = get_measurement_values(measurements_summary(), column_name="Kühlleistung", metric="power_mean")
+                    return f"{value} kW"
+            
+            with ui.value_box(id="value_box_meas_cooling_power_max", width=6):
+                "Maximale Kühlleistung"
+                @render.text
+                def meas_cooling_power_max():
+                    value = get_measurement_values(measurements_summary(), column_name="Kühlleistung", metric="power_max")
+                    return f"{value} kW"
     
     with ui.card():
         ui.card_header("Simulationsergebnisse zum Vergleich")

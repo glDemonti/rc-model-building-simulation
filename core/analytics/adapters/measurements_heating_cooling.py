@@ -6,23 +6,18 @@ class MeasurementsHeatingCoolingAdapter(BaseAdapter):
     """
     Adapter for computing heating/cooling statistics from measurement data.
     Mirrors the HeatingCoolingSummaryAdapter for simulations.
-    Detects power/energy columns by name patterns (contains "heat", "cool", "power", "energy").
+    
+    Column structure by position (names don't matter):
+    - Col 0: datetime (Zeitstempel)
+    - Col 1: Aussentemperatur
+    - Col 2: Raumtemperatur
+    - Col 3: Heizleistung (used here)
+    - Col 4: Kühlleistung (used here)
     """
     def __init__(self, ebf_area: float = None):
         super().__init__(name="MeasurementsHeatingCooling", kind="measurements")
         self.ebf_area = ebf_area  # Building energy reference area (m²)
         self.required_raw_columns = set()
-
-    def _classify_column(self, col_name: str) -> str:
-        """
-        Classify column as 'heating', 'cooling', or None.
-        """
-        col_lower = col_name.lower()
-        if "heat" in col_lower and "cool" not in col_lower:
-            return "heating"
-        elif "cool" in col_lower and "heat" not in col_lower:
-            return "cooling"
-        return None
 
     def _is_power_column(self, col_name: str) -> bool:
         """Check if column contains power data."""
@@ -35,6 +30,7 @@ class MeasurementsHeatingCoolingAdapter(BaseAdapter):
     def compute(self, df: pd.DataFrame, project_id: str = None, time_column: str = None, date_range: tuple = None, costs_config: dict = None) -> dict:
         """
         Compute heating/cooling statistics for measurement data.
+        Uses column positions instead of names.
         
         Args:
             df: Measurement data
@@ -64,72 +60,76 @@ class MeasurementsHeatingCoolingAdapter(BaseAdapter):
                 mask &= times <= pd.to_datetime(end_date) + pd.Timedelta(days=1) - pd.Timedelta(milliseconds=1)
         
         filtered = df.loc[mask].copy()
+        filtered_times = times.loc[mask]
         
         if filtered.empty:
             return {"summary": pd.DataFrame()}
         
-        # Find heating/cooling columns
-        numeric_cols = filtered.select_dtypes(include=["number"]).columns.tolist()
+        # Use fixed column positions:
+        # Col 3: Heizleistung, Col 4: Kühlleistung
+        power_positions = [3, 4]
+        power_names = ["Heizleistung", "Kühlleistung"]
+        power_types = ["heating", "cooling"]
+        
         rows = []
         dt_hours = 1.0  # Assuming 1-hour timestep
         
-        for col in numeric_cols:
-            end_use = self._classify_column(col)
-            if end_use is None:
+        for pos, name, end_use in zip(power_positions, power_names, power_types):
+            if pos >= len(df.columns):
                 continue
             
-            series = filtered[col].abs()  # Ensure positive values
+            col = df.columns[pos]
+            # Convert to numeric, coercing errors
+            series = pd.to_numeric(filtered[col], errors="coerce").abs()  # Ensure positive values
+            
             if series.empty or series.count() == 0:
                 continue
             
             try:
                 idx_max = series.idxmax()
-                max_ts = filtered_times.loc[idx_max] if idx_max in filtered_times.index else pd.NaT
+                max_ts = filtered_times.loc[idx_max] if pd.notna(idx_max) else pd.NaT
             except Exception:
                 max_ts = pd.NaT
             
-            # Power metrics (if power column)
-            if self._is_power_column(col):
-                max_power_kW = float(series.max()) / 1000 if series.max() > 100 else float(series.max())
-                mean_power_kW = float(series.mean()) / 1000 if series.mean() > 100 else float(series.mean())
-                
-                rows.extend([
-                    {"project_id": project_id, "column_name": col, "metric": "power_mean", "value": mean_power_kW, "unit": "kW"},
-                    {"project_id": project_id, "column_name": col, "metric": "power_max", "value": max_power_kW, "unit": "kW"},
-                    {"project_id": project_id, "column_name": col, "metric": "power_max_timestamp", "value": str(max_ts), "unit": "datetime"},
-                ])
-                
-                # Specific load if ebf_area available
-                if self.ebf_area:
-                    spec_load = (max_power_kW * 1000) / self.ebf_area  # W/m²
-                    rows.append(
-                        {"project_id": project_id, "column_name": col, "metric": "load_specific", "value": spec_load, "unit": "W/m²"}
-                    )
+            # Power metrics
+            max_power_kW = float(series.max()) / 1000 if series.max() > 100 else float(series.max())
+            mean_power_kW = float(series.mean()) / 1000 if series.mean() > 100 else float(series.mean())
             
-            # Energy metrics (if energy column)
-            if self._is_energy_column(col):
-                # Sum energy (assume power values in W, convert to kWh)
-                energy_kWh = (series * dt_hours).sum() / 1000 if series.max() > 100 else (series * dt_hours).sum()
-                
-                rows.extend([
-                    {"project_id": project_id, "column_name": col, "metric": "energy_year", "value": energy_kWh, "unit": "kWh"},
-                ])
-                
-                # Specific energy if ebf_area available
-                if self.ebf_area:
-                    energy_specific = energy_kWh / self.ebf_area
+            rows.extend([
+                {"project_id": project_id, "column_name": name, "metric": "power_mean", "value": mean_power_kW, "unit": "kW"},
+                {"project_id": project_id, "column_name": name, "metric": "power_max", "value": max_power_kW, "unit": "kW"},
+                {"project_id": project_id, "column_name": name, "metric": "power_max_timestamp", "value": str(max_ts), "unit": "datetime"},
+            ])
+            
+            # Specific load if ebf_area available
+            if self.ebf_area:
+                spec_load = (max_power_kW * 1000) / self.ebf_area  # W/m²
+                rows.append(
+                    {"project_id": project_id, "column_name": name, "metric": "load_specific", "value": spec_load, "unit": "W/m²"}
+                )
+            
+            # Energy metrics (assuming power in W)
+            energy_kWh = (series * dt_hours).sum() / 1000 if series.max() > 100 else (series * dt_hours).sum()
+            
+            rows.extend([
+                {"project_id": project_id, "column_name": name, "metric": "energy_year", "value": energy_kWh, "unit": "kWh"},
+            ])
+            
+            # Specific energy if ebf_area available
+            if self.ebf_area:
+                energy_specific = energy_kWh / self.ebf_area
+                rows.append(
+                    {"project_id": project_id, "column_name": name, "metric": "energy_specific", "value": energy_specific, "unit": "kWh/m²"}
+                )
+            
+            # Costs if pricing available
+            if costs_config:
+                price_key = f"{end_use}_price"
+                if price_key in costs_config:
+                    cost = energy_kWh * costs_config[price_key]
                     rows.append(
-                        {"project_id": project_id, "column_name": col, "metric": "energy_specific", "value": energy_specific, "unit": "kWh/m²"}
+                        {"project_id": project_id, "column_name": name, "metric": "costs_year", "value": cost, "unit": "CHF"}
                     )
-                
-                # Costs if pricing available
-                if costs_config:
-                    price_key = f"{end_use}_price"
-                    if price_key in costs_config:
-                        cost = energy_kWh * costs_config[price_key]
-                        rows.append(
-                            {"project_id": project_id, "column_name": col, "metric": "costs_year", "value": cost, "unit": "CHF"}
-                        )
         
         if not rows:
             return {"summary": pd.DataFrame()}

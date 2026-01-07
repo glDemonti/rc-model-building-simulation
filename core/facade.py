@@ -80,6 +80,13 @@ class ConfigFacade:
         self._measure_repo.write_raw(Path(temp_path))
         self._measure_repo.save_original_name(original_name)
         
+        # Validate structure and basic content
+        try:
+            # This will load and validate the dataframe
+            self._measure_service.process_and_store_measurements()
+        except Exception as e:
+            return False, f"Ungültiges Messdaten-Format: {e}", False
+        
         # Check for NaN values in data columns (exclude completely empty columns)
         try:
             df = self._measure_repo.read_raw()
