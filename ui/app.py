@@ -1439,6 +1439,31 @@ with ui.nav_panel("Vergleich mit Messdaten"):
                 multiple=True,
                 width="100%"
             )
+
+        @render.ui
+        def measurement_timerange_selector():
+            df = measurements()
+            if df is None:
+                return ui.p("Keine Daten geladen. Bitte laden Sie zuerst eine Messdatei hoch.")
+            if df.empty:
+                return ui.p("Geladene Datei ist leer")
+
+            x_col = df.columns[0]
+            times = pd.to_datetime(df[x_col], errors="coerce").dropna()
+            if times.empty:
+                return ui.p("Keine gültigen Zeitangaben in der ersten Spalte gefunden.")
+
+            start = times.min().date()
+            end = times.max().date()
+            return ui.input_date_range(
+                id="measurement_time_range",
+                label="Zeitraum für das Diagramm",
+                start=start,
+                end=end,
+                min=start,
+                max=end,
+                width="100%",
+            )
         
         @render_plotly
         def plot_measurements():
@@ -1475,12 +1500,38 @@ with ui.nav_panel("Vergleich mit Messdaten"):
             
             # Use first column as x-axis
             x_col = df.columns[0]
+
+            # Apply optional time range filter
+            plot_df = df
+            times = pd.to_datetime(df[x_col], errors="coerce")
+            try:
+                date_range = input.measurement_time_range()
+            except Exception:
+                date_range = None
+
+            if date_range and len(date_range) == 2 and times.notna().any():
+                start_date, end_date = date_range
+                mask = times.notna()
+                if start_date:
+                    mask &= times >= pd.to_datetime(start_date)
+                if end_date:
+                    mask &= times <= pd.to_datetime(end_date) + pd.Timedelta(days=1) - pd.Timedelta(milliseconds=1)
+                plot_df = df.loc[mask]
+
+                if plot_df.empty:
+                    fig = go.Figure()
+                    fig.add_annotation(
+                        text="Keine Daten im gewählten Zeitraum",
+                        xref="paper", yref="paper",
+                        x=0.5, y=0.5, showarrow=False,
+                        font=dict(size=16)
+                    )
+                    return fig
             
             # Sample data if too large
-            plot_df = df
-            if len(df) > 10000:
-                step = len(df) // 10000
-                plot_df = df.iloc[::step]
+            if len(plot_df) > 10000:
+                step = max(1, len(plot_df) // 10000)
+                plot_df = plot_df.iloc[::step]
             
             fig = px.line(
                 plot_df,
