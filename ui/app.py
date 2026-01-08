@@ -36,17 +36,6 @@ active_variant = reactive.Value("A")                # "A" or "B"
 unsaved_changes = reactive.Value(False)            # track unsaved changes
 
 
-# # Import sim_io_mock from adapters, adjusting sys.path if necessary
-# try:
-#     from adapters import sim_io_mock
-# except ModuleNotFoundError:
-#     import sys, pathlib
-#     ROOT = pathlib.Path(__file__).resolve().parents[1]  # repo root (one above /ui)
-#     if str(ROOT) not in sys.path:
-#         sys.path.insert(0, str(ROOT))
-#     from adapters import sim_io_mock
-
-
 # Helper function to deeply set a value in a nested dictionary given a dot-separated path
 def _deep_set(d, path, value):
     out = copy.deepcopy(d)
@@ -183,14 +172,6 @@ def _schedule_df_from_cfg(cfg, key):
         data=[cfg['thermal_properties']['schedules'][key]],
         dtype=float
     )
-
-# def _safe_grid_vector(grid_fn, row_name: str, fallback: list[float]) -> list[float]:
-#     try:
-#         df = grid_fn.data_patched().astype(float)
-#         return[float(x) for x in df.loc[row_name].tolist()]
-#     except Exception as e:
-#         print(f"WARN: grid not ready or row missing:", row_name, e)
-#         return fallback
 
 def _safe_grid_row_or_cfg(grid_fn, row_name: str, cfg: dict, cfg_path_expr: str) -> list[float]:
     """
@@ -1128,178 +1109,6 @@ with ui.nav_panel("Simulationsresultate"):
                 def total_energy_costs_cooling_value():
                     value = get_summary_values(summary_all(), variant=input.power_variant_selector(), end_use="cooling", metric="costs_year")
                     return f"{value} CHF"
-
-
-
-    # with ui.card():
-
-    #     @render_plotly
-    #     def plot_wall_nodes_over_year():
-    #         df = sim_io_mock.make_df_temperatures().copy()
-    #         df["ts_ms"] = ts_ms(df["datetime"])
-
-    #         node_cols = ["Temperatur 1. Knoten Aussenwand Nord", "Temperatur 2. Knoten Aussenwand Nord", "Temperatur 3. Knoten Aussenwand Nord", "Temperatur 4. Knoten Aussenwand Nord"]  # anpassen, falls nötig
-    #         df_long = df.melt(id_vars=["ts_ms"], value_vars=node_cols,
-    #                         var_name="Knoten", value_name="Temperatur [°C]")
-
-    #         fig = (
-    #             px.line(
-    #                 df_long, x="ts_ms", y="Temperatur [°C]", color="Knoten",
-    #                 labels={"ts_ms": "Zeit", "Knoten": "Knoten"}
-    #             )
-    #             .update_xaxes(type="date", tickformat="%d.%m.%Y %H:%M", tickangle=45, showgrid=True)
-    #             .update_layout(
-    #                 title="Temperaturverlauf in den 4 Wandknoten (Jahresverlauf)",
-    #                 xaxis_title="Zeit", yaxis_title="Temperatur [°C]",
-    #                 hovermode="x unified"
-    #             )
-    #         )
-    #         return fig
-        
-        # # === 2) Temperatur durch die Wand (Zeit × Knoten) als Heatmap ===
-        # @render_plotly
-        # def plot_wall_nodes_heatmap():
-        #     df = sim_io_mock.make_df_temperatures().copy()
-        #     X = ts_ms(df["datetime"])                 # Zeit
-        #     node_cols = ["Temperatur 1. Knoten Aussenwand Nord", "Temperatur 2. Knoten Aussenwand Nord", "Temperatur 3. Knoten Aussenwand Nord", "Temperatur 4. Knoten Aussenwand Nord"]      # von innen nach außen
-        #     Z = df[node_cols].to_numpy().T            # (knoten × zeit)
-
-        #     # Optional: echte Tiefen statt Knotenlabels (mm) – falls vorhanden:
-        #     # depths_mm = [0, 50, 150, 300]
-        #     # y_labels = [f"{d} mm" for d in depths_mm]
-        #     y_labels = node_cols
-
-        #     fig = go.Figure(
-        #         data=go.Heatmap(z=Z, x=X, y=y_labels, colorbar=dict(title="°C"), zsmooth=False)
-        #     )
-        #     fig.update_xaxes(type="date", tickformat="%d.%m.%Y", tickangle=45, showgrid=False)
-        #     fig.update_layout(
-        #         title="Temperaturen in der Wand (Zeit × Knoten)",
-        #         xaxis_title="Zeit", yaxis_title="Knoten (innen → außen)"
-        #     )
-        #     return fig
-        
-        
-        # @render_plotly
-        # def plot_temperature_wall_over_nodes():
-        #     df = sim_io_mock.make_df_temperatures().copy()
-
-        #     # x-axis: time in ms
-        #     df["ts_ms"] = ts_ms(df["datetime"])
-
-        #     # y-axis: wall nodes
-        #     node_cols = [
-        #         "Temperatur 1. Knoten Aussenwand Nord",
-        #         "Temperatur 2. Knoten Aussenwand Nord",
-        #         "Temperatur 3. Knoten Aussenwand Nord",
-        #         "Temperatur 4. Knoten Aussenwand Nord"
-        #     ]
-
-        #     # z-values: temperatures matrix (nodes × time)
-        #     Z = df[node_cols].to_numpy().T
-        #     X = df["ts_ms"].to_numpy()
-        #     Y = node_cols
-
-        #     fig = go.Figure(
-        #         data=go.Heatmap(
-        #             x=X,
-        #             y=Y,
-        #             z=Z,
-        #             colorbar=dict(title="Temperatur [°C]"),
-        #             zsmooth=False, # True = smoothed, False = original values
-        #         )
-        #     )
-
-        #     fig.update_xaxes(
-        #         type="date",
-        #         tickformat="%d-%m %H:%M",
-        #         tickangle=45,
-        #         showgrid=False,
-        #         title_text="Zeit",
-        #     )
-
-        #     fig.update_yaxes(
-        #         categoryorder="array",
-        #         categoryarray=Y,
-        #         title_text="Knoten",
-        #     )
-        #     fig.update_layout(
-        #         title="Temperaturverlauf in den Wandknoten (Zeit x Knoten)",
-        #         margin=dict(l=0, r=0, b=0, t=40),
-        #     )
-        #     fig.update_traces(
-        #         hovertemplate="Zeit: %{x|%d-%m %H:%M}<br>Knoten: %{y}<br>Temperatur: %{z} °C<extra></extra>"
-        #     )
-        #     return fig
-
-        # @render_plotly
-        # def plot_wall_3d_surface():
-        #     df = sim_io_mock.make_df_temperatures().copy()
-        #     df["datetime"] = pd.to_datetime(df["datetime"], errors="raise").dt.tz_localize(None)
-        #     df = df.sort_values("datetime")
-
-        #     node_cols = [
-        #         "Temperatur 1. Knoten Aussenwand Nord",
-        #         "Temperatur 2. Knoten Aussenwand Nord",
-        #         "Temperatur 3. Knoten Aussenwand Nord",
-        #         "Temperatur 4. Knoten Aussenwand Nord"
-        #     ]
-
-        #     # node_cols_rev = node_cols[::-1]  # reverse for better visualization (innenseite unten)
-
-        #     # x as time in ms, format ticks as datetime later
-        #     X_num = ts_ms(df["datetime"]).to_numpy()  # Zeit in ms
-        #     Y_idx = np.arange(len(node_cols))    # Knotenindex [0, 1, 2, 3]
-        #     Z = df[node_cols].to_numpy()         # shape: (n_time × n_knoten)
-
-        #     # make meshgrid for surface
-        #     Xgrid, Ygrid = np.meshgrid(X_num, Y_idx, indexing="ij")  # shape: (n_time × n_knoten)
-        #     Zgrid = Z                                     # shape: (n_time × n_knoten)
-
-        #     start = pd.Timestamp(df["datetime"].dt.year.min(), 1, 1)
-        #     end = pd.Timestamp(df["datetime"].dt.year.max(), 12, 31, 23, 59, 59)
-            
-        #     x_ticks_dt = pd.date_range(start, end, freq="MS")
-        #     x_ticksvals =(x_ticks_dt.view("int64") // 1_000_000).astype("int64")
-        #     x_ticktext = [d.strftime("%b") for d in x_ticks_dt]
-
-        #     fig = go.Figure(data=[
-        #         go.Surface(
-        #             x=Xgrid,
-        #             y=Ygrid,
-        #             z=Zgrid,
-        #             colorscale="RdYlBu_r",
-        #             colorbar=dict(title="Temperatur [°C]"),
-        #             showscale=True,
-        #         )
-        #     ])
-        #     fig.update_layout(
-        #         title="3D-Temperaturfeld in der Wand (Zeit × Knoten × Temperatur)",
-        #         scene=dict(
-        #             xaxis=dict(
-        #                 title="Zeit",
-        #                 tickmode="array",
-        #                 tickvals=x_ticksvals,
-        #                 ticktext=x_ticktext,
-        #                 showspikes=False,
-        #             ),
-        #             yaxis=dict(
-        #                 title="Knoten",
-        #                 tickmode="array",
-        #                 tickvals=Y_idx,
-        #                 ticktext=node_cols,
-        #                 showspikes=False,
-        #             ),
-        #             zaxis=dict(
-        #                 title="Temperatur [°C]",
-        #                 showspikes=False,
-        #             ),
-        #         ),
-        #         margin=dict(l=0, r=0, b=0, t=40),
-        #     )
-        #     return fig
-        
-
 
     # with ui.card():
     #     @render_widget
@@ -2377,8 +2186,8 @@ with ui.nav_panel("Einstellungen"):
                     label="Kühlung aktivieren",
                     value=cfg0['simulation_parameters']['enable_cooling']['value'],
                 )
-            with ui.card():
-                ui.card_header("Primärenergiefaktoren")
+            # with ui.card():
+            #     ui.card_header("Primärenergiefaktoren")
 
             with ui.card():
                 ui.card_header("Co2-Emissionsfaktoren")
@@ -2397,8 +2206,8 @@ with ui.nav_panel("Einstellungen"):
                     placeholder="Geben Sie eine Zahl ein",
                 )
 
-            with ui.card():
-                ui.card_header("Ecopoints Faktoren")
+            # with ui.card():
+            #     ui.card_header("Ecopoints Faktoren")
             
             with ui.card():
                 ui.card_header("Energiekosten")
@@ -2423,11 +2232,7 @@ with ui.nav_panel("Einstellungen"):
                     width="600px",
                     placeholder="Geben Sie eine Zahl ein",
                 )
-        
-        # # Advanced Settings tab
-        # with ui.nav_menu("erweiterte Einstellungen"):
-
-            
+                    
         with ui.nav_panel("Gebäudeeigenschaften"):
 
             with ui.accordion(id="acc", open="Gebäudegeometrie"):
@@ -2947,22 +2752,6 @@ with ui.nav_panel("Einstellungen"):
                     max_value=1.0,
                     decimals=2
                 )
-
-                # @render.ui
-                # def occ_last_error_msg():
-                #     msg = occ_last_error.get()
-                #     if not msg:
-                #         return ui.div()
-                #     return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
-                # @render.ui
-                # def occ_error_list():
-                #     items = occ_error_log.get() or []
-                #     if not items:
-                #         return ui.div()
-                #     return ui.div(
-                #         {"style":"margin-top:6px;font-size:0.9rem;"},
-                #         ui.tags.ul(*[ui.tags.li(it) for it in items])
-                #     )
                 
                 @render.plot(alt="Plot of occupancy schedule")
                 def plot_occupancy():
@@ -2992,24 +2781,6 @@ with ui.nav_panel("Einstellungen"):
                     max_value=1.0,
                     decimals=2
                 )
-
-                # @render.ui
-                # def light_last_error_msg():
-                #     msg = light_last_error.get()
-                #     if not msg:
-                #         return ui.div()
-                #     return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
-
-                # @render.ui
-                # def light_error_list():
-                #     items = light_error_log.get() or []
-                #     if not items:
-                #         return ui.div()
-                #     return ui.div(
-                #         {"style":"margin-top:6px;font-size:0.9rem;"},
-                #         ui.tags.ul(*[ui.tags.li(it) for it in items])
-                #     )
-
                 
                 @render.plot(alt="Plot of lighting schedule")
                 def plot_lighting():
@@ -3039,23 +2810,6 @@ with ui.nav_panel("Einstellungen"):
                     max_value=1.0,
                     decimals=2
                 )
-
-                # @render.ui
-                # def equip_last_error_msg():
-                #     msg = equip_error.get()
-                #     if not msg:
-                #         return ui.div()
-                #     return ui.div({"style":"color:#b91c1c;margin-top:6px;"}, f"⚠ {msg}")
-
-                # @render.ui
-                # def equip_error_list():
-                #     items = equip_error_log.get() or []
-                #     if not items:
-                #         return ui.div()
-                #     return ui.div(
-                #         {"style":"margin-top:6px;font-size:0.9rem;"},
-                #         ui.tags.ul(*[ui.tags.li(it) for it in items])
-                #     )     
 
                 @render.plot(alt="Plot of equipment schedule")
                 def plot_equipment():
@@ -3168,31 +2922,4 @@ with ui.nav_panel("über"):
             """
         )
     
-    # with ui.card():
-    #     ui.card_header("Dokumentation & Hilfe")
-    #     ui.markdown(
-    #         """
-    #         ### Erste Schritte
-            
-    #         1. **Simulation starten:** Wählen Sie eine Variante und klicken Sie auf "Simulation starten"
-    #         2. **Parameter anpassen:** Nutzen Sie die Einstellungen, um Gebäudeparameter zu ändern
-    #         3. **Messdaten laden:** Laden Sie CSV-Dateien mit Messwerten für Vergleiche
-    #         4. **Varianten vergleichen:** Nutzen Sie den Vergleichsbereich für die Gegenüberstellung
-            
-    #         ### Eingabeformate
-            
-    #         **Wetterdaten:**
-    #         - MATLAB .mat Dateien mit Zeitreihen
-    #         - Erforderliche Felder: Außentemperatur, Solarstrahlung
-            
-    #         **Messdaten:**
-    #         - CSV-Dateien mit Spaltentrennung
-    #         - Erste Spalte: Zeitstempel
-    #         - Weitere Spalten: Messgrößen (Temperaturen, Leistungen)
-            
-    #         ### Support
-            
-    #         Bei Fragen oder Problemen wenden Sie sich bitte an den Administrator.
-    #         """
-    #     )
 
