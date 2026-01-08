@@ -6,7 +6,6 @@ services:
     ports:
       - "8050:8050"
     volumes:
-      - ./projects:/app/projects
       - ./data:/app/data
     environment:
       - VM2_DATA_DIR=/app/data

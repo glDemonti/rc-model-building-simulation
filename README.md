@@ -28,129 +28,94 @@ Eine interaktive Webanwendung zur Simulation und Analyse eines RC-Gebäudemodell
 Diese Anleitung beschreibt die Nutzung über die Docker-Desktop-Oberfläche.
 
 **A) Vorgehen mit vorgebautem Image (GHCR)**
-1. Docker Desktop öffnen und zum Tab „Images“ wechseln.
-2. Über „Pull“ das Image beziehen: `ghcr.io/gldemonti/rc-model-building-simulation:latest`.
-3. Im Tab „Containers“ das Image über „Run“ (oder „Create Container“) starten.
-4. Konfiguration im Dialog:
-   - Ports: Port-Zuweisung hinzufügen: Host `8050` → Container `8050`.
-     - Falls `8050` belegt ist, anderen Host-Port verwenden (z. B. `9000` → `8050`).
-   - Volumes/Mounts: Zwei Bind-Mounts hinzufügen:
-     - `$(Projektordner)/projects` → `/app/projects`
-     - `$(Projektordner)/data` → `/app/data`
-   - Environment Variables: `VM2_DATA_DIR` mit Wert `/app/data` hinzufügen.
-5. Container starten. Anschließend im Browser öffnen: `http://localhost:8050` (oder gewählten Host-Port).
 
-**B) Vorgehen mit lokalem Build über GUI**
-1. Docker Desktop öffnen und zum Tab „Images“ wechseln.
-2. „Build“ (falls verfügbar) oder „Create from Dockerfile“ wählen und den Projektordner als Kontext sowie die `Dockerfile` angeben.
-  - Tag: `vm2-rc-modell-ui:local`
-3. Nach erfolgreichem Build im Tab „Images“ das neue Image wählen und „Run“ ausführen.
-4. Konfiguration wie oben (A.4):
-  - Ports: Host `8050` → Container `8050` (oder alternativen Host-Port).
-  - Volumes: `projects` → `/app/projects`, `data` → `/app/data`.
-  - Env: `VM2_DATA_DIR=/app/data`.
-5. Container starten und im Browser öffnen.
+Das Image liegt in der GitHub Container Registry. Vorgehen (GUI mit kurzem Terminal-Schritt):
 
-Hinweise:
-- Wenn die Seite nicht lädt, prüfen, ob ein anderer Dienst den Host-Port belegt, und die Host-Port-Zuweisung anpassen.
-- Sicherstellen, dass Docker Desktop Zugriff auf die Ordner hat (Dateifreigaben/Permissions in den Docker-Desktop-Einstellungen).
-
-Alternative, wenn „Pull“ in Docker Desktop nicht funktioniert:
-1. Die Datei `docker-compose.yml` aus dem Repository herunterladen und lokal in einem Ordner speichern (z. B. „Downloads/rc-model“):
-
+1. `docker-compose.yml` besorgen (enthält Ports/Volumes/Env):
+  - Download-Link: https://raw.githubusercontent.com/glDemonti/rc-model-building-simulation/main/docker-compose.yml
+  - In einen neuen Ordner speichern (z. B. `rc-model-app`).
+2. Terminal in Docker Desktop kurz öffnen, in den Ordner mit der `docker-compose.yml` wechseln und das Image ziehen:
   ```bash
-  curl -LO https://raw.githubusercontent.com/glDemonti/rc-model-building-simulation/main/docker-compose.yml
-  # oder
-  wget https://raw.githubusercontent.com/glDemonti/rc-model-building-simulation/main/docker-compose.yml
-  ```
-
-2. In Docker Desktop das integrierte Terminal öffnen (z. B. über „Containers/Apps“ → „CLI“ oder ein neues Terminal-Fenster).
-3. In den Ordner mit der `docker-compose.yml` wechseln und die Images ziehen:
-
-  ```bash
-  cd /pfad/zum/ordner/mit/docker-compose
+  cd /pfad/zu/rc-model-app
   docker compose pull
   ```
+3. Docker Desktop öffnen → Tab „Images" → `ghcr.io/gldemonti/rc-model-building-simulation:latest` erscheint nach dem Pull.
+4. Image auswählen → „Run". Im Dialog Host-Port auf `0` setzen (Container-Port ist 8050, Host-Port wird automatisch vergeben).
+5. Container starten → Im Tab „Containers" auf den Port-Link klicken, um die Anwendung im Browser zu öffnen.
 
-4. Anschließend im Tab „Images“ das heruntergeladene Image auswählen und „Run“ starten.
-  - Optional alternativ per Terminal: `docker compose up -d` zum Starten der Services.
+Hinweise:
+- Wenn die Seite nicht lädt, Container neu starten oder einen freien Host-Port wählen.
+- Sicherstellen, dass Docker Desktop Zugriff auf die Ordner hat (Freigaben/Permissions in den Einstellungen).
 
 ---
 
+**B) Vorgehen mit lokalem Build (GUI + Terminal)**
+
+Lokaler Build nutzt die `docker-compose.local.yml` und baut das Image aus dem Repository.
+
+1. Repository klonen:
+  ```bash
+  git clone https://github.com/glDemonti/rc-model-building-simulation.git
+  cd rc-model-building-simulation
+  ```
+2. Terminal (kurz) nutzen, um zu bauen:
+  ```bash
+  docker compose -f docker-compose.local.yml up -d --build
+  ```
+  - Dadurch wird das Image `vm2-rc-modell-ui:local` gebaut und der Container gestartet.
+3. Optional in Docker Desktop prüfen/steuern:
+  - Tab „Images": `vm2-rc-modell-ui:local` ist nach dem Build sichtbar.
+  - Tab „Containers": Container `simulation-app` starten/stoppen.
+4. Ports/Volumes/Env (bereits in der Compose-Datei hinterlegt):
+  - Ports: Host `8050` → Container `8050` (bei Bedarf Host-Port anpassen)
+  - Volume: `./data` → `/app/data`
+  - Env: `VM2_DATA_DIR=/app/data`
+5. Anwendung im Browser öffnen: `http://localhost:8050`
+
+Logs ansehen (optional):
+```bash
+docker logs -f simulation-app
+```
+
 ### Option 2: Docker Desktop per Terminal
 
-Nutze das vorgebaute Image aus der GitHub Container Registry oder baue lokal über CLI.
+Nutze das vorgebaute Image aus der GitHub Container Registry (GHCR) oder baue lokal über CLI.
 
 **Variante A: Vorgefertigtes Image (GHCR)**
 
-<!-- **Einzeln starten (Linux/macOS):**
-```bash
-docker run \
-  -p 8050:8050 \
-  -e VM2_DATA_DIR=/app/data \
-  -v "$(pwd)/projects:/app/projects" \
-  -v "$(pwd)/data:/app/data" \
-  ghcr.io/gldemonti/rc-model-building-simulation:latest
-```
+1. `docker-compose.yml` herunterladen (Ports/Volumes/Env sind enthalten):
+   - Download-Link: https://raw.githubusercontent.com/glDemonti/rc-model-building-simulation/main/docker-compose.yml
+   - In einen neuen Ordner speichern (z. B. `rc-model-app-terminal`).
+2. Terminal öffnen, in den Ordner wechseln und Image + Container starten:
+   ```bash
+   cd /pfad/zu/rc-model-app-terminal
+   docker compose pull
+   docker compose up -d
+   ```
+3. Im Browser öffnen: `http://localhost:8050`
 
-**Einzeln starten (Windows PowerShell):**
-```powershell
-docker run `
-  -p 8050:8050 `
-  -e VM2_DATA_DIR=/app/data `
-  -v "$PWD/projects:/app/projects" `
-  -v "$PWD/data:/app/data" `
-  ghcr.io/gldemonti/rc-model-building-simulation:latest
-``` -->
-
-**Mit Docker Compose:**
-```yaml
-services:
-  simulation-app:
-    image: ghcr.io/gldemonti/rc-model-building-simulation:latest
-    container_name: simulation-app
-    ports:
-      - "8050:8050"
-    volumes:
-      - ./projects:/app/projects
-      - ./data:/app/data
-    environment:
-      - VM2_DATA_DIR=/app/data
-```
-
-Starten:
-```bash
-docker compose up -d
-```
-
-Im Browser öffnen: `http://localhost:8050`
-
-Hinweis: Falls `localhost:8050` nicht lädt, ist der Host-Port 8050 evtl. belegt. Einen anderen Host-Port verwenden (z. B. `-p 9000:8050`) oder alle Ports zufällig mit `-P` veröffentlichen und die gemappte Portnummer mit `docker ps` auslesen.
-
-**Compose-Datei direkt herunterladen**
-
-```bash
-# Mit curl
-curl -LO https://raw.githubusercontent.com/glDemonti/rc-model-building-simulation/main/docker-compose.yml
-
-# Oder mit wget
-wget https://raw.githubusercontent.com/glDemonti/rc-model-building-simulation/main/docker-compose.yml
-
-# Starten
-docker compose up -d
-```
-Sicherstellen, dass das Image in der Datei auf `ghcr.io/gldemonti/rc-model-building-simulation:latest` zeigt und die Mount-Pfade zum lokalen Projektordner passen (`./projects:/app/projects`, `./data:/app/data`).
+Hinweis: Falls `localhost:8050` nicht lädt, Host-Port prüfen/anpassen (z. B. `-p 9000:8050`) oder mit `docker ps` den gemappten Port auslesen, wenn `-P` genutzt wurde.
 
 **Variante B: Image lokal bauen (CLI)**
 
+Für Entwicklung oder lokale Anpassungen kann das Image lokal gebaut werden. Dafür wird die Datei `docker-compose.local.yml` verwendet, die das Image aus dem Dockerfile im Repository baut.
+
+**Voraussetzung:** Das vollständige Repository muss lokal vorhanden sein, da alle Source-Dateien, das Dockerfile und `docker-compose.local.yml` zum Bauen benötigt werden.
+
 ```bash
+# Repository klonen (falls noch nicht vorhanden)
+git clone https://github.com/glDemonti/rc-model-building-simulation.git
+cd rc-model-building-simulation
+
 # Image bauen und Container starten
 docker compose -f docker-compose.local.yml up -d --build
 
 # Logs prüfen
 docker logs -f simulation-app
 ```
-Im Browser öffnen: `http://localhost:8050` (oder gewählten Host-Port)
+Im Browser öffnen: `http://localhost:8050`
+
+Hinweis: Die Konfigurationsdateien und Projektdaten sind im Docker-Image enthalten. Das `./data` Verzeichnis wird für Output-Dateien verwendet.
 
 ```bash
 # Alternativ: docker build + docker run
@@ -158,7 +123,6 @@ docker build -t vm2-rc-modell-ui:local .
 docker run \
   -p 8050:8050 \
   -e VM2_DATA_DIR=/app/data \
-  -v "$(pwd)/projects:/app/projects" \
   -v "$(pwd)/data:/app/data" \
   vm2-rc-modell-ui:local
 ```
