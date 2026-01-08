@@ -14,6 +14,8 @@ Eine interaktive Webanwendung zur Simulation und Analyse eines RC-Gebäudemodell
 
 ## Installation
 
+> Alle Befehle aus dem Projektwurzelordner ausführen. Wechsle vorher ins Repo, z. B. `cd /pfad/rc-model-building-simulation`.
+
 ### Option 1: Docker Desktop (Vorkompiliertes Image)
 
 Nutze das vorgebaute Image aus der GitHub Container Registry. Diese Schritte funktionieren mit Docker Desktop auf Windows, macOS und Linux.
@@ -87,6 +89,7 @@ Falls du das Image lokal bauen möchtest:
 - Docker Desktop installiert
 
 **Variante A: Docker Compose (empfohlen)**
+
 ```bash
 # Image bauen und Container starten
 docker compose -f docker-compose.local.yml up -d --build
@@ -144,7 +147,7 @@ Hinweise:
 
 ---
 
-### Option 3: Lokal ohne Docker
+### Option 4: Lokal ohne Docker
 
 **Voraussetzungen:**
 - Python 3.9+
@@ -153,12 +156,15 @@ Hinweise:
 **Installation:**
 ```bash
 # Repository klonen
-git clone https://github.com/gianl/VM2-RC-Modell-ui.git
-cd VM2-RC-Modell-ui
+git clone https://github.com/glDemonti/rc-model-building-simulation.git
+cd rc-model-building-simulation
 
 # Conda-Umgebung erstellen
 conda env create -f environment.yaml
 conda activate vm2
+
+# Abhängigkeiten installieren
+pip install -e .
 
 # Anwendung starten
 python -m shiny run ui/app.py
@@ -195,35 +201,58 @@ docker compose build --no-cache
 ## Projektstruktur
 
 ```
-VM2-RC-Modell-ui/
+rc-model-building-simulation/
 ├── ui/                          # Shiny Express Web-Interface
-│   └── app.py                   # Hauptanwendung
+│   └── app.py                   # Hauptanwendung mit interaktiver UI
 ├── core/                        # Kern-Business-Logik
-│   ├── bootstrap.py             # Initialisierung
-│   ├── facade.py                # API-Fassade
+│   ├── bootstrap.py             # Initialisierung und Facade-Erstellung
+│   ├── facade.py                # API-Fassade für Simulationen
 │   ├── evaluator.py             # Simulationsevaluator
+│   ├── mapper.py                # Daten-Mapper für Config
+│   ├── validator.py             # Validierung von Parametern
+│   ├── measure_service.py       # Service für Messdaten
+│   ├── weather_service.py       # Weather-Datenverarbeitung
 │   ├── analytics/               # Analytics-Service
-│   │   ├── service.py
-│   │   └── adapters/            # Daten-Adapter
+│   │   ├── service.py           # Haupt-Analytics-Service
+│   │   ├── context.py           # Analytics-Kontext
+│   │   └── adapters/            # Daten-Adapter für verschiedene Kennzahlen
+│   │       ├── base.py          # Basis-Adapter
+│   │       ├── Co2_summary.py
 │   │       ├── heating_cooling_month_timeseries.py
-│   │       ├── temperature_timeseries.py
-│   │       └── ...
+│   │       ├── heating_cooling_summary.py
+│   │       ├── heating_cooling_timeseries.py
+│   │       ├── measurements_heating_cooling.py
+│   │       ├── measurements_summary.py
+│   │       ├── measurements_temperature_summary.py
+│   │       ├── temperature_summary.py
+│   │       └── temperature_timeseries.py
 │   └── storage/                 # Daten-Persistierung
-│       ├── config_repo.py
-│       ├── result_repo.py
-│       └── weather_repo.py
+│       ├── config_repo.py       # Konfiguration-Repository
+│       ├── measurements_repo.py # Messdaten-Repository
+│       ├── result_repo.py       # Simulationsergebnis-Repository
+│       └── weather_repo.py      # Weather-Daten-Repository
 ├── r_c_model/                   # RC-Modell-Implementierung
-│   └── r_c_modell.py
-├── reference/                   # Referenzmateriale (MATLAB)
+│   └── r_c_modell.py            # Haupt-RC-Modell
+├── reference/                   # Referenzmaterialien (MATLAB)
+│   └── original_matlab_source/  # Original-MATLAB-Implementierung
 ├── projects/                    # Simulationsprojekte
-│   ├── simulation-variant-A/
-│   ├── simulation-variant-B/
-│   ├── rc-model-validation/
-│   └── measurements/
+│   ├── simulation-variant-A/    # Variante A mit Config und Wetterdaten
+│   ├── simulation-variant-B/    # Variante B mit Config und Wetterdaten
+│   ├── rc-model-validation/     # Validierungsprojekt
+│   └── measurements/            # Messdaten
 ├── notebooks/                   # Jupyter Notebooks für Analyse
+│   └── validation_rc_model.ipynb
+├── tests/                       # Unit-Tests
+│   ├── test_facade.py
+│   ├── test_weather_file_processing.py
+│   └── test_weather_handling.py
 ├── Dockerfile                   # Docker-Configuration
-├── docker-compose.yml           # Docker Compose Configuration
+├── docker-compose.yml           # Docker Compose Configuration (Produktion)
+├── docker-compose.local.yml     # Docker Compose Configuration (lokal)
 ├── environment.yaml             # Conda Environment
+├── pytest.ini                   # Pytest-Konfiguration
+├── LICENSE                      # MIT-Lizenz
+├── SECURITY.md                  # Sicherheitsrichtlinien
 └── README.md                    # Diese Datei
 ```
 
@@ -267,31 +296,12 @@ Diese können über die UI oder direkt bearbeitet werden.
 ---
 
 ## Technologie-Stack
-
 - **Frontend:** [Shiny Express](https://shiny.posit.co/) (Python)
 - **Charting:** [Plotly](https://plotly.com/)
-- **Data Processing:** [Pandas](https://pandas.pydata.org/)
+- **Data Processing:** [Pandas](https://pandas.pydata.org/), [NumPy](https://numpy.org/)
 - **Containerization:** Docker
-
----
-
-## Entwicklung
-
-### Tests ausführen
-
-```bash
-pytest tests/
-```
-
-### Neue Dependencies hinzufügen
-
-```bash
-# Zu environment.yaml hinzufügen
-nano environment.yaml
-
-# Umgebung aktualisieren
-conda env update -f environment.yaml
-```
+- **Testing:** [Pytest](https://pytest.org/)
+- **Build:** Conda
 
 ---
 

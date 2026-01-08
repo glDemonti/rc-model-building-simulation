@@ -97,7 +97,8 @@ class FakeWeatherService:
             "temp_outdoor": [5.0, 6.0, 7.0],
         })
 
-    def process_and_store_weather(self):
+    def process_and_store_weather(self, cfg=None):
+        # Align with real WeatherService signature; cfg is unused in fake
         self.processed_count += 1
 
 
