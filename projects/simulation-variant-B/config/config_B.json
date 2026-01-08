@@ -278,9 +278,9 @@
             "value": 300.0
         },
         "weather_start_date": {
-            "expression": "2019-01-01 01:00:00",
+            "expression": "2019-01-01 00:00:00",
             "unit": "-",
-            "value": "2019-01-01 01:00:00"
+            "value": "2019-01-01 00:00:00"
         }
     },
     "thermal_properties": {

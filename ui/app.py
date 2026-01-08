@@ -75,6 +75,14 @@ def _push_inputs_from_cfg():
         except Exception:
             # if a field cannot be updated, skip it
             pass
+    
+    # Also update weather_start_date inputs
+    try:
+        weather_dt = pd.to_datetime(_deep_get(cur, "simulation_parameters.weather_start_date.expression"))
+        ui.update_date("weather_start_date_date", value=weather_dt.date())
+        ui.update_text("weather_start_date_time", value=weather_dt.strftime("%H:%M:%S"))
+    except Exception as e:
+        print(f"Warning: Could not update weather_start_date in _push_inputs_from_cfg: {e}")
 
 
 def _refresh_schedules_from_cfg():
@@ -277,7 +285,11 @@ def _on_weather_start_date_change():
         # Validate format
         pd.to_datetime(datetime_str)
         
-        cfg_state.set(_deep_set(cfg_state(), "simulation_parameters.weather_start_date.expression", datetime_str))
+        # Update BOTH expression and value
+        current_cfg = cfg_state()
+        updated_cfg = _deep_set(current_cfg, "simulation_parameters.weather_start_date.expression", datetime_str)
+        updated_cfg = _deep_set(updated_cfg, "simulation_parameters.weather_start_date.value", datetime_str)
+        cfg_state.set(updated_cfg)
         unsaved_changes.set(True)
     except Exception as e:
         ui.notification_show(f"Ungültiges Datum/Zeit-Format: {e}", type="warning", duration=4)
@@ -2306,13 +2318,22 @@ with ui.nav_panel("Einstellungen"):
         active_variant.set(new_variant)
         unsaved_changes.set(False)  # reset unsaved changes flag
         
-        # 
+        # Update all input fields from new cfg_state
         for _id, (path, cast) in BINDINGS.items():
             try:
                 val = _deep_get(cfg_state(), path)
                 ui.update_text(_id, value=str(val))
             except Exception:
-                pass  # skipp fields that cannot be updated
+                pass  # skip fields that cannot be updated
+
+        # Explicitly update weather_start_date inputs from new cfg_state
+        try:
+            current_cfg = cfg_state()
+            weather_dt = pd.to_datetime(_deep_get(current_cfg, "simulation_parameters.weather_start_date.expression"))
+            ui.update_date("weather_start_date_date", value=weather_dt.date())
+            ui.update_text("weather_start_date_time", value=weather_dt.strftime("%H:%M:%S"))
+        except Exception as e:
+            print(f"Warning: Could not update weather_start_date inputs: {e}")
 
         cur_cfg = cfg_state()
         schedule_occupancy.set(_schedule_df_from_cfg(cur_cfg, 'occupancy_schedule'))
