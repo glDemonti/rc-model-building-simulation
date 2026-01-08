@@ -297,10 +297,19 @@ conda env update -f environment.yaml
 
 ## Lizenz
 
-[Lizenz hier einfügen]
+Dieses Projekt ist unter der MIT-Lizenz veröffentlicht. Details findest du in der [LICENSE](LICENSE)-Datei.
+
+---
+
+## Sicherheit
+
+Bitte lies die [SECURITY.md](SECURITY.md) für Informationen zum Melden von Sicherheitslücken.
+
 
 ---
 
 ## Kontakt
 
-Fragen? Erstelle ein Issue auf GitHub!
+Bei Fragen erstelle bitte ein Issue im GitHub Repository.
+
+---

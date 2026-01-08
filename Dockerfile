@@ -1,9 +1,12 @@
 # syntax=docker/dockerfile:1
 
-FROM continuumio/miniconda3
+FROM continuumio/miniconda3:24.1.2-0
 
 # Set working directory
 WORKDIR /app
+
+# Create non-root user
+RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 # copy environment file
 COPY environment.yaml .
@@ -26,12 +29,21 @@ COPY ui/ ui/
 # Set PYTHONPATH
 ENV PYTHONPATH=/app
 
-# Create data directory
-RUN mkdir -p /app/data
+# Create data directory and set permissions
+RUN mkdir -p /app/data && \
+    chown -R appuser:appuser /app
+
 ENV VM2_DATA_DIR=/app/data
+
+# Switch to non-root user
+USER appuser
 
 # Expose port
 EXPOSE 8050
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8050 || exit 1
 
 # Activate conda environment and run the application
 ENTRYPOINT ["conda", "run", "-n", "vm2", "--no-capture-output"]
