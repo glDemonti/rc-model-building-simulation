@@ -1414,14 +1414,14 @@ Die Messdaten müssen in einer Datei (CSV oder XLSX) mit **5 Spalten** in folgen
 - Die **Spaltennamen spielen keine Rolle** - nur die **Position** ist entscheidend!
 - **Spalte 1** muss Zeitstempel enthalten (Format z.B. `dd.mm.yyyy HH:MM` oder ISO-Standard)
 - **Spalte 2-5** müssen numerische Werte sein (keine Texte)
-- Sie sind **selbst verantwortlich** für korrekte Daten: Falsche oder unvollständige Messwerte führen zu falschen Kennzahlen
+- Falsche oder unvollständige Messwerte führen zu falschen Kennzahlen
 
 **Beispiel für die erste Zeile einer Datei:**
 ```
 Zeit, Aussen (°C), Innen (°C), Heiz (W), Kühl (W)
 01.01.2024 00:00, -2.5, 21.0, 5200, 0
 ```
-Der Name der Spalten ist beliebig - wichtig ist, dass die Daten in dieser Reihenfolge stehen!
+Der Name der Spalten ist beliebig. Wichtig ist, dass die Daten in dieser Reihenfolge stehen!
         """)
         
         ui.input_file(

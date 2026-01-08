@@ -233,9 +233,9 @@
             "value": 0.3
         },
         "heating_price": {
-            "expression": "0.10",
+            "expression": "0.2",
             "unit": "CHF/kWh",
-            "value": 0.1
+            "value": 0.2
         }
     },
     "metadata": {
@@ -244,9 +244,9 @@
     },
     "simulation_parameters": {
         "cooling_setpoint": {
-            "expression": "25.5",
+            "expression": "26",
             "unit": "°C",
-            "value": 25.5
+            "value": 26.0
         },
         "enable_cooling": {
             "unit": "-",
