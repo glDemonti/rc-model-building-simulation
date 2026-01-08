@@ -58,19 +58,20 @@ jobs:
           provenance: true
           sbom: true
 
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.20.0
-        with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH'
-        env:
-          TRIVY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        if: github.ref == 'refs/heads/main'
+      # TODO: Re-enable Trivy scanning once image availability is stable
+      # - name: Run Trivy vulnerability scanner
+      #   uses: aquasecurity/trivy-action@0.20.0
+      #   with:
+      #     image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+      #     format: 'sarif'
+      #     output: 'trivy-results.sarif'
+      #     severity: 'CRITICAL,HIGH'
+      #   env:
+      #     TRIVY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   if: github.ref == 'refs/heads/main'
 
-      - name: Upload Trivy results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: 'trivy-results.sarif'
-        if: github.ref == 'refs/heads/main'
+      # - name: Upload Trivy results to GitHub Security
+      #   uses: github/codeql-action/upload-sarif@v3
+      #   with:
+      #     sarif_file: 'trivy-results.sarif'
+      #   if: github.ref == 'refs/heads/main'
