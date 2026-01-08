@@ -1,6 +1,9 @@
 services:
   simulation-app:
-    image: ghcr.io/gldemonti/rc-model-building-simulation:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: vm2-rc-modell-ui:local
     container_name: simulation-app
     ports:
       - "8050:8050"
