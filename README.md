@@ -83,7 +83,7 @@ Nutze das vorgebaute Image aus der GitHub Container Registry oder baue lokal üb
 
 **Variante A: Vorgefertigtes Image (GHCR)**
 
-**Einzeln starten (Linux/macOS):**
+<!-- **Einzeln starten (Linux/macOS):**
 ```bash
 docker run \
   -p 8050:8050 \
@@ -101,7 +101,7 @@ docker run `
   -v "$PWD/projects:/app/projects" `
   -v "$PWD/data:/app/data" `
   ghcr.io/gldemonti/rc-model-building-simulation:latest
-```
+``` -->
 
 **Mit Docker Compose:**
 ```yaml
