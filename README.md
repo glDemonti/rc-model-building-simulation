@@ -259,7 +259,7 @@ rc-model-building-simulation/
 
 ### Ergebnisse analysieren
 
-- **Temperaturverläufe:** Raumluft- und Außenlufttemperaturen
+- **Temperaturverläufe:** Raumluft- und Aussenlufttemperaturen
 - **Heiz-/Kühlleistung:** Zeitliche Leistungsänderungen
 - **Monatliche Energien:** Aggregierte Heiz- und Kühlenergie in MWh
 - **Vergleich:** Vergleich zwischen Varianten A und B
@@ -281,9 +281,9 @@ Bearbeitung über die UI oder direkt in den Dateien möglich.
 - **Frontend:** [Shiny Express](https://shiny.posit.co/) (Python)
 - **Charting:** [Plotly](https://plotly.com/)
 - **Data Processing:** [Pandas](https://pandas.pydata.org/), [NumPy](https://numpy.org/)
-- **Containerization:** Docker
+- **Containerization:** [Docker](https://www.docker.com/)
 - **Testing:** [Pytest](https://pytest.org/)
-- **Build:** Conda
+- **Build:** [Conda](https://docs.conda.io/)
 
 ---
 
