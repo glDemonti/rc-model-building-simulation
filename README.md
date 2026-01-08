@@ -14,57 +14,133 @@ Eine interaktive Webanwendung zur Simulation und Analyse eines RC-Gebäudemodell
 
 ## Installation
 
-### Option 1: Docker (Vorkompiliertes Image von GitHub)
+### Option 1: Docker Desktop (Vorkompiliertes Image)
 
-Wenn das Image nicht selber erstellt werden möchte, kann das Image über den Github Container Registry heruntergeladen werden:
+Nutze das vorgebaute Image aus der GitHub Container Registry. Diese Schritte funktionieren mit Docker Desktop auf Windows, macOS und Linux.
 
-**Einzeln starten:**
+**Einzeln starten (Linux/macOS):**
 ```bash
-docker run -p 8050:8050 -v $(pwd)/projects:/app/projects ghcr.io/gianl/vm2-rc-modell-ui:latest
+docker run \
+  -p 8050:8050 \
+  -e VM2_DATA_DIR=/app/data \
+  -v "$(pwd)/projects:/app/projects" \
+  -v "$(pwd)/data:/app/data" \
+  ghcr.io/gldemonti/rc-model-building-simulation:latest
+```
+
+**Einzeln starten (Windows PowerShell):**
+```powershell
+docker run `
+  -p 8050:8050 `
+  -e VM2_DATA_DIR=/app/data `
+  -v "$PWD/projects:/app/projects" `
+  -v "$PWD/data:/app/data" `
+  ghcr.io/gldemonti/rc-model-building-simulation:latest
 ```
 
 **Mit Docker Compose:**
-
-Erstelle eine `docker-compose.yml`:
 ```yaml
 services:
   simulation-app:
-    image: ghcr.io/gianl/vm2-rc-modell-ui:latest
+    image: ghcr.io/gldemonti/rc-model-building-simulation:latest
     container_name: simulation-app
     ports:
       - "8050:8050"
     volumes:
       - ./projects:/app/projects
+      - ./data:/app/data
+    environment:
+      - VM2_DATA_DIR=/app/data
 ```
 
-Starte dann:
+Starten:
 ```bash
-docker-compose up
+docker compose up -d
 ```
 
-Öffne deinen Browser: `http://localhost:8050`
+Öffne: `http://localhost:8050`
+
+Hinweis: Falls `localhost:8050` nicht lädt, ist der Host-Port 8050 evtl. belegt. Verwende einen anderen Host-Port (z. B. `-p 9000:8050`) oder veröffentliche alle Ports zufällig mit `-P` und lies die gemappte Portnummer mit `docker ps` aus.
+
+**Compose-Datei direkt herunterladen**
+
+Falls du eine fertige Compose-Datei verwenden willst, kannst du sie aus dem Repository herunterladen und direkt starten (pfade ggf. anpassen):
+```bash
+# Mit curl
+curl -LO https://raw.githubusercontent.com/glDemonti/rc-model-building-simulation/main/docker-compose.yml
+
+# Oder mit wget
+wget https://raw.githubusercontent.com/glDemonti/rc-model-building-simulation/main/docker-compose.yml
+
+# Starten
+docker compose up -d
+```
+Stelle sicher, dass das Image in der Datei auf `ghcr.io/gldemonti/rc-model-building-simulation:latest` zeigt und die Mount-Pfade zu deinem lokalen Projektordner passen (`./projects:/app/projects`, `./data:/app/data`).
 
 ---
 
-### Option 2: Docker Image selbst bauen
+### Option 2: Image lokal bauen (Docker Desktop)
 
-Falls du das Image selbst bauen möchtest:
+Falls du das Image lokal bauen möchtest:
 
 **Voraussetzungen:**
-- [Docker](https://www.docker.com/products/docker-desktop) installiert
-- [Docker Compose](https://docs.docker.com/compose/install/) installiert
+- Docker Desktop installiert
 
-**Schritte:**
+**Variante A: Docker Compose (empfohlen)**
 ```bash
-# Repository klonen
-git clone https://github.com/gianl/VM2-RC-Modell-ui.git
-cd VM2-RC-Modell-ui
-
 # Image bauen und Container starten
-docker-compose up --build
+docker compose -f docker-compose.local.yml up -d --build
+
+# Logs prüfen
+docker logs -f simulation-app
+```
+Öffne: `http://localhost:8050` (oder den von dir gewählten Host-Port)
+
+**Variante B: docker build + docker run**
+```bash
+# Image bauen
+docker build -t vm2-rc-modell-ui:local .
+
+# Container starten
+docker run \
+  -p 8050:8050 \
+  -e VM2_DATA_DIR=/app/data \
+  -v "$(pwd)/projects:/app/projects" \
+  -v "$(pwd)/data:/app/data" \
+  vm2-rc-modell-ui:local
 ```
 
-Öffne deinen Browser: `http://localhost:8050`
+### Option 3: Docker Desktop GUI (ohne CLI)
+
+Diese Anleitung zeigt, wie du die Anwendung komplett über die Docker Desktop Oberfläche nutzt.
+
+**A) Vorgehen mit vorgebautem Image (GHCR)**
+1. Öffne Docker Desktop und wechsle zum Tab „Images“.
+2. Klicke auf „Pull" und gib als Image ein: `ghcr.io/gldemonti/rc-model-building-simulation:latest`.
+3. Nach dem Download wechsle zum Tab „Containers“. Klicke bei dem Image auf „Run“ (oder „Create Container“).
+4. Konfiguration im Dialog:
+   - Ports: Füge eine Port-Zuweisung hinzu: Host `8050` → Container `8050`.
+     - Falls `8050` bereits belegt ist, nutze einen anderen Host-Port (z. B. `9000` → `8050`).
+   - Volumes/Mounts: Füge zwei Bind-Mounts hinzu:
+     - `$(Projektordner)/projects` → `/app/projects`
+     - `$(Projektordner)/data` → `/app/data`
+   - Environment Variables: Füge `VM2_DATA_DIR` mit Wert `/app/data` hinzu.
+5. Starte den Container. Öffne anschließend deinen Browser: `http://localhost:8050` (oder den gewählten Host-Port).
+
+**B) Vorgehen mit lokalem Build über GUI**
+1. Öffne Docker Desktop und wechsle zum Tab „Images“.
+2. Wähle „Build“ (falls verfügbar) oder „Create from Dockerfile“ und gib den Projektordner als Kontext sowie die `Dockerfile` an.
+   - Tag: `vm2-rc-modell-ui:local`
+3. Nach dem erfolgreichen Build gehe zum Tab „Images“, wähle das neue Image und klicke auf „Run“.
+4. Konfiguration wie oben (A.4):
+   - Ports: Host `8050` → Container `8050` (oder alternativen Host-Port).
+   - Volumes: `projects` → `/app/projects`, `data` → `/app/data`.
+   - Env: `VM2_DATA_DIR=/app/data`.
+5. Container starten und im Browser öffnen.
+
+Hinweise:
+- Wenn die Seite nicht lädt, überprüfe ob ein anderer Dienst den Host-Port belegt und passe die Host-Port-Zuweisung an.
+- Stelle sicher, dass Docker Desktop Zugriff auf deine Ordner hat (Dateifreigaben/Permissions in den Docker Desktop Einstellungen).
 
 ---
 
@@ -96,22 +172,22 @@ python -m shiny run ui/app.py
 
 **Container im Hintergrund starten:**
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 **Container stoppen:**
 ```bash
-docker-compose down
+docker compose down
 ```
 
 **Logs anzeigen:**
 ```bash
-docker-compose logs -f simulation-app
+docker compose logs -f simulation-app
 ```
 
 **Image neu bauen (ohne Cache):**
 ```bash
-docker-compose build --no-cache
+docker compose build --no-cache
 ```
 
 ---
