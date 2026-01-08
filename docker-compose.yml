@@ -1,6 +1,7 @@
 services:
   simulation-app:
     image: ghcr.io/gldemonti/rc-model-building-simulation:latest
+    pull_policy: always
     container_name: simulation-app
     ports:
       - "8050:8050"
