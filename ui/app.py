@@ -2206,8 +2206,6 @@ with ui.nav_panel("Einstellungen"):
                     placeholder="Geben Sie eine Zahl ein",
                 )
 
-            # with ui.card():
-            #     ui.card_header("Ecopoints Faktoren")
             
             with ui.card():
                 ui.card_header("Energiekosten")
@@ -2711,15 +2709,21 @@ with ui.nav_panel("Einstellungen"):
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
+                        id="occupancy_power",
+                        label="Belegungsstromverbrauch Flächenbezogen [W/m²]",
+                        value=cfg0['thermal_properties']['power_input']['occupancy_power_per_area']['expression'],
+                        width="600px",
+                    )
+                    ui.input_text(
                         id="lighting_power",
-                        label="Beleuchtungsstromverbrauch [W]",
+                        label="Beleuchtungsstromverbrauch Flächenbezogen [W/m²]",
                         value=cfg0['thermal_properties']['power_input']['lighting_power_per_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
                     )
                     ui.input_text(
                         id="equipment_power",
-                        label="Geräte-Stromverbrauch [W]",
+                        label="Geräte-Stromverbrauch Flächenbezogen [W/m²]",
                         value=cfg0['thermal_properties']['power_input']['equipment_power_per_area']['expression'],
                         width="600px",
                         placeholder="Geben Sie eine Zahl ein",
