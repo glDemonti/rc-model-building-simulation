@@ -13,9 +13,8 @@ from core.analytics.adapters.temperature_timeseries import TemperatureTimeseries
 from core.analytics.adapters.heating_cooling_timeseries import HeatingCoolingTimeseriesAdapter
 from core.analytics.adapters.heating_cooling_month_timeseries import HeatingCoolingMonthTimeseriesAdapter
 from core.analytics.adapters.Co2_summary import Co2SummaryAdapter
-from core.analytics.adapters.measurements_summary import MeasurementsSummaryAdapter
+from core.analytics.adapters.measurements_heating_cooling_summary import MeasurementsHeatingCoolingSummaryAdapter
 from core.analytics.adapters.measurements_temperature_summary import MeasurementsTemperatureSummaryAdapter
-from core.analytics.adapters.measurements_heating_cooling import MeasurementsHeatingCoolingAdapter
 from core.weather_service import WeatherService
 from core.storage.weather_repo import WeatherRepository
 from core.storage.measurements_repo import MeasurementsRepository
@@ -62,9 +61,8 @@ def create_facade(project_id: str, variant_id) -> ConfigFacade:
         HeatingCoolingTimeseriesAdapter(),
         HeatingCoolingMonthTimeseriesAdapter(),
         Co2SummaryAdapter(),
-        MeasurementsSummaryAdapter(),
+        MeasurementsHeatingCoolingSummaryAdapter(),
         MeasurementsTemperatureSummaryAdapter(overheating_threshold=26.0),
-        MeasurementsHeatingCoolingAdapter(),
         ]
     analytics = AnalyticsService(
         config_repo=config_repo,

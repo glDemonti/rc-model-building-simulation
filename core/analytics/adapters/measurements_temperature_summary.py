@@ -1,5 +1,4 @@
 import pandas as pd
-import re
 
 from core.analytics.adapters.base import BaseAdapter
 
@@ -8,12 +7,19 @@ class MeasurementsTemperatureSummaryAdapter(BaseAdapter):
     Adapter for computing temperature statistics from measurement data.
     Mirrors the TemperatureSummaryAdapter for simulations.
     
+    Expected input format:
+    - Temperatures in °C
+    
     Column structure by position (names don't matter):
     - Col 0: datetime (Zeitstempel)
-    - Col 1: Aussentemperatur (used here)
-    - Col 2: Raumtemperatur (used here)
-    - Col 3: Heizleistung
-    - Col 4: Kühlleistung
+    - Col 1: Aussentemperatur [°C]
+    - Col 2: Raumtemperatur [°C]
+    
+    KPIs calculated (used in UI):
+    - min: Minimum outdoor temperature [°C]
+    - max: Maximum outdoor temperature [°C]
+    - min_timestamp: Timestamp of minimum temperature
+    - max_timestamp: Timestamp of maximum temperature
     """
     def __init__(self, overheating_threshold: float = 26.0):
         super().__init__(name="MeasurementsTemperatureSummary", kind="measurements")
@@ -22,10 +28,16 @@ class MeasurementsTemperatureSummaryAdapter(BaseAdapter):
 
     def compute(self, df: pd.DataFrame, project_id: str = None, time_column: str = None, date_range: tuple = None) -> dict:
         """
-        Compute temperature statistics for measurement data.
-        Uses column positions instead of names.
+        Compute temperature KPIs for measurement data.
         
-        Returns metrics like: mean, min, max, overheating_hours
+        Args:
+            df: Measurement data
+            project_id: Project identifier
+            time_column: Name of time column
+            date_range: Optional (start_date, end_date) filter
+        
+        Returns:
+            dict: {"summary": DataFrame with KPIs}
         """
         if df is None or df.empty:
             return {"summary": pd.DataFrame()}
@@ -50,52 +62,31 @@ class MeasurementsTemperatureSummaryAdapter(BaseAdapter):
         if filtered.empty:
             return {"summary": pd.DataFrame()}
         
-        # Use fixed column positions:
-        # Col 1: Aussentemperatur, Col 2: Raumtemperatur
-        temp_positions = [1, 2]
-        temp_names = ["Aussentemperatur", "Raumtemperatur"]
-        
-        rows = []
-        dt_hours = 1.0  # Assuming 1-hour timestep
-        
-        for pos, name in zip(temp_positions, temp_names):
-            if pos >= len(df.columns):
-                continue
-            
-            col = df.columns[pos]
-            # Convert to numeric, coercing errors
-            series = pd.to_numeric(filtered[col], errors="coerce")
-            
-            if series.empty or series.count() == 0:
-                continue
-            
-            idx_min = series.idxmin()
-            idx_max = series.idxmax()
-            
-            try:
-                min_ts = filtered_times.loc[idx_min] if pd.notna(idx_min) else pd.NaT
-            except:
-                min_ts = pd.NaT
-            
-            try:
-                max_ts = filtered_times.loc[idx_max] if pd.notna(idx_max) else pd.NaT
-            except:
-                max_ts = pd.NaT
-            
-            # Compute overheating hours
-            overheating_hours = (series > self.overheating_threshold).sum() * dt_hours
-            
-            rows.extend([
-                {"project_id": project_id, "column_name": name, "metric": "mean", "value": float(series.mean()), "unit": "°C"},
-                {"project_id": project_id, "column_name": name, "metric": "min", "value": float(series.min()), "unit": "°C"},
-                {"project_id": project_id, "column_name": name, "metric": "min_timestamp", "value": str(min_ts), "unit": "datetime"},
-                {"project_id": project_id, "column_name": name, "metric": "max", "value": float(series.max()), "unit": "°C"},
-                {"project_id": project_id, "column_name": name, "metric": "max_timestamp", "value": str(max_ts), "unit": "datetime"},
-                {"project_id": project_id, "column_name": name, "metric": "overheating_hours", "value": float(overheating_hours), "unit": "h"},
-            ])
-        
-        if not rows:
+        # Fixed positions: Col 1 = Outdoor temp (only KPI used in UI)
+        if len(df.columns) <= 1:
             return {"summary": pd.DataFrame()}
+        
+        outdoor_col = df.columns[1]
+        outdoor_series = pd.to_numeric(filtered[outdoor_col], errors="coerce")
+        
+        if outdoor_series.empty or outdoor_series.count() == 0:
+            return {"summary": pd.DataFrame()}
+        
+        try:
+            idx_min = outdoor_series.idxmin()
+            idx_max = outdoor_series.idxmax()
+            min_ts = filtered_times.loc[idx_min] if pd.notna(idx_min) else pd.NaT
+            max_ts = filtered_times.loc[idx_max] if pd.notna(idx_max) else pd.NaT
+        except Exception:
+            min_ts = pd.NaT
+            max_ts = pd.NaT
+        
+        rows = [
+            {"project_id": project_id, "column_name": "Aussentemperatur", "metric": "min", "value": float(outdoor_series.min()), "unit": "°C"},
+            {"project_id": project_id, "column_name": "Aussentemperatur", "metric": "max", "value": float(outdoor_series.max()), "unit": "°C"},
+            {"project_id": project_id, "column_name": "Aussentemperatur", "metric": "min_timestamp", "value": str(min_ts), "unit": "datetime"},
+            {"project_id": project_id, "column_name": "Aussentemperatur", "metric": "max_timestamp", "value": str(max_ts), "unit": "datetime"},
+        ]
         
         summary_df = pd.DataFrame(rows)
         return {"summary": summary_df}

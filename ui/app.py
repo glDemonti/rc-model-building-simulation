@@ -1223,26 +1223,27 @@ with ui.nav_panel("Vergleich mit Messdaten"):
 
 Die Messdaten müssen in einer Datei (CSV oder XLSX) mit **5 Spalten** in folgender **Reihenfolge** organisiert sein:
 
-| Position | Beschreibung | Beispiel-Spaltennamen |
-|----------|-------------|----------------------|
-| **Spalte 1** | Zeitstempel (Datum und Uhrzeit) | `Datum`, `Zeit`, `datetime`, `Zeitstempel` |
-| **Spalte 2** | Aussentemperatur in °C | `Aussentemperatur`, `Aussen`, `Aussenluft`, `Temp_Aussen` |
-| **Spalte 3** | Raumtemperatur in °C | `Raumtemperatur`, `Innen`, `Innentemperatur`, `Temp_Raum` |
-| **Spalte 4** | Heizleistung in W | `Heizleistung`, `Heizung`, `Heating`, `Power_Heat` |
-| **Spalte 5** | Kühlleistung in W | `Kühlleistung`, `Kühlung`, `Cooling`, `Power_Cool` |
+| Position | Beschreibung | Einheit | Beispiel-Spaltennamen |
+|----------|-------------|---------|----------------------|
+| **Spalte 1** | Zeitstempel (Datum und Uhrzeit) | - | `Datum`, `Zeit`, `datetime`, `Zeitstempel` |
+| **Spalte 2** | Aussentemperatur | **°C** | `Aussentemperatur`, `Aussen`, `Aussenluft`, `Temp_Aussen` |
+| **Spalte 3** | Raumtemperatur | **°C** | `Raumtemperatur`, `Innen`, `Innentemperatur`, `Temp_Raum` |
+| **Spalte 4** | Heizleistung | **W** | `Heizleistung`, `Heizung`, `Heating`, `Power_Heat` |
+| **Spalte 5** | Kühlleistung | **W** | `Kühlleistung`, `Kühlung`, `Cooling`, `Power_Cool` |
 
 **Wichtig:**
 - Die **Spaltennamen spielen keine Rolle** - nur die **Position** ist entscheidend!
 - **Spalte 1** muss Zeitstempel enthalten (Format z.B. `dd.mm.yyyy HH:MM` oder ISO-Standard)
-- **Spalte 2-5** müssen numerische Werte sein (keine Texte)
-- Falsche oder unvollständige Messwerte führen zu falschen Kennzahlen
+- **Spalte 2-3** müssen Temperaturwerte in **°C** (Grad Celsius) enthalten
+- **Spalte 4-5** müssen Leistungswerte in **W** (Watt) enthalten
+- Kühlleistung kann positiv oder negativ sein (es wird der Absolutwert verwendet)
+- Falsche Einheiten führen zu falschen Kennzahlen!
 
 **Beispiel für die erste Zeile einer Datei:**
 ```
 Zeit, Aussen (°C), Innen (°C), Heiz (W), Kühl (W)
 01.01.2024 00:00, -2.5, 21.0, 5200, 0
 ```
-Der Name der Spalten ist beliebig. Wichtig ist, dass die Daten in dieser Reihenfolge stehen!
         """)
         
         ui.input_file(
@@ -1457,19 +1458,57 @@ Der Name der Spalten ist beliebig. Wichtig ist, dass die Daten in dieser Reihenf
                     cool = df.columns[4] if len(df.columns) > 4 else None
                     if heat is None or cool is None:
                         return go.Figure()
-                    # Parse times and aggregate monthly energy (assume 1h step)
+
+                    # Parse and order by time for robust delta computation
                     dfm = df.copy()
                     dfm[x_col] = pd.to_datetime(dfm[x_col], errors="coerce")
-                    dfm = dfm.dropna(subset=[x_col])
+                    dfm = dfm.dropna(subset=[x_col]).sort_values(by=x_col)
+
+                    # Optional UI date range filter
+                    try:
+                        date_range = input.measurement_time_range()
+                    except Exception:
+                        date_range = None
+                    if date_range and len(date_range) == 2:
+                        start_date, end_date = date_range
+                        mask = pd.Series(True, index=dfm.index)
+                        if start_date:
+                            mask &= dfm[x_col] >= pd.to_datetime(start_date)
+                        if end_date:
+                            mask &= dfm[x_col] <= pd.to_datetime(end_date) + pd.Timedelta(days=1) - pd.Timedelta(milliseconds=1)
+                        dfm = dfm.loc[mask]
+                        if dfm.empty:
+                            return go.Figure()
+
+                    # Compute per-row duration to next timestamp in hours
+                    dt_h = (dfm[x_col].shift(-1) - dfm[x_col]).dt.total_seconds() / 3600.0
+                    if dt_h.notna().any():
+                        median_dt = float(dt_h.dropna().median()) if dt_h.dropna().size else 1.0
+                        dt_h = dt_h.fillna(median_dt).clip(lower=0)
+                    else:
+                        dt_h = pd.Series(1.0, index=dfm.index)
+
+                    # Input must be in W (Watt) - no unit detection
+                    heat_W = pd.to_numeric(dfm[heat], errors='coerce').abs()
+                    cool_W = pd.to_numeric(dfm[cool], errors='coerce').abs()
+
+                    # Integrate to kWh per row
+                    heat_kWh_row = (heat_W * dt_h) / 1000.0
+                    cool_kWh_row = (cool_W * dt_h) / 1000.0
+
                     dfm['month'] = dfm[x_col].dt.strftime('%Y-%m')
-                    dfm['heat_kWh'] = pd.to_numeric(dfm[heat], errors='coerce') / 1000.0
-                    dfm['cool_kWh'] = pd.to_numeric(dfm[cool], errors='coerce').abs() / 1000.0
-                    monthly = dfm.groupby('month')[['heat_kWh','cool_kWh']].sum().reset_index()
+                    monthly = pd.DataFrame({
+                        'month': dfm['month'],
+                        'heat_kWh': heat_kWh_row,
+                        'cool_kWh': cool_kWh_row,
+                    }).groupby('month', as_index=False).sum()
+
                     data = []
                     for _, row in monthly.iterrows():
                         data.append({'Monat': row['month'], 'Typ': 'Heizung', 'Energie [kWh]': row['heat_kWh']})
                         data.append({'Monat': row['month'], 'Typ': 'Kühlung', 'Energie [kWh]': row['cool_kWh']})
                     df_plot = pd.DataFrame(data)
+
                     fig = px.bar(
                         df_plot,
                         x='Monat',
