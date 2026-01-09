@@ -1094,7 +1094,7 @@ with ui.nav_panel("Simulationsresultate"):
                 id="value_box_total_energy_costs_heating",
                 width=4,
             ):
-                "Jährliche Stromkosten Heizung"
+                "Jährliche Energiekosten Heizung"
                 @render.text
                 def total_energy_costs_heating_value():
                     value = get_summary_values(summary_all(), variant=input.power_variant_selector(), end_use="heating", metric="costs_year")
@@ -1104,7 +1104,7 @@ with ui.nav_panel("Simulationsresultate"):
                 id="value_box_total_energy_costs_cooling",
                 width=4,
             ):
-                "Jährliche Stromkosten Kühlung"
+                "Jährliche Energiekosten Kühlung"
                 @render.text
                 def total_energy_costs_cooling_value():
                     value = get_summary_values(summary_all(), variant=input.power_variant_selector(), end_use="cooling", metric="costs_year")
@@ -1136,13 +1136,13 @@ with ui.nav_panel("Simulationsresultate"):
     #             value="123.45",
     #             width=4,
     #         ):
-    #             "Jährliche Stromkosten Beleuchtung und Geräte [CHF]"
+    #             "Jährliche Energiekosten Beleuchtung und Geräte [CHF]"
     #         with ui.value_box(
     #             id="value_box_energy_costs_heating_cooling",
     #             value="67.89",
     #             width=4,
     #         ):
-    #             "Jährliche Stromkosten Heizung und Kühlung [CHF]"
+    #             "Jährliche Energiekosten Heizung und Kühlung [CHF]"
                 
     with ui.card():
         ui.card_header("CO2-Emissionen")
@@ -1614,11 +1614,12 @@ Zeit, Aussen (°C), Innen (°C), Heiz (W), Kühl (W)
         measurements_summary = reactive.Value(None)
 
         # Inputs for EBF area and energy prices (override config)
+        # User must explicitly enter values; defaults are None (required for costs calculation)
         with ui.layout_column_wrap():
             ui.input_numeric(
                 id="input_meas_ebf_area",
                 label="Energiebezugsfläche EBF [m²]",
-                value=(cfg0.get("building_geometry", {}).get("enclosure", {}).get("ebf_area", {}).get("value", 0) or 0),
+                value=None,
                 min=0,
                 step=1,
                 width=4,
@@ -1626,7 +1627,7 @@ Zeit, Aussen (°C), Innen (°C), Heiz (W), Kühl (W)
             ui.input_numeric(
                 id="input_meas_heating_price",
                 label="Heizpreis [CHF/kWh]",
-                value=(cfg0.get("economic_parameters", {}).get("heating_price", {}).get("value", 0) or 0),
+                value=None,
                 min=0,
                 step=0.01,
                 width=4,
@@ -1634,7 +1635,7 @@ Zeit, Aussen (°C), Innen (°C), Heiz (W), Kühl (W)
             ui.input_numeric(
                 id="input_meas_cooling_price",
                 label="Kühlpreis [CHF/kWh]",
-                value=(cfg0.get("economic_parameters", {}).get("cooling_price", {}).get("value", 0) or 0),
+                value=None,
                 min=0,
                 step=0.01,
                 width=4,
@@ -1780,14 +1781,14 @@ Zeit, Aussen (°C), Innen (°C), Heiz (W), Kühl (W)
                             return f"{value} kWh/m²"
 
                     with ui.value_box(id="value_box_meas_total_energy_costs_heating", width=6):
-                        "Jährliche Stromkosten Heizung"
+                        "Jährliche Energiekosten Heizung"
                         @render.text
                         def meas_total_energy_costs_heating():
                             value = get_measurement_values(measurements_summary(), column_name="Heizleistung", metric="costs_year")
                             return f"{value} CHF"
 
                     with ui.value_box(id="value_box_meas_total_energy_costs_cooling", width=6):
-                        "Jährliche Stromkosten Kühlung"
+                        "Jährliche Energiekosten Kühlung"
                         @render.text
                         def meas_total_energy_costs_cooling():
                             value = get_measurement_values(measurements_summary(), column_name="Kühlleistung", metric="costs_year")
@@ -1892,13 +1893,13 @@ Zeit, Aussen (°C), Innen (°C), Heiz (W), Kühl (W)
                             value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='cooling', metric='energy_specific')
                             return f"{value} kWh/m²"
                     with ui.value_box(id="comp_total_energy_costs_heating", width=4):
-                        "Jährliche Stromkosten Heizung"
+                        "Jährliche Energiekosten Heizung"
                         @render.text
                         def comp_total_energy_costs_heating_value():
                             value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='heating', metric='costs_year')
                             return f"{value} CHF"
                     with ui.value_box(id="comp_total_energy_costs_cooling", width=4):
-                        "Jährliche Stromkosten Kühlung"
+                        "Jährliche Energiekosten Kühlung"
                         @render.text
                         def comp_total_energy_costs_cooling_value():
                             value = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='cooling', metric='costs_year')

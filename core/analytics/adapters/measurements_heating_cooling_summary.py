@@ -203,10 +203,10 @@ class MeasurementsHeatingCoolingSummaryAdapter(BaseAdapter):
                     }
                 )
 
-            # Costs if pricing available
+            # Costs if pricing available and > 0
             if costs_config:
                 price_key = f"{end_use}_price"
-                if price_key in costs_config:
+                if price_key in costs_config and costs_config[price_key] > 0:
                     cost = energy_kWh * costs_config[price_key]
                     rows.append(
                         {

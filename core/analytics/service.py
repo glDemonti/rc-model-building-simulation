@@ -123,7 +123,7 @@ class AnalyticsService:
                 if hasattr(adapter, 'ebf_area'):
                     adapter.ebf_area = ebf_area
                 
-                if adapter.name == "MeasurementsHeatingCooling":
+                if adapter.name == "MeasurementsHeatingCoolingSummary":
                     results = adapter.compute(
                         df_raw, 
                         project_id=project_id, 

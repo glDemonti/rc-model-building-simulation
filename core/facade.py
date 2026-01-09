@@ -159,27 +159,29 @@ class ConfigFacade:
             project_id (str): Project identifier
             date_range (tuple): Optional (start_date, end_date) for filtering
             time_column (str): Optional name of time column
+            costs_override (dict): Optional {'heating_price': float, 'cooling_price': float} to override config
+            ebf_area_override (float): Optional EBF area to override config
         
         Returns:
             pd.DataFrame: Summary statistics with columns: project_id, column_name, metric, value, unit
         """
-        # Load config to get costs and building area
-        cfg = self._config_repo.read_raw()
+        # Start with empty config; user MUST provide values
         costs_config = {
-            "heating_price": cfg.get("economic_parameters", {}).get("heating_price", {}).get("value", 0),
-            "cooling_price": cfg.get("economic_parameters", {}).get("cooling_price", {}).get("value", 0),
+            "heating_price": 0,
+            "cooling_price": 0,
         }
-        ebf_area = cfg.get("building_geometry", {}).get("enclosure", {}).get("ebf_area", {}).get("value", None)
+        ebf_area = None
 
-        # Apply overrides from UI if provided
+        # Apply overrides from UI if provided (user inputs)
         if isinstance(costs_override, dict):
             hp = costs_override.get("heating_price")
             cp = costs_override.get("cooling_price")
-            if hp is not None:
+            if hp is not None and hp > 0:
                 costs_config["heating_price"] = hp
-            if cp is not None:
+            if cp is not None and cp > 0:
                 costs_config["cooling_price"] = cp
-        if ebf_area_override is not None:
+        
+        if ebf_area_override is not None and ebf_area_override > 0:
             ebf_area = ebf_area_override
         
         # Pass config to adapters via analytics service
