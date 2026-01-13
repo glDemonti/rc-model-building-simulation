@@ -794,7 +794,7 @@ with ui.nav_panel("Simulationsresultate"):
                 },
                 ).update_xaxes(
                     type="date",
-                    tickformat="%d-%m-%y %H:%M",
+                    tickformat="%d-%m %H:%M",
                     tickangle=45,
                     showgrid=True,
                 ).update_layout(
@@ -853,7 +853,19 @@ with ui.nav_panel("Simulationsresultate"):
                         end_use="temperature",
                         metric="timestamp_temp_outdoor_min",
                     )
-                    return f"am {ts}" 
+                    # Format timestamp to exclude year
+                    if ts and ts != "-":
+                        try:
+                            dt = pd.to_datetime(ts)
+                            formatted_ts = dt.strftime("%d.%m. %H:%M")
+                            return f"am {formatted_ts}"
+                        except Exception as e:
+                            # Fallback: try to parse and reformat if parsing fails
+                            try:
+                                return f"am {str(ts)}".replace(str(pd.to_datetime(ts).year), "").strip()
+                            except:
+                                return f"am {ts}"
+                    return "" 
             
             with ui.value_box(
                 id="value_box_outdoor_temp_max",
@@ -872,7 +884,19 @@ with ui.nav_panel("Simulationsresultate"):
                         end_use="temperature",
                         metric="timestamp_temp_outdoor_max",
                     )
-                    return f"am {ts}"
+                    # Format timestamp to exclude year
+                    if ts and ts != "-":
+                        try:
+                            dt = pd.to_datetime(ts)
+                            formatted_ts = dt.strftime("%d.%m. %H:%M")
+                            return f"am {formatted_ts}"
+                        except Exception as e:
+                            # Fallback: try to parse and reformat if parsing fails
+                            try:
+                                return f"am {str(ts)}".replace(str(pd.to_datetime(ts).year), "").strip()
+                            except:
+                                return f"am {ts}"
+                    return ""
 
     with ui.card():
         ui.card_header("Heiz- und Kühlleistung sowie Energiebedarf")
@@ -899,7 +923,7 @@ with ui.nav_panel("Simulationsresultate"):
                         },
                         ).update_xaxes(
                             type="date",
-                            tickformat="%d-%m-%y %H:%M",
+                            tickformat="%d-%m %H:%M",
                             tickangle=45,
                             showgrid=True,
                     ).update_layout(
@@ -927,7 +951,7 @@ with ui.nav_panel("Simulationsresultate"):
                         return go.Figure()
 
                     # Ensure datetime is datetime type and convert to string for display
-                    df_monthly["datetime"] = pd.to_datetime(df_monthly["datetime"]).dt.strftime("%Y-%m")
+                    df_monthly["datetime"] = pd.to_datetime(df_monthly["datetime"]).dt.strftime("%m")
 
                     # Prepare data with heating and cooling combined
                     data = []
@@ -1021,7 +1045,13 @@ with ui.nav_panel("Simulationsresultate"):
                         end_use="heating",
                         metric="power_max_timestamp",
                     )
-                    return f"am {ts}"
+                    # Format timestamp to exclude year
+                    try:
+                        dt = pd.to_datetime(ts)
+                        formatted_ts = dt.strftime("%d.%m. %H:%M")
+                    except:
+                        formatted_ts = ts
+                    return f"am {formatted_ts}"
 
 
             with ui.value_box(
@@ -1045,7 +1075,13 @@ with ui.nav_panel("Simulationsresultate"):
                         end_use="cooling",
                         metric="power_max_timestamp",
                     )
-                    return f"am {ts}"
+                    # Format timestamp to exclude year
+                    try:
+                        dt = pd.to_datetime(ts)
+                        formatted_ts = dt.strftime("%d.%m. %H:%M")
+                    except:
+                        formatted_ts = ts
+                    return f"am {formatted_ts}"
 
 
             with ui.value_box(
@@ -1701,7 +1737,14 @@ Zeit, Aussen (°C), Innen (°C), Heiz (W), Kühl (W)
                         @render.text
                         def meas_outdoor_temp_min_ts():
                             ts = get_measurement_values(measurements_summary(), column_name="Aussentemperatur", metric="min_timestamp")
-                            return f"am {ts}" if ts != "-" else ""
+                            if ts != "-":
+                                try:
+                                    dt = pd.to_datetime(ts)
+                                    formatted_ts = dt.strftime("%d.%m. %H:%M")
+                                    return f"am {formatted_ts}"
+                                except:
+                                    return f"am {ts}"
+                            return ""
 
                     with ui.value_box(id="value_box_meas_outdoor_temp_max", width=6):
                         "Maximale Aussentemperatur"
@@ -1712,7 +1755,14 @@ Zeit, Aussen (°C), Innen (°C), Heiz (W), Kühl (W)
                         @render.text
                         def meas_outdoor_temp_max_ts():
                             ts = get_measurement_values(measurements_summary(), column_name="Aussentemperatur", metric="max_timestamp")
-                            return f"am {ts}" if ts != "-" else ""
+                            if ts != "-":
+                                try:
+                                    dt = pd.to_datetime(ts)
+                                    formatted_ts = dt.strftime("%d.%m. %H:%M")
+                                    return f"am {formatted_ts}"
+                                except:
+                                    return f"am {ts}"
+                            return ""
 
             with ui.nav_panel("Kennzahlen Energie & Leistung"):
                 with ui.layout_column_wrap():
@@ -1739,7 +1789,14 @@ Zeit, Aussen (°C), Innen (°C), Heiz (W), Kühl (W)
                         @render.text
                         def meas_heating_power_max_ts():
                             ts = get_measurement_values(measurements_summary(), column_name="Heizleistung", metric="power_max_timestamp")
-                            return f"am {ts}" if ts != "-" else ""
+                            if ts != "-":
+                                try:
+                                    dt = pd.to_datetime(ts)
+                                    formatted_ts = dt.strftime("%d.%m. %H:%M")
+                                    return f"am {formatted_ts}"
+                                except:
+                                    return f"am {ts}"
+                            return ""
 
                     with ui.value_box(id="value_box_meas_cooling_power_max", width=6):
                         "Maximale Kühlleistung"
@@ -1750,7 +1807,14 @@ Zeit, Aussen (°C), Innen (°C), Heiz (W), Kühl (W)
                         @render.text
                         def meas_cooling_power_max_ts():
                             ts = get_measurement_values(measurements_summary(), column_name="Kühlleistung", metric="power_max_timestamp")
-                            return f"am {ts}" if ts != "-" else ""
+                            if ts != "-":
+                                try:
+                                    dt = pd.to_datetime(ts)
+                                    formatted_ts = dt.strftime("%d.%m. %H:%M")
+                                    return f"am {formatted_ts}"
+                                except:
+                                    return f"am {ts}"
+                            return ""
 
                     with ui.value_box(id="value_box_meas_spec_heating_load", width=6):
                         "Spezifische Heizlast"
@@ -1857,7 +1921,13 @@ Zeit, Aussen (°C), Innen (°C), Heiz (W), Kühl (W)
                         @render.text
                         def comp_max_heating_power_ts():
                             ts = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='heating', metric='power_max_timestamp')
-                            return f"am {ts}"
+                            # Format timestamp to exclude year
+                            try:
+                                dt = pd.to_datetime(ts)
+                                formatted_ts = dt.strftime("%d.%m. %H:%M")
+                            except:
+                                formatted_ts = ts
+                            return f"am {formatted_ts}"
                     with ui.value_box(id="comp_max_cooling_power", width=4):
                         "Maximale Kühlleistung"
                         @render.text
@@ -1867,7 +1937,13 @@ Zeit, Aussen (°C), Innen (°C), Heiz (W), Kühl (W)
                         @render.text
                         def comp_max_cooling_power_ts():
                             ts = get_summary_values(summary_all(), variant=input.comp_variant_selector(), end_use='cooling', metric='power_max_timestamp')
-                            return f"am {ts}"
+                            # Format timestamp to exclude year
+                            try:
+                                dt = pd.to_datetime(ts)
+                                formatted_ts = dt.strftime("%d.%m. %H:%M")
+                            except:
+                                formatted_ts = ts
+                            return f"am {formatted_ts}"
                     with ui.value_box(id="comp_spec_heating_load", width=4):
                         "Spezifische Heizlast"
                         @render.text
@@ -1929,7 +2005,7 @@ Zeit, Aussen (°C), Innen (°C), Heiz (W), Kühl (W)
                         },
                     ).update_xaxes(
                         type="date",
-                        tickformat="%d-%m-%y %H:%M",
+                        tickformat="%d-%m %H:%M",
                         tickangle=45,
                         showgrid=True,
                     ).update_layout(
@@ -1973,7 +2049,7 @@ Zeit, Aussen (°C), Innen (°C), Heiz (W), Kühl (W)
                         },
                     ).update_xaxes(
                         type="date",
-                        tickformat="%d-%m-%y %H:%M",
+                        tickformat="%d-%m %H:%M",
                         tickangle=45,
                         showgrid=True,
                     ).update_layout(
@@ -2001,7 +2077,7 @@ Zeit, Aussen (°C), Innen (°C), Heiz (W), Kühl (W)
                     if df_monthly is None or df_monthly.empty:
                         return go.Figure()
                     
-                    df_monthly["datetime"] = pd.to_datetime(df_monthly["datetime"]).dt.strftime("%Y-%m")
+                    df_monthly["datetime"] = pd.to_datetime(df_monthly["datetime"]).dt.strftime("%m")
                     
                     data = []
                     for _, row in df_monthly.iterrows():
