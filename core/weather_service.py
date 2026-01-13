@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from pathlib import Path
 from core.storage.weather_repo import WeatherRepository
 
@@ -208,21 +209,21 @@ class WeatherService:
         import numpy as np
         
         # Create datetime array (EPW hour is 1-24, adjust to 0-23)
-        hour_adjusted = hour.values - 1 if hasattr(hour, 'values') else hour - 1
-        dates = pd.to_datetime(pd.DataFrame({
+        hour_adjusted = (hour.values if hasattr(hour, 'values') else hour) - 1
+        dates = pd.to_datetime({
             'year': year.values if hasattr(year, 'values') else year,
             'month': month.values if hasattr(month, 'values') else month,
             'day': day.values if hasattr(day, 'values') else day,
             'hour': hour_adjusted,
             'minute': minute.values if hasattr(minute, 'values') else minute
-        }))
+        })
         
         # Basel, Switzerland coordinates
         latitude = 47.5596
         longitude = 7.5922
         
         # Calculate day of year
-        day_of_year = dates.dayofyear.values
+        day_of_year = dates.dt.dayofyear.values
         
         # Simplified calculation using standard solar equations
         # Declination angle
@@ -231,7 +232,7 @@ class WeatherService:
         declination = 23.45 * np.sin(B_rad)
         
         # Time offset
-        time_offset = hour_adjusted + minute.values / 60.0 if hasattr(minute, 'values') else hour_adjusted + minute / 60.0
+        time_offset = hour_adjusted + (minute.values if hasattr(minute, 'values') else minute) / 60.0
         hour_angle = 15.0 * (time_offset - 12.0) + (longitude - 15.0)
         
         # Solar elevation angle
@@ -256,21 +257,21 @@ class WeatherService:
         import numpy as np
         
         # Create datetime array (EPW hour is 1-24, adjust to 0-23)
-        hour_adjusted = hour.values - 1 if hasattr(hour, 'values') else hour - 1
-        dates = pd.to_datetime(pd.DataFrame({
+        hour_adjusted = (hour.values if hasattr(hour, 'values') else hour) - 1
+        dates = pd.to_datetime({
             'year': year.values if hasattr(year, 'values') else year,
             'month': month.values if hasattr(month, 'values') else month,
             'day': day.values if hasattr(day, 'values') else day,
             'hour': hour_adjusted,
             'minute': minute.values if hasattr(minute, 'values') else minute
-        }))
+        })
         
         # Basel, Switzerland coordinates
         latitude = 47.5596
         longitude = 7.5922
         
         # Calculate day of year
-        day_of_year = dates.dayofyear.values
+        day_of_year = dates.dt.dayofyear.values
         
         # Simplified calculation using standard solar equations
         # Declination angle
@@ -279,7 +280,7 @@ class WeatherService:
         declination = 23.45 * np.sin(B_rad)
         
         # Time offset
-        time_offset = hour_adjusted + minute.values / 60.0 if hasattr(minute, 'values') else hour_adjusted + minute / 60.0
+        time_offset = hour_adjusted + (minute.values if hasattr(minute, 'values') else minute) / 60.0
         hour_angle = 15.0 * (time_offset - 12.0) + (longitude - 15.0)
         
         # Solar azimuth angle
