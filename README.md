@@ -293,13 +293,6 @@ Dieses Projekt ist unter der MIT-Lizenz veröffentlicht. Details stehen in der [
 
 ---
 
-## Sicherheit
-
-Hinweise zum Melden von Sicherheitslücken: siehe [SECURITY.md](SECURITY.md).
-
-
----
-
 ## Kontakt
 
 Bei Fragen ein Issue im GitHub-Repository erstellen.
