@@ -950,17 +950,27 @@ with ui.nav_panel("Simulationsresultate"):
                     if df_monthly is None or df_monthly.empty:
                         return go.Figure()
 
-                    # Ensure datetime is datetime type and convert to string for display
-                    df_monthly["datetime"] = pd.to_datetime(df_monthly["datetime"]).dt.strftime("%m")
-
+                    # German month mapping
+                    german_months = {1: 'Jan', 2: 'Feb', 3: 'Mär', 4: 'Apr', 5: 'Mai', 6: 'Jun',
+                                     7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Okt', 11: 'Nov', 12: 'Dez'}
+                    
                     # Prepare data with heating and cooling combined
                     data = []
                     for _, row in df_monthly.iterrows():
-                        month = row["datetime"]
-                        data.append({"Monat": month, "Variante": "A", "Energie [MWh]": row["heating_energy_MWh_A"], "Typ": "Heizung"})
-                        data.append({"Monat": month, "Variante": "B", "Energie [MWh]": row["heating_energy_MWh_B"], "Typ": "Heizung"})
-                        data.append({"Monat": month, "Variante": "A", "Energie [MWh]": row["cooling_energy_MWh_A"], "Typ": "Kühlung"})
-                        data.append({"Monat": month, "Variante": "B", "Energie [MWh]": row["cooling_energy_MWh_B"], "Typ": "Kühlung"})
+                        # Convert datetime to month abbreviation for each row
+                        try:
+                            if 'datetime' in df_monthly.columns:
+                                month_dt = pd.to_datetime(row["datetime"])
+                                month_name = german_months.get(month_dt.month, 'Month')
+                            else:
+                                month_name = "Month"
+                        except:
+                            month_name = "Month"
+                        
+                        data.append({"Monat": month_name, "Variante": "A", "Energie [MWh]": row["heating_energy_MWh_A"], "Typ": "Heizung"})
+                        data.append({"Monat": month_name, "Variante": "B", "Energie [MWh]": row["heating_energy_MWh_B"], "Typ": "Heizung"})
+                        data.append({"Monat": month_name, "Variante": "A", "Energie [MWh]": row["cooling_energy_MWh_A"], "Typ": "Kühlung"})
+                        data.append({"Monat": month_name, "Variante": "B", "Energie [MWh]": row["cooling_energy_MWh_B"], "Typ": "Kühlung"})
                     
                     df_long = pd.DataFrame(data)
 
@@ -1532,17 +1542,28 @@ Zeit, Aussen (°C), Innen (°C), Heiz (W), Kühl (W)
                     heat_kWh_row = (heat_W * dt_h) / 1000.0
                     cool_kWh_row = (cool_W * dt_h) / 1000.0
 
-                    dfm['month'] = dfm[x_col].dt.strftime('%Y-%m')
+                    # German month mapping
+                    german_months = {1: 'Jan', 2: 'Feb', 3: 'Mär', 4: 'Apr', 5: 'Mai', 6: 'Jun',
+                                     7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Okt', 11: 'Nov', 12: 'Dez'}
+                    
+                    # Group by year-month to maintain chronological order
+                    dfm['year_month'] = dfm[x_col].dt.strftime('%Y-%m')
                     monthly = pd.DataFrame({
-                        'month': dfm['month'],
+                        'year_month': dfm['year_month'],
                         'heat_kWh': heat_kWh_row,
                         'cool_kWh': cool_kWh_row,
-                    }).groupby('month', as_index=False).sum()
+                    }).groupby('year_month', as_index=False).sum()
 
+                    # Now convert to month abbreviation for display
                     data = []
                     for _, row in monthly.iterrows():
-                        data.append({'Monat': row['month'], 'Typ': 'Heizung', 'Energie [kWh]': row['heat_kWh']})
-                        data.append({'Monat': row['month'], 'Typ': 'Kühlung', 'Energie [kWh]': row['cool_kWh']})
+                        try:
+                            month_dt = pd.to_datetime(row['year_month'])
+                            month_name = german_months.get(month_dt.month, 'Month')
+                        except:
+                            month_name = 'Month'
+                        data.append({'Monat': month_name, 'Typ': 'Heizung', 'Energie [kWh]': row['heat_kWh']})
+                        data.append({'Monat': month_name, 'Typ': 'Kühlung', 'Energie [kWh]': row['cool_kWh']})
                     df_plot = pd.DataFrame(data)
 
                     fig = px.bar(
@@ -2077,7 +2098,32 @@ Zeit, Aussen (°C), Innen (°C), Heiz (W), Kühl (W)
                     if df_monthly is None or df_monthly.empty:
                         return go.Figure()
                     
-                    df_monthly["datetime"] = pd.to_datetime(df_monthly["datetime"]).dt.strftime("%m")
+                    # German month mapping
+                    german_months = {1: 'Jan', 2: 'Feb', 3: 'Mär', 4: 'Apr', 5: 'Mai', 6: 'Jun',
+                                     7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Okt', 11: 'Nov', 12: 'Dez'}
+                    
+                    # Safely convert datetime to month abbreviation
+                    if 'datetime' in df_monthly.columns:
+                        try:
+                            # Try to convert to datetime first
+                            dt_series = pd.to_datetime(df_monthly["datetime"], errors='coerce')
+                            # Filter out NaT values and get month names
+                            df_monthly["datetime"] = dt_series.dt.month.map(german_months).fillna("Unknown")
+                        except Exception as e:
+                            # If all else fails, extract month from string if possible
+                            def extract_month(x):
+                                try:
+                                    dt = pd.to_datetime(x, errors='coerce')
+                                    return german_months.get(dt.month, "Unknown") if pd.notna(dt) else "Unknown"
+                                except:
+                                    return "Month"
+                            df_monthly["datetime"] = df_monthly["datetime"].apply(extract_month)
+                    else:
+                        # Use index if no datetime column
+                        try:
+                            df_monthly["datetime"] = pd.to_datetime(df_monthly.index, errors='coerce').month.map(german_months)
+                        except:
+                            df_monthly["datetime"] = "Month"
                     
                     data = []
                     for _, row in df_monthly.iterrows():
