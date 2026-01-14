@@ -146,12 +146,6 @@ class WeatherService:
         # 20 Wind Direction [deg], 21 Wind Speed [m/s],
         # 22 Total Sky Cover [%] (fallback if needed)
 
-        year = df.iloc[:, 0].astype(int)
-        month = df.iloc[:, 1].astype(int)
-        day = df.iloc[:, 2].astype(int)
-        hour = df.iloc[:, 3].astype(int)
-        minute = df.iloc[:, 4].astype(int)
-
         air_temperature = df.iloc[:, 6].astype(float)
         relative_humidity = df.iloc[:, 8].astype(float)
         solar_radiation_direct = df.iloc[:, 14].astype(float)
@@ -172,8 +166,8 @@ class WeatherService:
 
         # Calculate sun elevation and azimuth using simplified solar position algorithm
         # This provides consistent values between .mat and .epw formats
-        sun_elevation = self._calculate_sun_elevation(year, month, day, hour, minute)
-        sun_azimuth = self._calculate_sun_azimuth(year, month, day, hour, minute)
+        sun_elevation = self._calculate_sun_elevation(dt)
+        sun_azimuth = self._calculate_sun_azimuth(dt)
 
         # Build standardized DataFrame
         df_weather = pd.DataFrame(
@@ -197,101 +191,85 @@ class WeatherService:
 
         return df_weather
 
-    def _calculate_sun_elevation(self, year, month, day, hour, minute) -> np.ndarray:
+    def _calculate_sun_elevation(self, datetimes: pd.DatetimeIndex) -> np.ndarray:
         """Calculate solar elevation angle using simplified solar position algorithm.
         
         Args:
-            year, month, day, hour, minute: Arrays of date/time values
+            datetimes: Sequence of datetime values aligned with the weather records
             
         Returns:
             Array of sun elevation angles in degrees
         """
         import numpy as np
-        
-        # Create datetime array (EPW hour is 1-24, adjust to 0-23)
-        hour_adjusted = (hour.values if hasattr(hour, 'values') else hour) - 1
-        dates = pd.to_datetime({
-            'year': year.values if hasattr(year, 'values') else year,
-            'month': month.values if hasattr(month, 'values') else month,
-            'day': day.values if hasattr(day, 'values') else day,
-            'hour': hour_adjusted,
-            'minute': minute.values if hasattr(minute, 'values') else minute
-        })
-        
+
+        dates = pd.DatetimeIndex(datetimes)
+
         # Basel, Switzerland coordinates
         latitude = 47.5596
         longitude = 7.5922
-        
+
         # Calculate day of year
-        day_of_year = dates.dt.dayofyear.values
-        
+        day_of_year = dates.dayofyear.values
+
         # Simplified calculation using standard solar equations
         # Declination angle
         B = 360.0 * (day_of_year - 1) / 365.0
         B_rad = np.radians(B)
         declination = 23.45 * np.sin(B_rad)
-        
-        # Time offset
-        time_offset = hour_adjusted + (minute.values if hasattr(minute, 'values') else minute) / 60.0
+
+        # Time offset based on provided datetimes
+        time_offset = dates.hour + dates.minute / 60.0
         hour_angle = 15.0 * (time_offset - 12.0) + (longitude - 15.0)
-        
+
         # Solar elevation angle
         lat_rad = np.radians(latitude)
         decl_rad = np.radians(declination)
         hour_angle_rad = np.radians(hour_angle)
-        
+
         sin_elev = np.sin(lat_rad) * np.sin(decl_rad) + np.cos(lat_rad) * np.cos(decl_rad) * np.cos(hour_angle_rad)
         elevation = np.degrees(np.arcsin(np.clip(sin_elev, -1, 1)))
-        
+
         return elevation
     
-    def _calculate_sun_azimuth(self, year, month, day, hour, minute) -> np.ndarray:
+    def _calculate_sun_azimuth(self, datetimes: pd.DatetimeIndex) -> np.ndarray:
         """Calculate solar azimuth angle using simplified solar position algorithm.
         
         Args:
-            year, month, day, hour, minute: Arrays of date/time values
+            datetimes: Sequence of datetime values aligned with the weather records
             
         Returns:
             Array of sun azimuth angles in degrees (0=North, 90=East, 180=South, 270=West)
         """
         import numpy as np
-        
-        # Create datetime array (EPW hour is 1-24, adjust to 0-23)
-        hour_adjusted = (hour.values if hasattr(hour, 'values') else hour) - 1
-        dates = pd.to_datetime({
-            'year': year.values if hasattr(year, 'values') else year,
-            'month': month.values if hasattr(month, 'values') else month,
-            'day': day.values if hasattr(day, 'values') else day,
-            'hour': hour_adjusted,
-            'minute': minute.values if hasattr(minute, 'values') else minute
-        })
-        
+
+        dates = pd.DatetimeIndex(datetimes)
+
         # Basel, Switzerland coordinates
         latitude = 47.5596
         longitude = 7.5922
-        
+
         # Calculate day of year
-        day_of_year = dates.dt.dayofyear.values
-        
+        day_of_year = dates.dayofyear.values
+
         # Simplified calculation using standard solar equations
         # Declination angle
         B = 360.0 * (day_of_year - 1) / 365.0
         B_rad = np.radians(B)
         declination = 23.45 * np.sin(B_rad)
-        
-        # Time offset
-        time_offset = hour_adjusted + (minute.values if hasattr(minute, 'values') else minute) / 60.0
+
+        # Time offset based on provided datetimes
+        time_offset = dates.hour + dates.minute / 60.0
         hour_angle = 15.0 * (time_offset - 12.0) + (longitude - 15.0)
-        
+
         # Solar azimuth angle
         lat_rad = np.radians(latitude)
         decl_rad = np.radians(declination)
         hour_angle_rad = np.radians(hour_angle)
-        
+
         # Azimuth calculation (0=North, increases clockwise)
         numerator = np.sin(hour_angle_rad)
         denominator = np.sin(lat_rad) * np.cos(hour_angle_rad) - np.cos(lat_rad) * np.tan(decl_rad)
         azimuth = np.degrees(np.arctan2(numerator, denominator))
         azimuth = (azimuth + 180) % 360  # Convert to 0-360 range
-        
+
         return azimuth
