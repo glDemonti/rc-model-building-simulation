@@ -1392,7 +1392,6 @@ class RCEngine:
                 heating_power = 0.0
                 cooling_power = 0.0
 
-                # MARKER: File Version Check - 2025-12-08
                 # heating
                 if initial_temperatures[line_air] < heating_setpoint:
                     for j in range(5):
