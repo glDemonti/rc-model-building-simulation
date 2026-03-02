@@ -47,12 +47,15 @@ def _deep_set(d, path, value):
     return out
 
 
-def _deep_get(d, path):
+def _deep_get(d, path, default=None):
     cur = d
     parts = path.split(".")
-    for k in parts:
-        cur = cur[k]
-    return cur
+    try:
+        for k in parts:
+            cur = cur[k]
+        return cur
+    except (KeyError, TypeError):
+        return default
 
 
 def _push_inputs_from_cfg():
@@ -168,6 +171,8 @@ BINDINGS = {
     "Co2_emission_factor_cooling": ("Co2_emission_factors.cooling.expression", str),
     "verlaufzeit_enable": ("simulation_parameters.verlaufzeit.enable", bool),
     "verlaufzeit_days": ("simulation_parameters.verlaufzeit.days", float),
+    "location_latitude": ("location.latitude.expression", str),
+    "location_longitude": ("location.longitude.expression", str),
 }
 
 def _schedule_df_from_cfg(cfg, key):
@@ -3066,6 +3071,30 @@ with ui.nav_panel("Einstellungen"):
                     step=1,
                 )
                 ui.markdown("_Die letzten N Tage der Wetterdatei werden an den Anfang kopiert. Empfohlen: 14 Tage für Jahressimulationen._")
+                
+                ui.hr()
+                ui.card_header("Standortkoordinaten")
+                ui.markdown("**Geografische Position:** Die Koordinaten werden für die Berechnung von Sonnenstand und Strahlungsaufteilung verwendet (Erbs-Modell).")
+                with ui.layout_columns():
+                    ui.input_numeric(
+                        id="location_latitude",
+                        label="Breitengrad (Latitude)",
+                        value=float(_deep_get(cfg0, "location.latitude.expression", "47.5596")),
+                        min=-90,
+                        max=90,
+                        step=0.0001,
+                        width="250px"
+                    )
+                    ui.input_numeric(
+                        id="location_longitude",
+                        label="Längengrad (Longitude)",
+                        value=float(_deep_get(cfg0, "location.longitude.expression", "7.5922")),
+                        min=-180,
+                        max=180,
+                        step=0.0001,
+                        width="250px"
+                    )
+                ui.markdown("_Beispiele: Basel: 47.5596°N, 7.5922°E | Zürich: 47.3769°N, 8.5417°E | Berlin: 52.5200°N, 13.4050°E_")
                 
                 ui.hr()
                 with ui.layout_columns():
