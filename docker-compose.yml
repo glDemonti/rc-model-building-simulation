@@ -1,6 +1,6 @@
 services:
   simulation-app:
-    image: ghcr.io/gldemonti/rc-model-building-simulation:1.0.0
+    image: ghcr.io/gldemonti/rc-model-building-simulation:1.0.1
     pull_policy: if_not_present
     container_name: simulation-app
     ports:
