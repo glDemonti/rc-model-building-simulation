@@ -39,8 +39,8 @@ class SolarLocationManager:
             cfg: Configuration dict with optional 'location' section:
                 {
                     "location": {
-                        "latitude": 47.5596,
-                        "longitude": 7.5922
+                        "latitude": {"expression": "47.5596", "value": 47.5596, ...},
+                        "longitude": {"expression": "7.5922", "value": 7.5922, ...}
                     }
                 }
         
@@ -48,8 +48,20 @@ class SolarLocationManager:
             SolarLocationManager instance
         """
         location_cfg = cfg.get("location", {})
-        latitude = location_cfg.get("latitude")
-        longitude = location_cfg.get("longitude")
+        
+        # Extract values from nested config structure
+        latitude = None
+        if isinstance(location_cfg.get("latitude"), dict):
+            latitude = location_cfg["latitude"].get("value")
+        else:
+            latitude = location_cfg.get("latitude")
+            
+        longitude = None
+        if isinstance(location_cfg.get("longitude"), dict):
+            longitude = location_cfg["longitude"].get("value")
+        else:
+            longitude = location_cfg.get("longitude")
+        
         return SolarLocationManager(latitude=latitude, longitude=longitude)
     
     def get_coordinates(self) -> Tuple[float, float]:

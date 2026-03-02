@@ -105,36 +105,38 @@ def convert_climate_station_csv(
         columns_lower = {col.lower(): col for col in df.columns}
 
         def get_column_value(possible_names):
-            """Get column data using multiple possible names."""
+            """Get column data using multiple possible names (substring matching)."""
             for name in possible_names:
-                if name.lower() in columns_lower:
-                    col_name = columns_lower[name.lower()]
-                    print(f"  Found '{name}' as '{col_name}'")
-                    return df[col_name].astype(float)
+                for col_key, col_name in columns_lower.items():
+                    # Check for substring match (case-insensitive)
+                    if name.lower() in col_key:
+                        print(f"  Found '{name}' as '{col_name}'")
+                        return df[col_name].astype(float)
             raise ValueError(
                 f"Required column not found. Tried: {possible_names}"
             )
 
         print("\nExtracting required columns:")
         air_temperature = get_column_value(
-            ["temperatur", "temperature", "temp"]
+            ["tagesmittel lufttemperatur", "temperatur", "temperature", "temp", "lufttemperatur"]
         )
         relative_humidity = get_column_value(
-            ["feuchte", "humidity", "relative humidity"]
+            ["relative luftfeuchtigkeit", "feuchte", "humidity", "relative humidity", "luftfeuchtigkeit"]
         )
         wind_speed = get_column_value(
-            ["windstärke", "wind speed", "windspeed"]
+            ["windgeschwindigkeit skalar", "windstärke", "wind speed", "windspeed", "windgeschwindigkeit"]
         )
         wind_direction = get_column_value(
             ["windrichtung", "wind direction", "wind_direction"]
         )
         global_radiation = get_column_value(
             [
+                "globalstrahlung",
+                "globalstrahlung in w/m2",
                 "strahlung referenz",
                 "global radiation",
                 "global_radiation",
                 "strahlung global",
-                "globalstrahlung",
             ]
         )
 
