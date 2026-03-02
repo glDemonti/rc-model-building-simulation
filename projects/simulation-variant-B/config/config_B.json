@@ -1,4 +1,18 @@
 {
+    "location": {
+        "latitude": {
+            "expression": "47.5596",
+            "unit": "degrees",
+            "value": 47.5596,
+            "description": "Geographic latitude for solar calculations"
+        },
+        "longitude": {
+            "expression": "7.5922",
+            "unit": "degrees",
+            "value": 7.5922,
+            "description": "Geographic longitude for solar calculations"
+        }
+    },
     "Co2_emission_factors": {
         "cooling": {
             "expression": "0.15",
@@ -281,6 +295,12 @@
             "expression": "2019-01-01 00:00:00",
             "unit": "-",
             "value": "2019-01-01 00:00:00"
+        },
+        "verlaufzeit": {
+            "enable": false,
+            "days": 14,
+            "unit": "days",
+            "description": "Settling time before simulation period"
         }
     },
     "thermal_properties": {

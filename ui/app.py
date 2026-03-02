@@ -47,12 +47,15 @@ def _deep_set(d, path, value):
     return out
 
 
-def _deep_get(d, path):
+def _deep_get(d, path, default=None):
     cur = d
     parts = path.split(".")
-    for k in parts:
-        cur = cur[k]
-    return cur
+    try:
+        for k in parts:
+            cur = cur[k]
+        return cur
+    except (KeyError, TypeError):
+        return default
 
 
 def _push_inputs_from_cfg():
@@ -60,7 +63,16 @@ def _push_inputs_from_cfg():
     cur = cfg_state()
     for _id, (path, cast) in BINDINGS.items():
         try:
-            ui.update_text(_id, value=str(_deep_get(cur, path)))
+            value = _deep_get(cur, path)
+            if cast is bool:
+                # Handle checkbox inputs
+                ui.update_checkbox(_id, value=bool(value))
+            elif _id in ["verlaufzeit_days"]:
+                # Handle numeric inputs
+                ui.update_numeric(_id, value=float(value))
+            else:
+                # Handle text inputs
+                ui.update_text(_id, value=str(value))
         except Exception:
             # if a field cannot be updated, skip it
             pass
@@ -157,7 +169,10 @@ BINDINGS = {
     "cooling_price": ("economic_parameters.cooling_price.expression", str),
     "Co2_emission_factor_heating": ("Co2_emission_factors.heating.expression", str),
     "Co2_emission_factor_cooling": ("Co2_emission_factors.cooling.expression", str),
-    
+    "verlaufzeit_enable": ("simulation_parameters.verlaufzeit.enable", bool),
+    "verlaufzeit_days": ("simulation_parameters.verlaufzeit.days", float),
+    "location_latitude": ("location.latitude.expression", str),
+    "location_longitude": ("location.longitude.expression", str),
 }
 
 def _schedule_df_from_cfg(cfg, key):
@@ -2218,9 +2233,14 @@ with ui.nav_panel("Einstellungen"):
                         info = file_info[0]
                         temp_path = info["datapath"]
                         original_name = info["name"]
+                        weather_mode = input.weather_file_mode() or "auto"
 
                         try:
-                            facade_A.update_weather_file(temp_path, original_name)
+                            facade_A.update_weather_file(
+                                temp_path,
+                                original_name,
+                                processing_mode=weather_mode,
+                            )
                             ui.notification_show(f"Wetterdatei '{original_name}' erfolgreich hochgeladen.", type="success", duration=4)
                         except Exception as e:
                             ui.notification_show(f"Fehler beim Hochladen der Wetterdatei für Variante {current_variant}: {e}", type="error", duration=6)
@@ -2239,9 +2259,14 @@ with ui.nav_panel("Einstellungen"):
                         info = file_info[0]
                         temp_path = info["datapath"]
                         original_name = info["name"]
+                        weather_mode = input.weather_file_mode() or "auto"
 
                         try:
-                            facade_B.update_weather_file(temp_path, original_name)
+                            facade_B.update_weather_file(
+                                temp_path,
+                                original_name,
+                                processing_mode=weather_mode,
+                            )
                             ui.notification_show(f"Wetterdatei '{original_name}' erfolgreich hochgeladen.", type="success", duration=4)
                         except Exception as e:
                             ui.notification_show(f"Fehler beim Hochladen der Wetterdatei für Variante {current_variant}: {e}", type="error", duration=6)
@@ -3000,7 +3025,7 @@ with ui.nav_panel("Einstellungen"):
                 ui.markdown("""
 | Spalte | Einheit | Beschreibung |
 |--------|---------|-------------|
-| timestamp | Stunden | Zeit ab Jahresbeginn (z.B. 0–8760 h) |
+| timestamp | Stunden | Zeit ab Jahresbeginn (z.B. 0–8760 h für ein vollständiges Jahr) |
 | air_temperature | °C | Außenlufttemperatur |
 | relative_humidity | % | Relative Luftfeuchte |
 | wind_speed_x | m/s | Windgeschwindigkeit X-Richtung |
@@ -3011,11 +3036,68 @@ with ui.nav_panel("Einstellungen"):
 | sun_elevation | ° | Sonnenelevationswinkel |
 | sun_azimuth | ° | Sonnenazimut |
                 """)
-                ui.markdown("**Wichtig: Nur die Spaltenreihenfolge zählt!** Die Spaltennamen werden ignoriert. Die Positionen der Spalten müssen exakt dieser Tabelle entsprechen.")
+                ui.markdown("**Wichtig: Nur die Spaltenreihenfolge zählt!** Die Spaltennamen werden ignoriert. Die Positionen der Spalten müssen exakt dieser Tabelle entsprechen. Die Daten müssen stündliche Auflösung haben (typisch: 8760 Stunden für ein vollständiges Jahr).")
+                ui.markdown("_Hinweis: Diese feste Spaltenreihenfolge gilt für den Modus **Datei ist bereits korrekt**. Im Modus **Fehlende Spalten berechnen** werden Klimastationsdaten (z. B. Temperatur, Feuchte, Windrichtung, Windstärke, Strahlung) verarbeitet._")
                 ui.markdown("**Unterstützte Formate:** MATLAB .mat-Datei mit numerischer Tabelle (erste nicht-`__` Variable wird verwendet), CSV-Dateien, oder EnergyPlus .epw-Dateien")
                 ui.markdown("**Zeitauflösung:** Stundenwerte, lückenlos aufeinanderfolgend")
+                ui.markdown("⚠️ **Wichtig:** Es werden nur Datensätze mit **stündlicher Auflösung** unterstützt. Tagesdaten werden nicht automatisch interpoliert.")
                 ui.markdown("**Settling-in Phase:** Falls die Wetterdatei länger als ein Jahr (>8760 h) ist, wird das RC-Modell über die zusätzlichen Stunden durchlaufen, um ein thermisches Gleichgewicht zu erreichen. Nur das letzte Jahr wird in den Ergebnissen ausgegeben.")
+                ui.input_radio_buttons(
+                    id="weather_file_mode",
+                    label="CSV-Verarbeitungsmodus",
+                    choices={
+                        "standardized": "Datei ist bereits korrekt (10 Standardspalten vorhanden)",
+                        "calculate_missing": "Fehlende Spalten berechnen (Klimastationsdaten)",
+                        "auto": "Automatisch erkennen",
+                    },
+                    selected="standardized",
+                    inline=False,
+                )
+                ui.markdown("_Dieser Modus wird beim Hochladen der Wetterdatei verwendet._")
                 
+                ui.hr()
+                ui.card_header("Verlaufzeit (Einschwingphase)")
+                ui.markdown("**Thermisches Einschwingen:** Um realistische Anfangsbedingungen zu erreichen, können die letzten Tage der Wetterdatei vor dem eigentlichen Simulationszeitraum wiederholt werden.")
+                ui.input_checkbox(
+                    id="verlaufzeit_enable",
+                    label="Verlaufzeit aktivieren",
+                    value=cfg0.get("simulation_parameters", {}).get("verlaufzeit", {}).get("enable", False),
+                )
+                ui.input_numeric(
+                    id="verlaufzeit_days",
+                    label="Dauer der Verlaufzeit (Tage)",
+                    value=cfg0.get("simulation_parameters", {}).get("verlaufzeit", {}).get("days", 14),
+                    min=1,
+                    max=365,
+                    step=1,
+                )
+                ui.markdown("_Die letzten N Tage der Wetterdatei werden an den Anfang kopiert. Empfohlen: 14 Tage für Jahressimulationen._")
+                
+                ui.hr()
+                ui.card_header("Standortkoordinaten")
+                ui.markdown("**Geografische Position:** Die Koordinaten werden für die Berechnung von Sonnenstand und Strahlungsaufteilung verwendet (Erbs-Modell).")
+                with ui.layout_columns():
+                    ui.input_numeric(
+                        id="location_latitude",
+                        label="Breitengrad (Latitude)",
+                        value=float(_deep_get(cfg0, "location.latitude.expression", "47.5596")),
+                        min=-90,
+                        max=90,
+                        step=0.0001,
+                        width="250px"
+                    )
+                    ui.input_numeric(
+                        id="location_longitude",
+                        label="Längengrad (Longitude)",
+                        value=float(_deep_get(cfg0, "location.longitude.expression", "7.5922")),
+                        min=-180,
+                        max=180,
+                        step=0.0001,
+                        width="250px"
+                    )
+                ui.markdown("_Beispiele: Basel: 47.5596°N, 7.5922°E | Zürich: 47.3769°N, 8.5417°E | Berlin: 52.5200°N, 13.4050°E_")
+                
+                ui.hr()
                 with ui.layout_columns():
                     ui.input_date(
                         id="weather_start_date_date",
@@ -3039,6 +3121,41 @@ with ui.nav_panel("Einstellungen"):
                     width="600px",
                     multiple=False
                 )
+                
+                ui.hr()
+                ui.card_header("Vorschau der aktuell gespeicherten Wetterdaten")
+                ui.markdown("_Die ersten 10 Zeilen der verarbeiteten Wetterdatei der aktuellen Variante werden angezeigt._")
+                
+                @render.data_frame
+                def weather_preview():
+                    """
+                    Display preview of the currently saved weather data for the active variant.
+                    Shows the first 10 rows of the processed weather file.
+                    """
+                    try:
+                        current_variant = active_variant()
+                        
+                        # Select facade based on active variant
+                        if current_variant == "A":
+                            weather_df = facade_A._weather_service.load_weather()
+                        else:
+                            weather_df = facade_B._weather_service.load_weather()
+                        
+                        # Return first 10 rows
+                        preview_df = weather_df.head(10)
+                        
+                        return preview_df
+                    
+                    except FileNotFoundError:
+                        # No weather file uploaded yet
+                        return pd.DataFrame({
+                            "Info": ["Keine Wetterdatei vorhanden. Bitte laden Sie eine Wetterdatei hoch."]
+                        })
+                    except Exception as e:
+                        # Other errors
+                        return pd.DataFrame({
+                            "Fehler": [f"Fehler beim Laden der Wetterdatei: {str(e)}"]
+                        })
 
 
 with ui.nav_panel("über"):

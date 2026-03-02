@@ -11,6 +11,88 @@ Eine interaktive Webanwendung zur Simulation und Analyse eines RC-Gebäudemodell
 - **Parameter-Anpassung** für Gebäudeeigenschaften und Simulationseinstellungen
 - **Messdaten-Vergleich** mit Simulationsergebnissen
 - **CO2-Emissionsberechnung**
+- **Wetterdaten-Verarbeitung** mit Klimastationsdaten-Konvertierung und Solarstrahlungs-Berechnung
+- **Verlaufzeit-Feature** für thermisches Einschwingen vor der Simulation
+
+## Wetterdaten-Verarbeitung
+
+Das Tool unterstützt mehrere Wetterdaten-Formate und kann fehlende Spalten automatisch berechnen.
+
+### Unterstützte Formate
+
+1. **Standardisiertes Format** (10 Spalten): Vollständige Wetterdaten mit allen erforderlichen Parametern
+2. **Klimastations-CSV** (Deutsche Wetterdienst-Formate): CSV-Dateien von Klimastationen mit automatischer Berechnung fehlender Parameter
+3. **.mat-Dateien**: MATLAB-Formate
+4. **.epw-Dateien**: EnergyPlus Weather-Format
+
+### Klimastations-Konvertierung
+
+Das System kann deutsche Klimastationsdaten (z.B. vom DWD) automatisch in das erforderliche Format konvertieren.
+
+**Erforderliche Eingabespalten für Klimastationsdaten:**
+- Datum/Uhrzeit (verschiedene Formate unterstützt)
+- Lufttemperatur (°C)
+- Relative Luftfeuchtigkeit (%)
+- Globalstrahlung horizontal (W/m²)
+- Windgeschwindigkeit (m/s)
+- Windrichtung (°)
+
+**Automatische Berechnungen:**
+- **Solarposition**: Sonnenhöhe und Azimut basierend auf Standortkoordinaten und Zeit
+- **Strahlungszerlegung**: Diffuse und direkte Strahlung mit dem **Erbs-Modell** (Erbs et al. 1982)
+- **Windkomponenten**: Zerlegung von Windgeschwindigkeit/-richtung in x/y-Komponenten
+- **Extraterrestrische Strahlung**: Für Klarheitsindex-Berechnung
+
+#### Erbs-Modell für Strahlungszerlegung
+
+Das System verwendet das Erbs-Modell zur Aufteilung der Globalstrahlung in diffuse und direkte Komponenten:
+
+1. **Klarheitsindex (Kt)** = Globalstrahlung / Extraterrestrische Strahlung
+2. **Diffusanteil**:
+   - Kt ≤ 0.22: Diffus/Global = 1.0 - 0.09×Kt
+   - 0.22 < Kt ≤ 0.80: Diffus/Global = 0.9511 - 0.1604×Kt + 4.388×Kt² - 16.638×Kt³ + 12.336×Kt⁴
+   - Kt > 0.80: Diffus/Global = 0.165
+
+#### Standalone-Konverter
+
+Für die Konvertierung außerhalb der Web-UI steht ein Kommandozeilen-Tool zur Verfügung:
+
+```bash
+# Klimastations-CSV konvertieren
+python convert_climate_station.py \
+  --input projects/your-project/weather/raw/climate_data.csv \
+  --output projects/your-project/weather/processed/weather.csv \
+  --latitude 47.5596 \
+  --longitude 7.5922
+```
+
+**Parameter:**
+- `--input`: Pfad zur Eingabe-CSV-Datei
+- `--output`: Pfad zur Ausgabe-CSV-Datei
+- `--latitude`: Breitengrad des Standorts (z.B. 47.5596 für Basel)
+- `--longitude`: Längengrad des Standorts (z.B. 7.5922 für Basel)
+
+### Verarbeitungsmodi in der UI
+
+In der Web-UI können Sie zwischen drei Modi wählen:
+
+1. **Automatische Erkennung**: System erkennt Format automatisch
+2. **Standardisiert (10 Spalten)**: Für vollständige Wetterdaten ohne Berechnungen
+3. **Berechnung fehlender Spalten**: Für Klimastationsdaten mit automatischer Ergänzung
+
+### Verlaufzeit (Thermal Settling Time)
+
+Die Verlaufzeit ermöglicht es dem Gebäudemodell, vor dem eigentlichen Simulationszeitraum thermisch einzuschwingen.
+
+**Funktionsweise:**
+- Die letzten N Tage der Wetterdaten werden an den Anfang kopiert
+- Der Zeitstempel wird negativ gesetzt (z.B. -336 bis 0 Stunden für 14 Tage)
+- Das Gebäude kann thermisches Gleichgewicht erreichen
+
+**Konfiguration:**
+- In der UI: Checkbox "Verlaufzeit aktivieren" + Eingabefeld für Dauer in Tagen
+- In der Config: `simulation_parameters.verlaufzeit.enable` und `verlaufzeit.days`
+- Empfohlener Wert: 14 Tage für thermisch massive Gebäude
 
 ## Installation
 
@@ -194,6 +276,7 @@ rc-model-building-simulation/
 │   ├── validator.py             # Validierung von Parametern
 │   ├── measure_service.py       # Service für Messdaten
 │   ├── weather_service.py       # Weather-Datenverarbeitung
+│   ├── solar_utils.py           # Solarposition und Strahlungsberechnung (Erbs-Modell)
 │   ├── analytics/               # Analytics-Service
 │   │   ├── service.py           # Haupt-Analytics-Service
 │   │   ├── context.py           # Analytics-Kontext
@@ -228,6 +311,7 @@ rc-model-building-simulation/
 │   ├── test_facade.py
 │   ├── test_weather_file_processing.py
 │   └── test_weather_handling.py
+├── convert_climate_station.py   # Standalone CLI-Konverter für Klimastationsdaten
 ├── Dockerfile                   # Docker-Configuration
 ├── docker-compose.yml           # Docker Compose Configuration (Produktion)
 ├── docker-compose.local.yml     # Docker Compose Configuration (lokal)
