@@ -74,7 +74,7 @@ python convert_climate_station.py \
 
 ### Verarbeitungsmodi in der UI
 
-In der Web-UI können Sie zwischen drei Modi wählen:
+In der Web-UI stehen drei Modi zur Auswahl:
 
 1. **Automatische Erkennung**: System erkennt Format automatisch
 2. **Standardisiert (10 Spalten)**: Für vollständige Wetterdaten ohne Berechnungen
@@ -199,8 +199,24 @@ Im Browser öffnen: `http://localhost:8050`
 
 Hinweis: Die Konfigurationsdateien und Projektdaten sind im Docker-Image enthalten. Das `./data` Verzeichnis wird für Output-Dateien verwendet.
 
+**Empfohlen: Automatisches Update auf neue Patch-Releases**
+
+Der Standard-Tag `1.0` wird bei neuen Patch-Releases (z. B. `1.0.2`) automatisch aktualisiert. Mit `docker compose pull` wird die neueste Version geholt:
+
 ```bash
-# Alternativ: docker build + docker run
+docker compose pull
+docker compose up -d
+```
+
+Optional eine feste Version starten (verhindert Auto-Updates):
+
+```bash
+IMAGE_TAG=1.0.1 docker compose up -d
+```
+
+Alternativ: docker build + docker run:
+
+```bash
 docker build -t vm2-rc-modell-ui:local .
 docker run \
   -p 8050:8050 \
