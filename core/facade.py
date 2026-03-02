@@ -61,7 +61,12 @@ class ConfigFacade:
         return context
 
 
-    def update_weather_file(self, temp_path: str, original_name: str) -> None:
+    def update_weather_file(
+        self,
+        temp_path: str,
+        original_name: str,
+        processing_mode: str = "auto",
+    ) -> None:
         """
         Updates the weather data file in the repository by copying it from a temporary location.
         Also saves the original name of the uploaded file.
@@ -69,7 +74,17 @@ class ConfigFacade:
         self._weather_repo.write_raw(Path(temp_path))
         self._weather_repo.save_original_name(original_name)
         cfg = self._config_repo.read_raw()
-        self._weather_service.process_and_store_weather(cfg)
+        
+        # Extract Verlaufzeit settings from config
+        verlaufzeit_enable = cfg.get("simulation_parameters", {}).get("verlaufzeit", {}).get("enable", False)
+        verlaufzeit_days = cfg.get("simulation_parameters", {}).get("verlaufzeit", {}).get("days", 14)
+        
+        self._weather_service.process_and_store_weather(
+            cfg,
+            processing_mode=processing_mode,
+            verlaufzeit_enable=verlaufzeit_enable,
+            verlaufzeit_days=verlaufzeit_days,
+        )
 
 
     def update_measurement_file(self, temp_path: str, original_name: str):

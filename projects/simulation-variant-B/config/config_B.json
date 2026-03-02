@@ -281,6 +281,12 @@
             "expression": "2019-01-01 00:00:00",
             "unit": "-",
             "value": "2019-01-01 00:00:00"
+        },
+        "verlaufzeit": {
+            "enable": false,
+            "days": 14,
+            "unit": "days",
+            "description": "Settling time before simulation period"
         }
     },
     "thermal_properties": {

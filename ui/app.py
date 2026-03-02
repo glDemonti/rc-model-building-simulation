@@ -60,7 +60,16 @@ def _push_inputs_from_cfg():
     cur = cfg_state()
     for _id, (path, cast) in BINDINGS.items():
         try:
-            ui.update_text(_id, value=str(_deep_get(cur, path)))
+            value = _deep_get(cur, path)
+            if cast is bool:
+                # Handle checkbox inputs
+                ui.update_checkbox(_id, value=bool(value))
+            elif _id in ["verlaufzeit_days"]:
+                # Handle numeric inputs
+                ui.update_numeric(_id, value=float(value))
+            else:
+                # Handle text inputs
+                ui.update_text(_id, value=str(value))
         except Exception:
             # if a field cannot be updated, skip it
             pass
@@ -157,7 +166,8 @@ BINDINGS = {
     "cooling_price": ("economic_parameters.cooling_price.expression", str),
     "Co2_emission_factor_heating": ("Co2_emission_factors.heating.expression", str),
     "Co2_emission_factor_cooling": ("Co2_emission_factors.cooling.expression", str),
-    
+    "verlaufzeit_enable": ("simulation_parameters.verlaufzeit.enable", bool),
+    "verlaufzeit_days": ("simulation_parameters.verlaufzeit.days", float),
 }
 
 def _schedule_df_from_cfg(cfg, key):
@@ -2218,9 +2228,14 @@ with ui.nav_panel("Einstellungen"):
                         info = file_info[0]
                         temp_path = info["datapath"]
                         original_name = info["name"]
+                        weather_mode = input.weather_file_mode() or "auto"
 
                         try:
-                            facade_A.update_weather_file(temp_path, original_name)
+                            facade_A.update_weather_file(
+                                temp_path,
+                                original_name,
+                                processing_mode=weather_mode,
+                            )
                             ui.notification_show(f"Wetterdatei '{original_name}' erfolgreich hochgeladen.", type="success", duration=4)
                         except Exception as e:
                             ui.notification_show(f"Fehler beim Hochladen der Wetterdatei für Variante {current_variant}: {e}", type="error", duration=6)
@@ -2239,9 +2254,14 @@ with ui.nav_panel("Einstellungen"):
                         info = file_info[0]
                         temp_path = info["datapath"]
                         original_name = info["name"]
+                        weather_mode = input.weather_file_mode() or "auto"
 
                         try:
-                            facade_B.update_weather_file(temp_path, original_name)
+                            facade_B.update_weather_file(
+                                temp_path,
+                                original_name,
+                                processing_mode=weather_mode,
+                            )
                             ui.notification_show(f"Wetterdatei '{original_name}' erfolgreich hochgeladen.", type="success", duration=4)
                         except Exception as e:
                             ui.notification_show(f"Fehler beim Hochladen der Wetterdatei für Variante {current_variant}: {e}", type="error", duration=6)
@@ -3012,10 +3032,42 @@ with ui.nav_panel("Einstellungen"):
 | sun_azimuth | ° | Sonnenazimut |
                 """)
                 ui.markdown("**Wichtig: Nur die Spaltenreihenfolge zählt!** Die Spaltennamen werden ignoriert. Die Positionen der Spalten müssen exakt dieser Tabelle entsprechen.")
+                ui.markdown("_Hinweis: Diese feste Spaltenreihenfolge gilt für den Modus **Datei ist bereits korrekt**. Im Modus **Fehlende Spalten berechnen** werden Klimastationsdaten (z. B. Temperatur, Feuchte, Windrichtung, Windstärke, Strahlung) verarbeitet._")
                 ui.markdown("**Unterstützte Formate:** MATLAB .mat-Datei mit numerischer Tabelle (erste nicht-`__` Variable wird verwendet), CSV-Dateien, oder EnergyPlus .epw-Dateien")
                 ui.markdown("**Zeitauflösung:** Stundenwerte, lückenlos aufeinanderfolgend")
                 ui.markdown("**Settling-in Phase:** Falls die Wetterdatei länger als ein Jahr (>8760 h) ist, wird das RC-Modell über die zusätzlichen Stunden durchlaufen, um ein thermisches Gleichgewicht zu erreichen. Nur das letzte Jahr wird in den Ergebnissen ausgegeben.")
+                ui.input_radio_buttons(
+                    id="weather_file_mode",
+                    label="CSV-Verarbeitungsmodus",
+                    choices={
+                        "standardized": "Datei ist bereits korrekt (10 Standardspalten vorhanden)",
+                        "calculate_missing": "Fehlende Spalten berechnen (Klimastationsdaten)",
+                        "auto": "Automatisch erkennen",
+                    },
+                    selected="standardized",
+                    inline=False,
+                )
+                ui.markdown("_Dieser Modus wird beim Hochladen der Wetterdatei verwendet._")
                 
+                ui.hr()
+                ui.card_header("Verlaufzeit (Einschwingphase)")
+                ui.markdown("**Thermisches Einschwingen:** Um realistische Anfangsbedingungen zu erreichen, können die letzten Tage der Wetterdatei vor dem eigentlichen Simulationszeitraum wiederholt werden.")
+                ui.input_checkbox(
+                    id="verlaufzeit_enable",
+                    label="Verlaufzeit aktivieren",
+                    value=cfg0.get("simulation_parameters", {}).get("verlaufzeit", {}).get("enable", False),
+                )
+                ui.input_numeric(
+                    id="verlaufzeit_days",
+                    label="Dauer der Verlaufzeit (Tage)",
+                    value=cfg0.get("simulation_parameters", {}).get("verlaufzeit", {}).get("days", 14),
+                    min=1,
+                    max=365,
+                    step=1,
+                )
+                ui.markdown("_Die letzten N Tage der Wetterdatei werden an den Anfang kopiert. Empfohlen: 14 Tage für Jahressimulationen._")
+                
+                ui.hr()
                 with ui.layout_columns():
                     ui.input_date(
                         id="weather_start_date_date",
