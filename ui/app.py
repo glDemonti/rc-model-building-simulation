@@ -3025,7 +3025,7 @@ with ui.nav_panel("Einstellungen"):
                 ui.markdown("""
 | Spalte | Einheit | Beschreibung |
 |--------|---------|-------------|
-| timestamp | Stunden | Zeit ab Jahresbeginn (z.B. 0–8760 h) |
+| timestamp | Stunden | Zeit ab Jahresbeginn (z.B. 0–8760 h für ein vollständiges Jahr) |
 | air_temperature | °C | Außenlufttemperatur |
 | relative_humidity | % | Relative Luftfeuchte |
 | wind_speed_x | m/s | Windgeschwindigkeit X-Richtung |
@@ -3036,10 +3036,11 @@ with ui.nav_panel("Einstellungen"):
 | sun_elevation | ° | Sonnenelevationswinkel |
 | sun_azimuth | ° | Sonnenazimut |
                 """)
-                ui.markdown("**Wichtig: Nur die Spaltenreihenfolge zählt!** Die Spaltennamen werden ignoriert. Die Positionen der Spalten müssen exakt dieser Tabelle entsprechen.")
+                ui.markdown("**Wichtig: Nur die Spaltenreihenfolge zählt!** Die Spaltennamen werden ignoriert. Die Positionen der Spalten müssen exakt dieser Tabelle entsprechen. Die Daten müssen stündliche Auflösung haben (typisch: 8760 Stunden für ein vollständiges Jahr).")
                 ui.markdown("_Hinweis: Diese feste Spaltenreihenfolge gilt für den Modus **Datei ist bereits korrekt**. Im Modus **Fehlende Spalten berechnen** werden Klimastationsdaten (z. B. Temperatur, Feuchte, Windrichtung, Windstärke, Strahlung) verarbeitet._")
                 ui.markdown("**Unterstützte Formate:** MATLAB .mat-Datei mit numerischer Tabelle (erste nicht-`__` Variable wird verwendet), CSV-Dateien, oder EnergyPlus .epw-Dateien")
                 ui.markdown("**Zeitauflösung:** Stundenwerte, lückenlos aufeinanderfolgend")
+                ui.markdown("⚠️ **Wichtig:** Es werden nur Datensätze mit **stündlicher Auflösung** unterstützt. Tagesdaten werden nicht automatisch interpoliert.")
                 ui.markdown("**Settling-in Phase:** Falls die Wetterdatei länger als ein Jahr (>8760 h) ist, wird das RC-Modell über die zusätzlichen Stunden durchlaufen, um ein thermisches Gleichgewicht zu erreichen. Nur das letzte Jahr wird in den Ergebnissen ausgegeben.")
                 ui.input_radio_buttons(
                     id="weather_file_mode",
@@ -3120,6 +3121,41 @@ with ui.nav_panel("Einstellungen"):
                     width="600px",
                     multiple=False
                 )
+                
+                ui.hr()
+                ui.card_header("Vorschau der aktuell gespeicherten Wetterdaten")
+                ui.markdown("_Die ersten 10 Zeilen der verarbeiteten Wetterdatei der aktuellen Variante werden angezeigt._")
+                
+                @render.data_frame
+                def weather_preview():
+                    """
+                    Display preview of the currently saved weather data for the active variant.
+                    Shows the first 10 rows of the processed weather file.
+                    """
+                    try:
+                        current_variant = active_variant()
+                        
+                        # Select facade based on active variant
+                        if current_variant == "A":
+                            weather_df = facade_A._weather_service.load_weather()
+                        else:
+                            weather_df = facade_B._weather_service.load_weather()
+                        
+                        # Return first 10 rows
+                        preview_df = weather_df.head(10)
+                        
+                        return preview_df
+                    
+                    except FileNotFoundError:
+                        # No weather file uploaded yet
+                        return pd.DataFrame({
+                            "Info": ["Keine Wetterdatei vorhanden. Bitte laden Sie eine Wetterdatei hoch."]
+                        })
+                    except Exception as e:
+                        # Other errors
+                        return pd.DataFrame({
+                            "Fehler": [f"Fehler beim Laden der Wetterdatei: {str(e)}"]
+                        })
 
 
 with ui.nav_panel("über"):
