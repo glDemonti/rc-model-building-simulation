@@ -258,6 +258,77 @@ class TestWeatherFileProcessing:
         # Should only have 9 columns (10 - timestamp)
         assert len(df.columns) == 9
         assert 'extra_col1' not in df.columns
+
+    def test_csv_semicolon_with_decimal_comma(self, temp_weather_dir):
+        """Test semicolon-separated CSV with German decimal commas."""
+        raw_dir, processed_dir = temp_weather_dir
+
+        timestamps = pd.date_range("2019-01-01", periods=4, freq='h')
+        csv_data = pd.DataFrame({
+            'timestamp': timestamps.strftime('%Y-%m-%d %H:%M:%S'),
+            'air_temperature': [20.5, 21.0, 21.5, 22.0],
+            'relative_humidity': [50.0, 51.0, 52.0, 53.0],
+            'wind_speed_x': [1.1, 1.2, 1.3, 1.4],
+            'wind_speed_y': [0.1, 0.2, 0.3, 0.4],
+            'solar_radiation_direct': [100.0, 110.0, 120.0, 130.0],
+            'solar_radiation_diffuse': [30.0, 31.0, 32.0, 33.0],
+            'sky_cover': [10.0, 11.0, 12.0, 13.0],
+            'sun_elevation': [15.0, 20.0, 25.0, 30.0],
+            'sun_azimuth': [90.0, 100.0, 110.0, 120.0],
+        })
+
+        csv_file = raw_dir / "weather_de.csv"
+        csv_data.to_csv(csv_file, sep=';', decimal=',', index=False)
+
+        repo = WeatherRepository(csv_file, processed_dir / "weather.parquet")
+        service = WeatherService(repo)
+        df = service.process_and_store_weather()
+
+        assert isinstance(df.index, pd.DatetimeIndex)
+        np.testing.assert_array_almost_equal(
+            df['air_temperature'].values,
+            [20.5, 21.0, 21.5, 22.0],
+        )
+
+    def test_mat_hour_counter_creates_hourly_datetime_index(
+        self, temp_weather_dir
+    ):
+        """MAT hour counters like 1..N should map to hourly timeline."""
+        raw_dir, processed_dir = temp_weather_dir
+
+        hour_counter = np.arange(1, 25)
+        weather_data = np.column_stack([
+            hour_counter,
+            np.random.uniform(15, 25, 24),
+            np.random.uniform(30, 70, 24),
+            np.random.uniform(-2, 5, 24),
+            np.random.uniform(-2, 5, 24),
+            np.random.uniform(0, 800, 24),
+            np.random.uniform(0, 200, 24),
+            np.random.uniform(0, 100, 24),
+            np.random.uniform(0, 90, 24),
+            np.random.uniform(0, 360, 24),
+        ])
+
+        mat_file = raw_dir / "weather_counter.mat"
+        savemat(str(mat_file), {"weather_table": weather_data})
+
+        repo = WeatherRepository(mat_file, processed_dir / "weather.parquet")
+        service = WeatherService(repo)
+
+        cfg = {
+            "simulation_parameters": {
+                "weather_start_date": {
+                    "value": "2020-01-01 00:00:00"
+                }
+            }
+        }
+
+        df = service.process_and_store_weather(cfg)
+
+        assert isinstance(df.index, pd.DatetimeIndex)
+        assert df.index[0] == pd.Timestamp("2020-01-01 00:00:00")
+        assert df.index[1] - df.index[0] == pd.Timedelta(hours=1)
         assert 'extra_col2' not in df.columns
     
     def test_processed_file_persistence(self, temp_weather_dir):

@@ -64,7 +64,7 @@ class WeatherService:
         # Determine format based on return type from repository
         if isinstance(raw, dict):
             # MATLAB .mat file (returned as dict)
-            df = self._mat_to_dataframe(raw, location_manager)
+            df = self._mat_to_dataframe(raw, location_manager, cfg)
         elif isinstance(raw, pd.DataFrame):
             # CSV or EPW file (returned as DataFrame)
             file_extension = self._repo.raw_path.suffix.lower()
@@ -224,15 +224,19 @@ class WeatherService:
         return found_indicators >= 3
 
     def _mat_to_dataframe(
-        self, raw, location_manager: SolarLocationManager = None
+        self,
+        raw,
+        location_manager: SolarLocationManager = None,
+        cfg: dict = None,
     ) -> pd.DataFrame:
         """
         Convert MATLAB .mat file to standardized DataFrame.
-        Parses the timestamp column directly from the file.
+        Handles different timestamp representations robustly.
 
         Args:
             raw: MATLAB .mat file data
             location_manager: SolarLocationManager for sun calculations
+            cfg: Optional config (used for weather_start_date fallback)
         """
         if location_manager is None:
             location_manager = SolarLocationManager()
@@ -257,8 +261,58 @@ class WeatherService:
         # Create DataFrame.
         df = pd.DataFrame(table[:, : len(columns)], columns=columns)
 
-        # Parse timestamp column as datetime
-        df["datetime"] = pd.to_datetime(df["timestamp"])
+        # Parse timestamp column as datetime with robust format detection
+        ts = pd.to_numeric(df["timestamp"], errors="coerce")
+        parsed = pd.to_datetime(df["timestamp"], errors="coerce")
+
+        # Default start date for hourly fallback
+        start_date = pd.Timestamp("2018-01-01 00:00:00")
+        if cfg:
+            try:
+                start_date_str = (
+                    cfg.get("simulation_parameters", {})
+                    .get("weather_start_date", {})
+                    .get("value")
+                    or cfg.get("simulation_parameters", {})
+                    .get("weather_start_date", {})
+                    .get("expression")
+                )
+                if start_date_str:
+                    start_date = pd.Timestamp(start_date_str)
+            except Exception:
+                pass
+
+        if ts.notna().all():
+            ts_numeric = ts.astype(float)
+            ts_min = float(ts_numeric.min())
+            ts_max = float(ts_numeric.max())
+            ts_range = ts_max - ts_min
+
+            # Case 1: hour counter (e.g., 1..8760 or 0..8759)
+            # Normalize to start at zero and build hourly index.
+            if ts_range >= 100 and ts_max <= 100000:
+                offsets_h = ts_numeric - ts_numeric.iloc[0]
+                dt = start_date + pd.to_timedelta(offsets_h, unit="h")
+                parsed = pd.DatetimeIndex(dt)
+            # Case 2: unix timestamp seconds
+            elif ts_min > 1e8 and ts_max < 1e11:
+                parsed = pd.to_datetime(ts_numeric, unit="s", errors="coerce")
+            # Case 3: unix timestamp milliseconds
+            elif ts_min > 1e11 and ts_max < 1e14:
+                parsed = pd.to_datetime(ts_numeric, unit="ms", errors="coerce")
+            # Case 4: MATLAB datenum (days)
+            elif ts_min > 5e5 and ts_max < 2e6:
+                parsed = pd.to_datetime(ts_numeric - 719529, unit="D", origin="unix", errors="coerce")
+
+        # Final safety fallback if parsing failed or unrealistic sub-minute spacing
+        if parsed.isna().any() or len(parsed) < 2:
+            parsed = pd.date_range(start=start_date, periods=len(df), freq="h")
+        else:
+            diffs = pd.Series(parsed).diff().dropna()
+            if not diffs.empty and diffs.median() < pd.Timedelta(minutes=1):
+                parsed = pd.date_range(start=start_date, periods=len(df), freq="h")
+
+        df["datetime"] = parsed
         df = df.set_index("datetime")
         df = df.drop("timestamp", axis=1)
 

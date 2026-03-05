@@ -2,6 +2,7 @@ import scipy.io as sio
 import pandas as pd
 from pathlib import Path
 import shutil
+import csv
 
 class WeatherRepository:
     def __init__(self, path_raw: Path, path_processed: Path):
@@ -51,22 +52,39 @@ class WeatherRepository:
         """
         if not self.raw_path.exists():
             return None
-        # Auto-detect separator/decimal: assume either ';' with decimal ',' or ',' with decimal '.'
-        sample = ''
+        sample = ""
         try:
-            with open(self.raw_path, 'r', encoding='utf-8', errors='ignore') as f:
-                sample = ''.join(next(f, '') for _ in range(5))
-        except StopIteration:
-            pass
+            with open(self.raw_path, "r", encoding="utf-8", errors="ignore") as f:
+                sample = f.read(8192)
+        except OSError:
+            return None
 
-        semi = sample.count(';')
-        comma = sample.count(',')
-        if semi > comma:
-            sep, decimal = ';', ','
-        else:
-            sep, decimal = ',', '.'
+        # Prefer csv.Sniffer; if it fails, fall back to a simple count.
+        sep = ","
+        try:
+            dialect = csv.Sniffer().sniff(sample, delimiters=";,")
+            sep = dialect.delimiter
+        except csv.Error:
+            sep = ";" if sample.count(";") > sample.count(",") else ","
 
-        return pd.read_csv(self.raw_path, sep=sep, decimal=decimal, engine='python')
+        # For semicolon-separated files we commonly get German decimal comma.
+        decimal_candidates = [",", "."] if sep == ";" else [".", ","]
+
+        last_error = None
+        for decimal in decimal_candidates:
+            try:
+                return pd.read_csv(
+                    self.raw_path,
+                    sep=sep,
+                    decimal=decimal,
+                    engine="python",
+                )
+            except Exception as exc:
+                last_error = exc
+
+        raise ValueError(
+            f"Could not parse CSV weather data file '{self.raw_path}'."
+        ) from last_error
     
     def read_raw_epw(self):
         """
