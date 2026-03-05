@@ -1,9 +1,9 @@
 {
     "Co2_emission_factors": {
         "cooling": {
-            "expression": "0.15",
+            "expression": "0.25",
             "unit": "kgCO2/kWh",
-            "value": 0.15
+            "value": 0.25
         },
         "electricity": {
             "expression": "0.2",
@@ -264,7 +264,7 @@
         },
         "enable_cooling": {
             "unit": "-",
-            "value": true
+            "value": false
         },
         "heating_setpoint": {
             "expression": "21.0",
